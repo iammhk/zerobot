@@ -27,21 +27,21 @@ npx --yes clawhub@latest search "web scraping" --limit 5
 ## Install
 
 ```bash
-npx --yes clawhub@latest install <slug> --workdir ~/.Zerobot/workspace
+npx --yes clawhub@latest install <slug> --workdir ~/.zerobot/workspace
 ```
 
-Replace `<slug>` with the skill name from search results. This places the skill into `~/.Zerobot/workspace/skills/`, where Zerobot loads workspace skills from. Always include `--workdir`.
+Replace `<slug>` with the skill name from search results. This places the skill into `~/.zerobot/workspace/skills/`, where Zerobot loads workspace skills from. Always include `--workdir`.
 
 ## Update
 
 ```bash
-npx --yes clawhub@latest update --all --workdir ~/.Zerobot/workspace
+npx --yes clawhub@latest update --all --workdir ~/.zerobot/workspace
 ```
 
 ## List installed
 
 ```bash
-npx --yes clawhub@latest list --workdir ~/.Zerobot/workspace
+npx --yes clawhub@latest list --workdir ~/.zerobot/workspace
 ```
 
 ## Notes
@@ -49,7 +49,8 @@ npx --yes clawhub@latest list --workdir ~/.Zerobot/workspace
 - Requires Node.js (`npx` comes with it).
 - No API key needed for search and install.
 - Login (`npx --yes clawhub@latest login`) is only required for publishing.
-- `--workdir ~/.Zerobot/workspace` is critical — without it, skills install to the current directory instead of the Zerobot workspace.
+- `--workdir ~/.zerobot/workspace` is critical — without it, skills install to the current directory instead of the Zerobot workspace.
 - After install, remind the user to start a new session to load the skill.
+
 
 

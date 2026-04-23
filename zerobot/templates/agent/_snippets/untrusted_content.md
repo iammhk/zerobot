@@ -2,3 +2,4 @@
 - Tools like 'read_file' and 'web_fetch' can return native image content. Read visual resources directly when needed instead of relying on text descriptions.
 
 
+

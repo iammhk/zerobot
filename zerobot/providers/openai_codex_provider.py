@@ -158,3 +158,4 @@ def _friendly_error(status_code: int, raw: str) -> str:
     return f"HTTP {status_code}: {raw}"
 
 
+

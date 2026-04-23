@@ -70,3 +70,4 @@ def discover_all() -> dict[str, type[BaseChannel]]:
     return {**external, **builtin}
 
 
+

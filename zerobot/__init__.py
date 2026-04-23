@@ -1,5 +1,5 @@
 """
-Zerobot - A lightweight AI agent framework (optimized for Pi Zero)
+zerobot - A lightweight AI agent framework (optimized for Pi Zero)
 """
 
 from importlib.metadata import PackageNotFoundError, version as _pkg_version
@@ -18,7 +18,7 @@ def _read_pyproject_version() -> str | None:
 
 def _resolve_version() -> str:
     try:
-        return _pkg_version("Zerobot-ai")
+        return _pkg_version("zerobot-ai")
     except PackageNotFoundError:
         # Source checkouts often import zerobot without installed dist-info.
         return _read_pyproject_version() or "0.1.5.post2"
@@ -27,8 +27,9 @@ def _resolve_version() -> str:
 __version__ = _resolve_version()
 __logo__ = "🐈"
 
-from zerobot.Zerobot import zerobot, RunResult
+from zerobot.zerobot import zerobot, RunResult
 
 __all__ = ["Zerobot", "RunResult"]
+
 
 

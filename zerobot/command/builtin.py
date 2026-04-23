@@ -347,3 +347,4 @@ def register_builtin_commands(router: CommandRouter) -> None:
     router.exact("/help", cmd_help)
 
 
+

@@ -279,3 +279,4 @@ def tool_parameters(schema: dict[str, Any]) -> Callable[[type[_ToolT]], type[_To
     return decorator
 
 
+

@@ -293,3 +293,4 @@ def extract_documents(
     return text, image_paths
 
 
+

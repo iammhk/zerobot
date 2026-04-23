@@ -181,9 +181,9 @@ class QQChannel(BaseChannel):
             try:
                 root = Path(get_media_dir("qq"))
             except Exception:
-                root = Path.home() / ".Zerobot" / "media" / "qq"
+                root = Path.home() / ".zerobot" / "media" / "qq"
         else:
-            root = Path.home() / ".Zerobot" / "media" / "qq"
+            root = Path.home() / ".zerobot" / "media" / "qq"
 
         root.mkdir(parents=True, exist_ok=True)
         logger.info("QQ media directory: {}", str(root))
@@ -687,5 +687,6 @@ class QQChannel(BaseChannel):
                     tmp_path.unlink(missing_ok=True)
                 except Exception:
                     pass
+
 
 

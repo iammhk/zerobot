@@ -112,3 +112,4 @@ fi
 list_sessions "$socket_label" "${tmux_cmd[@]:1}"
 
 
+

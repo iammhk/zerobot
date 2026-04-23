@@ -421,7 +421,7 @@ def _make_provider(config: Config):
     if backend == "azure_openai":
         if not p or not p.api_key or not p.api_base:
             console.print("[red]Error: Azure OpenAI requires api_key and api_base.[/red]")
-            console.print("Set them in ~/.Zerobot/config.json under providers.azure_openai section")
+            console.print("Set them in ~/.zerobot/config.json under providers.azure_openai section")
             console.print("Use the model field to specify the deployment name.")
             raise typer.Exit(1)
     elif backend == "openai_compat" and not model.startswith("bedrock/"):
@@ -429,7 +429,7 @@ def _make_provider(config: Config):
         exempt = spec and (spec.is_oauth or spec.is_local or spec.is_direct)
         if needs_key and not exempt:
             console.print("[red]Error: No API key configured.[/red]")
-            console.print("Set one in ~/.Zerobot/config.json under providers section")
+            console.print("Set one in ~/.zerobot/config.json under providers section")
             raise typer.Exit(1)
 
     # --- instantiation by backend ---
@@ -1505,5 +1505,6 @@ def _login_github_copilot() -> None:
 
 if __name__ == "__main__":
     app()
+
 
 

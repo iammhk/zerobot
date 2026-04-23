@@ -121,3 +121,4 @@ tmux -S "$SOCKET" capture-pane -p -t agent-1 -S -500
 - `-l` history lines to search (integer, default 1000)
 
 
+

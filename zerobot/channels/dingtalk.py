@@ -618,3 +618,4 @@ class DingTalkChannel(BaseChannel):
             return None
 
 
+

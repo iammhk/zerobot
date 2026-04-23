@@ -6,3 +6,4 @@ from zerobot.command.router import CommandContext, CommandRouter
 __all__ = ["CommandContext", "CommandRouter", "register_builtin_commands"]
 
 
+

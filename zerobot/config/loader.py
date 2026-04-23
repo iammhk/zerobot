@@ -26,7 +26,7 @@ def get_config_path() -> Path:
     """Get the configuration file path."""
     if _current_config_path:
         return _current_config_path
-    return Path.home() / ".Zerobot" / "config.json"
+    return Path.home() / ".zerobot" / "config.json"
 
 
 def load_config(config_path: Path | None = None) -> Config:
@@ -170,5 +170,6 @@ def _migrate_config(data: dict) -> dict:
             tools.pop("mySet", None)
 
     return data
+
 
 

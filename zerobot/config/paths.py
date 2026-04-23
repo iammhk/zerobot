@@ -36,29 +36,30 @@ def get_logs_dir() -> Path:
 
 def get_workspace_path(workspace: str | None = None) -> Path:
     """Resolve and ensure the agent workspace path."""
-    path = Path(workspace).expanduser() if workspace else Path.home() / ".Zerobot" / "workspace"
+    path = Path(workspace).expanduser() if workspace else Path.home() / ".zerobot" / "workspace"
     return ensure_dir(path)
 
 
 def is_default_workspace(workspace: str | Path | None) -> bool:
     """Return whether a workspace resolves to Zerobot's default workspace path."""
-    current = Path(workspace).expanduser() if workspace is not None else Path.home() / ".Zerobot" / "workspace"
-    default = Path.home() / ".Zerobot" / "workspace"
+    current = Path(workspace).expanduser() if workspace is not None else Path.home() / ".zerobot" / "workspace"
+    default = Path.home() / ".zerobot" / "workspace"
     return current.resolve(strict=False) == default.resolve(strict=False)
 
 
 def get_cli_history_path() -> Path:
     """Return the shared CLI history file path."""
-    return Path.home() / ".Zerobot" / "history" / "cli_history"
+    return Path.home() / ".zerobot" / "history" / "cli_history"
 
 
 def get_bridge_install_dir() -> Path:
     """Return the shared WhatsApp bridge installation directory."""
-    return Path.home() / ".Zerobot" / "bridge"
+    return Path.home() / ".zerobot" / "bridge"
 
 
 def get_legacy_sessions_dir() -> Path:
     """Return the legacy global session directory used for migration fallback."""
-    return Path.home() / ".Zerobot" / "sessions"
+    return Path.home() / ".zerobot" / "sessions"
+
 
 

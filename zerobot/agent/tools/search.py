@@ -555,3 +555,4 @@ class GrepTool(_SearchTool):
             return f"Error searching files: {e}"
 
 
+

@@ -35,3 +35,4 @@ def render_template(name: str, *, strip: bool = False, **kwargs: Any) -> str:
     return text.rstrip() if strip else text
 
 
+

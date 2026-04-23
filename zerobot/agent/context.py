@@ -119,7 +119,7 @@ class ContextBuilder:
     def _is_template_content(content: str, template_path: str) -> bool:
         """Check if *content* is identical to the bundled template (user hasn't customized it)."""
         try:
-            tpl = pkg_files("Zerobot") / "templates" / template_path
+            tpl = pkg_files("zerobot") / "templates" / template_path
             if tpl.is_file():
                 return content.strip() == tpl.read_text(encoding="utf-8").strip()
         except Exception:
@@ -207,5 +207,6 @@ class ContextBuilder:
             thinking_blocks=thinking_blocks,
         ))
         return messages
+
 
 

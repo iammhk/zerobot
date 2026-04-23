@@ -117,7 +117,7 @@ def current_time_str(timezone: str | None = None) -> str:
 
 _UNSAFE_CHARS = re.compile(r'[<>:"/\\|?*]')
 _TOOL_RESULT_PREVIEW_CHARS = 1200
-_TOOL_RESULTS_DIR = ".Zerobot/tool-results"
+_TOOL_RESULTS_DIR = ".zerobot/tool-results"
 _TOOL_RESULT_RETENTION_SECS = 7 * 24 * 60 * 60
 _TOOL_RESULT_MAX_BUCKETS = 32
 
@@ -490,7 +490,7 @@ def sync_workspace_templates(workspace: Path, silent: bool = False) -> list[str]
     from importlib.resources import files as pkg_files
 
     try:
-        tpl = pkg_files("Zerobot") / "templates"
+        tpl = pkg_files("zerobot") / "templates"
     except Exception:
         return []
     if not tpl.is_dir():
@@ -535,5 +535,6 @@ def sync_workspace_templates(workspace: Path, silent: bool = False) -> list[str]
         logger.warning("Failed to initialize git store for {}", workspace)
 
     return added
+
 
 

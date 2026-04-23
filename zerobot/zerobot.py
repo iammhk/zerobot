@@ -25,7 +25,7 @@ class Zerobot:
 
     Usage::
 
-        bot = zerobot.from_config()
+        bot = Zerobot.from_config()
         result = await bot.run("Summarize this repo", hooks=[MyHook()])
         print(result.content)
     """
@@ -44,7 +44,7 @@ class Zerobot:
 
         Args:
             config_path: Path to ``config.json``.  Defaults to
-                ``~/.Zerobot/config.json``.
+                ``~/.zerobot/config.json``.
             workspace: Override the workspace directory from config.
         """
         from zerobot.config.loader import load_config, resolve_config_env_vars
@@ -178,5 +178,6 @@ def _make_provider(config: Any) -> Any:
         reasoning_effort=defaults.reasoning_effort,
     )
     return provider
+
 
 

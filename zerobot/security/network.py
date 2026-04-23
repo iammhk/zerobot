@@ -120,3 +120,4 @@ def contains_internal_url(command: str) -> bool:
     return False
 
 
+

@@ -68,7 +68,7 @@ class DreamConfig(Base):
 class AgentDefaults(Base):
     """Default agent configuration."""
 
-    workspace: str = "~/.Zerobot/workspace"
+    workspace: str = "~/.zerobot/workspace"
     model: str = "anthropic/claude-opus-4-5"
     provider: str = (
         "auto"  # Provider name (e.g. "anthropic", "openrouter") or "auto" for auto-detection
@@ -333,5 +333,6 @@ class Config(BaseSettings):
         return None
 
     model_config = ConfigDict(env_prefix="Zerobot_", env_nested_delimiter="__")
+
 
 

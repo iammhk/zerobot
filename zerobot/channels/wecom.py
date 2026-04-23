@@ -549,3 +549,4 @@ class WecomChannel(BaseChannel):
             logger.exception("Error sending WeCom message to chat_id={}", msg.chat_id)
 
 
+
