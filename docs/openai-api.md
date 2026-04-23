@@ -1,10 +1,10 @@
 # OpenAI-Compatible API
 
-nanobot can expose a minimal OpenAI-compatible endpoint for local integrations:
+zerobot can expose a minimal OpenAI-compatible endpoint for local integrations:
 
 ```bash
-pip install "nanobot-ai[api]"
-nanobot serve
+pip install "zerobot-ai[api]"
+zerobot serve
 ```
 
 By default, the API binds to `127.0.0.1:8900`. You can change this in `config.json`.
@@ -28,7 +28,7 @@ Example tool call for cross-channel delivery from an API session:
 }
 ```
 
-If `channel` points to a channel that is not enabled in your config, nanobot will queue the outbound event but no platform delivery will occur.
+If `channel` points to a channel that is not enabled in your config, zerobot will queue the outbound event but no platform delivery will occur.
 
 ## Endpoints
 
@@ -119,3 +119,4 @@ resp = client.chat.completions.create(
 )
 print(resp.choices[0].message.content)
 ```
+

@@ -6,11 +6,11 @@ from unittest.mock import AsyncMock, MagicMock
 
 import pytest
 
-from nanobot.agent.loop import AgentLoop
-from nanobot.agent.tools.message import MessageTool
-from nanobot.bus.events import InboundMessage, OutboundMessage
-from nanobot.bus.queue import MessageBus
-from nanobot.providers.base import LLMResponse, ToolCallRequest
+from zerobot.agent.loop import AgentLoop
+from zerobot.agent.tools.message import MessageTool
+from zerobot.bus.events import InboundMessage, OutboundMessage
+from zerobot.bus.queue import MessageBus
+from zerobot.providers.base import LLMResponse, ToolCallRequest
 
 
 def _make_loop(tmp_path: Path) -> AgentLoop:
@@ -166,3 +166,4 @@ class TestMessageToolTurnTracking:
         tool._sent_in_turn = True
         tool.start_turn()
         assert not tool._sent_in_turn
+

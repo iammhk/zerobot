@@ -8,7 +8,7 @@ from unittest.mock import patch
 
 import pytest
 
-from nanobot.session.manager import SessionManager
+from zerobot.session.manager import SessionManager
 
 _IS_WINDOWS = sys.platform == "win32"
 
@@ -128,3 +128,4 @@ class TestFlushAll:
         assert len(history) == 2
         assert history[0]["content"] == "remember this"
         assert history[1]["content"] == "noted"
+

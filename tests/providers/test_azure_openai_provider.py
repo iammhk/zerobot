@@ -4,8 +4,8 @@ from unittest.mock import AsyncMock, MagicMock
 
 import pytest
 
-from nanobot.providers.azure_openai_provider import AzureOpenAIProvider
-from nanobot.providers.base import LLMResponse
+from zerobot.providers.azure_openai_provider import AzureOpenAIProvider
+from zerobot.providers.base import LLMResponse
 
 
 # ---------------------------------------------------------------------------
@@ -406,3 +406,4 @@ def test_get_default_model():
         api_key="k", api_base="https://r.com", default_model="my-deploy",
     )
     assert provider.get_default_model() == "my-deploy"
+

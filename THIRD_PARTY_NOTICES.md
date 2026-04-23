@@ -1,14 +1,14 @@
 # Third-Party Notices
 
 The following third-party components are redistributed as part of the packaged
-nanobot Python distribution (`pip install nanobot-ai`).
+zerobot Python distribution (`pip install zerobot-ai`).
 
 ---
 
 ## KaTeX — math rendering (MIT)
 
 - **Source**: https://github.com/KaTeX/KaTeX
-- **Bundled**: `nanobot/web/dist/assets/index-*.{js,css}`
+- **Bundled**: `zerobot/web/dist/assets/index-*.{js,css}`
 
 ```
 The MIT License (MIT)
@@ -39,7 +39,7 @@ SOFTWARE.
 ## KaTeX Fonts — math typography (SIL OFL 1.1)
 
 - **Source**: https://github.com/KaTeX/KaTeX/tree/main/src/fonts
-- **Bundled**: `nanobot/web/dist/assets/KaTeX_*.{woff2,woff,ttf}`
+- **Bundled**: `zerobot/web/dist/assets/KaTeX_*.{woff2,woff,ttf}`
 
 The fonts are redistributed unmodified.
 
@@ -142,3 +142,4 @@ DAMAGES, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
 FROM, OUT OF THE USE OR INABILITY TO USE THE FONT SOFTWARE OR FROM
 OTHER DEALINGS IN THE FONT SOFTWARE.
 ```
+

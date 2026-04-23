@@ -10,7 +10,7 @@ import json
 
 import pytest
 
-from nanobot.agent.memory import MemoryStore
+from zerobot.agent.memory import MemoryStore
 
 
 @pytest.fixture
@@ -186,3 +186,4 @@ class TestCursorValidationInvariant:
             "Expected exactly one corruption warning per store instance; "
             f"got {len(corruption_warnings)}: {[r.getMessage() for r in corruption_warnings]}"
         )
+

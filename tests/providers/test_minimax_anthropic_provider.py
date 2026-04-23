@@ -1,7 +1,7 @@
 """Tests for the MiniMax Anthropic provider registration."""
 
-from nanobot.config.schema import ProvidersConfig
-from nanobot.providers.registry import PROVIDERS
+from zerobot.config.schema import ProvidersConfig
+from zerobot.providers.registry import PROVIDERS
 
 
 def test_minimax_anthropic_config_field_exists():
@@ -19,3 +19,4 @@ def test_minimax_anthropic_provider_in_registry():
     assert minimax_anthropic.env_key == "MINIMAX_API_KEY"
     assert minimax_anthropic.backend == "anthropic"
     assert minimax_anthropic.default_api_base == "https://api.minimax.io/anthropic"
+

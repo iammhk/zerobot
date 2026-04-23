@@ -3,12 +3,12 @@
 Feishu cards reject messages that contain more than one table element
 (API error 11310: card table number over limit).  The helper splits a flat
 list of card elements into groups so that each group contains at most one
-table, allowing nanobot to send multiple cards instead of failing.
+table, allowing zerobot to send multiple cards instead of failing.
 """
 
 # Check optional Feishu dependencies before running tests
 try:
-    from nanobot.channels import feishu
+    from zerobot.channels import feishu
     FEISHU_AVAILABLE = getattr(feishu, "FEISHU_AVAILABLE", False)
 except ImportError:
     FEISHU_AVAILABLE = False
@@ -17,7 +17,7 @@ if not FEISHU_AVAILABLE:
     import pytest
     pytest.skip("Feishu dependencies not installed (lark-oapi)", allow_module_level=True)
 
-from nanobot.channels.feishu import FeishuChannel
+from zerobot.channels.feishu import FeishuChannel
 
 
 def _md(text: str) -> dict:
@@ -113,3 +113,4 @@ def test_non_table_elements_before_first_table_kept_in_first_group() -> None:
     # head + t1 in group 0; t2 in group 1
     assert result[0] == [head, t1]
     assert result[1] == [t2]
+

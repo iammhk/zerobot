@@ -6,8 +6,8 @@ from unittest.mock import AsyncMock, MagicMock
 
 import pytest
 
-from nanobot.command.builtin import register_builtin_commands
-from nanobot.command.router import CommandContext, CommandRouter
+from zerobot.command.builtin import register_builtin_commands
+from zerobot.command.router import CommandContext, CommandRouter
 
 
 class TestIsDispatchableCommand:
@@ -141,3 +141,4 @@ class TestMidTurnCommandDispatchedDirectly:
         )
         result = await router.dispatch(ctx)
         assert result is None
+

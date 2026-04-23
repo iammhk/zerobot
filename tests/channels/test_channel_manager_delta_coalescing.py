@@ -4,11 +4,11 @@ from unittest.mock import AsyncMock, MagicMock
 
 import pytest
 
-from nanobot.bus.events import OutboundMessage
-from nanobot.bus.queue import MessageBus
-from nanobot.channels.base import BaseChannel
-from nanobot.channels.manager import ChannelManager
-from nanobot.config.schema import Config
+from zerobot.bus.events import OutboundMessage
+from zerobot.bus.queue import MessageBus
+from zerobot.channels.base import BaseChannel
+from zerobot.channels.manager import ChannelManager
+from zerobot.config.schema import Config
 
 
 class MockChannel(BaseChannel):
@@ -343,3 +343,4 @@ class TestRetryWaitFiltering:
         sent = send_mock.await_args_list[0].args[0]
         assert sent.content == "final answer"
         assert not sent.metadata.get("_retry_wait")
+

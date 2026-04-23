@@ -2,8 +2,8 @@ from __future__ import annotations
 
 from typing import Any
 
-from nanobot.providers.anthropic_provider import AnthropicProvider
-from nanobot.providers.openai_compat_provider import OpenAICompatProvider
+from zerobot.providers.anthropic_provider import AnthropicProvider
+from zerobot.providers.openai_compat_provider import OpenAICompatProvider
 
 
 def _openai_tools(*names: str) -> list[dict[str, Any]]:
@@ -85,3 +85,4 @@ def test_openai_compat_marks_only_tail_without_mcp() -> None:
         _openai_tools("read_file", "write_file"),
     )
     assert _marked_openai_tool_names(marked_tools) == ["write_file"]
+

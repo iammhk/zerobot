@@ -1,20 +1,20 @@
 {
   "app": {
-    "brand": "nanobot",
+    "brand": "zerobot",
     "loading": {
-      "connecting": "Menghubungkan ke nanobot…",
-      "boot": "Memuat nanobot…"
+      "connecting": "Menghubungkan ke zerobot…",
+      "boot": "Memuat zerobot…"
     },
     "error": {
-      "title": "Tidak dapat menjangkau nanobot",
-      "gatewayHint": "Pastikan gateway sedang berjalan (`nanobot gateway`) dan halaman ini dibuka pada mesin yang sama."
+      "title": "Tidak dapat menjangkau zerobot",
+      "gatewayHint": "Pastikan gateway sedang berjalan (`zerobot gateway`) dan halaman ini dibuka pada mesin yang sama."
     },
     "documentTitle": {
-      "base": "nanobot",
-      "chat": "{{title}} · nanobot"
+      "base": "zerobot",
+      "chat": "{{title}} · zerobot"
     },
     "meta": {
-      "description": "UI web nanobot — ngobrol dengan workspace nanobot Anda."
+      "description": "UI web zerobot — ngobrol dengan workspace zerobot Anda."
     }
   },
   "sidebar": {
@@ -110,3 +110,4 @@
     }
   }
 }
+

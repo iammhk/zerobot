@@ -21,3 +21,4 @@ describe("ThreadComposer", () => {
     expect(input.parentElement?.className).toContain("max-w-[40rem]");
   });
 });
+

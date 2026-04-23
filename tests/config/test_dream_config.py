@@ -1,4 +1,4 @@
-from nanobot.config.schema import DreamConfig
+from zerobot.config.schema import DreamConfig
 
 
 def test_dream_config_defaults_to_interval_hours() -> None:
@@ -46,3 +46,4 @@ def test_dream_config_uses_model_override_name_and_accepts_legacy_model() -> Non
     assert cfg.model_override == "openrouter/sonnet"
     assert dumped["modelOverride"] == "openrouter/sonnet"
     assert "model" not in dumped
+

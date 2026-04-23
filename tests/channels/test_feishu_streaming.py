@@ -5,9 +5,9 @@ from unittest.mock import MagicMock
 
 import pytest
 
-from nanobot.bus.events import OutboundMessage
-from nanobot.bus.queue import MessageBus
-from nanobot.channels.feishu import FeishuChannel, FeishuConfig, _FeishuStreamBuf
+from zerobot.bus.events import OutboundMessage
+from zerobot.bus.queue import MessageBus
+from zerobot.channels.feishu import FeishuChannel, FeishuConfig, _FeishuStreamBuf
 
 
 def _make_channel(streaming: bool = True) -> FeishuChannel:
@@ -399,3 +399,4 @@ class TestSendMessageReturnsId:
         ch._client.im.v1.message.create.return_value = resp
         result = ch._send_message_sync("chat_id", "oc_chat1", "text", '{"text":"hi"}')
         assert result is None
+

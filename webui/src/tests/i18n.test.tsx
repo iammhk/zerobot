@@ -27,7 +27,7 @@ describe("webui i18n", () => {
     await waitFor(() => {
       expect(document.documentElement.lang).toBe("zh-CN");
     });
-    expect(localStorage.getItem("nanobot.locale")).toBe("zh-CN");
+    expect(localStorage.getItem("zerobot.locale")).toBe("zh-CN");
     expect(screen.getByPlaceholderText("输入消息…")).toBeInTheDocument();
   });
 
@@ -42,3 +42,4 @@ describe("webui i18n", () => {
     expect(screen.getByLabelText("メッセージ入力欄")).toBeInTheDocument();
   });
 });
+

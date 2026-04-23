@@ -36,7 +36,7 @@ function wrap(client: ReturnType<typeof fakeClient>) {
   return function Wrapper({ children }: { children: ReactNode }) {
     return (
       <ClientProvider
-        client={client as unknown as import("@/lib/nanobot-client").NanobotClient}
+        client={client as unknown as import("@/lib/zerobot-client").zerobotClient}
         token="tok"
       >
         {children}
@@ -164,3 +164,4 @@ describe("useSessions", () => {
     expect(result.current.sessions.map((s) => s.key)).toEqual(["websocket:chat-a"]);
   });
 });
+

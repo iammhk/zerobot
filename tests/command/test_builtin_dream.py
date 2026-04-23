@@ -4,10 +4,10 @@ from types import SimpleNamespace
 
 import pytest
 
-from nanobot.bus.events import InboundMessage
-from nanobot.command.builtin import cmd_dream_log, cmd_dream_restore
-from nanobot.command.router import CommandContext
-from nanobot.utils.gitstore import CommitInfo
+from zerobot.bus.events import InboundMessage
+from zerobot.command.builtin import cmd_dream_log, cmd_dream_restore
+from zerobot.command.router import CommandContext
+from zerobot.utils.gitstore import CommitInfo
 
 
 class _FakeStore:
@@ -141,3 +141,4 @@ async def test_dream_restore_success_mentions_files_and_followup() -> None:
     assert "- New safety commit: `eeee9999`" in out.content
     assert "- Restored files: `SOUL.md`, `memory/MEMORY.md`" in out.content
     assert "Use `/dream-log eeee9999` to inspect the restore diff." in out.content
+

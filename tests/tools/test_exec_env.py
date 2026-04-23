@@ -4,7 +4,7 @@ import sys
 
 import pytest
 
-from nanobot.agent.tools.shell import ExecTool
+from zerobot.agent.tools.shell import ExecTool
 
 _UNIX_ONLY = pytest.mark.skipif(sys.platform == "win32", reason="Unix shell commands")
 
@@ -13,9 +13,9 @@ _UNIX_ONLY = pytest.mark.skipif(sys.platform == "win32", reason="Unix shell comm
 @pytest.mark.asyncio
 async def test_exec_does_not_leak_parent_env(monkeypatch):
     """Env vars from the parent process must not be visible to commands."""
-    monkeypatch.setenv("NANOBOT_SECRET_TOKEN", "super-secret-value")
+    monkeypatch.setenv("zerobot_SECRET_TOKEN", "super-secret-value")
     tool = ExecTool()
-    result = await tool.execute(command="printenv NANOBOT_SECRET_TOKEN")
+    result = await tool.execute(command="printenv zerobot_SECRET_TOKEN")
     assert "super-secret-value" not in result
 
 
@@ -74,3 +74,4 @@ async def test_exec_allowed_env_keys_missing_var_ignored(monkeypatch):
     tool = ExecTool(allowed_env_keys=["NONEXISTENT_VAR_12345"])
     result = await tool.execute(command="printenv NONEXISTENT_VAR_12345")
     assert "Exit code: 1" in result
+

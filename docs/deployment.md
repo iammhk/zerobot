@@ -3,20 +3,20 @@
 ## Docker
 
 > [!TIP]
-> The `-v ~/.nanobot:/home/nanobot/.nanobot` flag mounts your local config directory into the container, so your config and workspace persist across container restarts.
-> The container runs as user `nanobot` (UID 1000). If you get **Permission denied**, fix ownership on the host first: `sudo chown -R 1000:1000 ~/.nanobot`, or pass `--user $(id -u):$(id -g)` to match your host UID. Podman users can use `--userns=keep-id` instead.
+> The `-v ~/.zerobot:/home/zerobot/.zerobot` flag mounts your local config directory into the container, so your config and workspace persist across container restarts.
+> The container runs as user `zerobot` (UID 1000). If you get **Permission denied**, fix ownership on the host first: `sudo chown -R 1000:1000 ~/.zerobot`, or pass `--user $(id -u):$(id -g)` to match your host UID. Podman users can use `--userns=keep-id` instead.
 
 ### Docker Compose
 
 ```bash
-docker compose run --rm nanobot-cli onboard   # first-time setup
-vim ~/.nanobot/config.json                     # add API keys
-docker compose up -d nanobot-gateway           # start gateway
+docker compose run --rm zerobot-cli onboard   # first-time setup
+vim ~/.zerobot/config.json                     # add API keys
+docker compose up -d zerobot-gateway           # start gateway
 ```
 
 ```bash
-docker compose run --rm nanobot-cli agent -m "Hello!"   # run CLI
-docker compose logs -f nanobot-gateway                   # view logs
+docker compose run --rm zerobot-cli agent -m "Hello!"   # run CLI
+docker compose logs -f zerobot-gateway                   # view logs
 docker compose down                                      # stop
 ```
 
@@ -24,42 +24,42 @@ docker compose down                                      # stop
 
 ```bash
 # Build the image
-docker build -t nanobot .
+docker build -t zerobot .
 
 # Initialize config (first time only)
-docker run -v ~/.nanobot:/home/nanobot/.nanobot --rm nanobot onboard
+docker run -v ~/.zerobot:/home/zerobot/.zerobot --rm zerobot onboard
 
 # Edit config on host to add API keys
-vim ~/.nanobot/config.json
+vim ~/.zerobot/config.json
 
 # Run gateway (connects to enabled channels, e.g. Telegram/Discord/Mochat)
-docker run -v ~/.nanobot:/home/nanobot/.nanobot -p 18790:18790 nanobot gateway
+docker run -v ~/.zerobot:/home/zerobot/.zerobot -p 18790:18790 zerobot gateway
 
 # Or run a single command
-docker run -v ~/.nanobot:/home/nanobot/.nanobot --rm nanobot agent -m "Hello!"
-docker run -v ~/.nanobot:/home/nanobot/.nanobot --rm nanobot status
+docker run -v ~/.zerobot:/home/zerobot/.zerobot --rm zerobot agent -m "Hello!"
+docker run -v ~/.zerobot:/home/zerobot/.zerobot --rm zerobot status
 ```
 
 ## Linux Service
 
 Run the gateway as a systemd user service so it starts automatically and restarts on failure.
 
-**1. Find the nanobot binary path:**
+**1. Find the zerobot binary path:**
 
 ```bash
-which nanobot   # e.g. /home/user/.local/bin/nanobot
+which zerobot   # e.g. /home/user/.local/bin/zerobot
 ```
 
-**2. Create the service file** at `~/.config/systemd/user/nanobot-gateway.service` (replace `ExecStart` path if needed):
+**2. Create the service file** at `~/.config/systemd/user/zerobot-gateway.service` (replace `ExecStart` path if needed):
 
 ```ini
 [Unit]
-Description=Nanobot Gateway
+Description=zerobot Gateway
 After=network.target
 
 [Service]
 Type=simple
-ExecStart=%h/.local/bin/nanobot gateway
+ExecStart=%h/.local/bin/zerobot gateway
 Restart=always
 RestartSec=10
 NoNewPrivileges=yes
@@ -74,15 +74,15 @@ WantedBy=default.target
 
 ```bash
 systemctl --user daemon-reload
-systemctl --user enable --now nanobot-gateway
+systemctl --user enable --now zerobot-gateway
 ```
 
 **Common operations:**
 
 ```bash
-systemctl --user status nanobot-gateway        # check status
-systemctl --user restart nanobot-gateway       # restart after config changes
-journalctl --user -u nanobot-gateway -f        # follow logs
+systemctl --user status zerobot-gateway        # check status
+systemctl --user restart zerobot-gateway       # restart after config changes
+journalctl --user -u zerobot-gateway -f        # follow logs
 ```
 
 If you edit the `.service` file itself, run `systemctl --user daemon-reload` before restarting.
@@ -92,3 +92,4 @@ If you edit the `.service` file itself, run `systemctl --user daemon-reload` bef
 > ```bash
 > loginctl enable-linger $USER
 > ```
+

@@ -1,8 +1,8 @@
 from types import SimpleNamespace
 
-from nanobot.bus.events import OutboundMessage
-from nanobot.bus.queue import MessageBus
-from nanobot.channels.base import BaseChannel
+from zerobot.bus.events import OutboundMessage
+from zerobot.bus.queue import MessageBus
+from zerobot.channels.base import BaseChannel
 
 
 class _DummyChannel(BaseChannel):
@@ -35,3 +35,4 @@ def test_is_allowed_denies_empty_dict_allow_from() -> None:
     channel = _DummyChannel({"allow_from": []}, MessageBus())
 
     assert channel.is_allowed("alice") is False
+

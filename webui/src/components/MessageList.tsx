@@ -107,3 +107,4 @@ export function MessageList({ messages, isStreaming }: MessageListProps) {
     </div>
   );
 }
+

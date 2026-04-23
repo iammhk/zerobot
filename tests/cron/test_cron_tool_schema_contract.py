@@ -11,8 +11,8 @@ from __future__ import annotations
 
 import pytest
 
-from nanobot.agent.tools.cron import CronTool
-from nanobot.agent.tools.registry import ToolRegistry
+from zerobot.agent.tools.cron import CronTool
+from zerobot.agent.tools.registry import ToolRegistry
 
 
 class _SvcStub:
@@ -97,3 +97,4 @@ class TestSchemaSelfDescribesRequirements:
         # accidentally introduced).
         tool = CronTool(_SvcStub())
         assert tool.parameters["required"] == ["action"]
+

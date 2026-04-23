@@ -1,9 +1,9 @@
 import { createContext, useContext, type ReactNode } from "react";
 
-import type { NanobotClient } from "@/lib/nanobot-client";
+import type { zerobotClient } from "@/lib/zerobot-client";
 
 interface ClientContextValue {
-  client: NanobotClient;
+  client: zerobotClient;
   token: string;
   modelName: string | null;
 }
@@ -16,7 +16,7 @@ export function ClientProvider({
   modelName = null,
   children,
 }: {
-  client: NanobotClient;
+  client: zerobotClient;
   token: string;
   modelName?: string | null;
   children: ReactNode;
@@ -35,3 +35,4 @@ export function useClient(): ClientContextValue {
   }
   return ctx;
 }
+

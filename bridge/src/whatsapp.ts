@@ -90,7 +90,7 @@ export class WhatsAppClient {
       version,
       logger,
       printQRInTerminal: false,
-      browser: ['nanobot', 'cli', VERSION],
+      browser: ['zerobot', 'cli', VERSION],
       syncFullHistory: false,
       markOnlineOnConnect: false,
     });
@@ -291,3 +291,4 @@ export class WhatsAppClient {
     }
   }
 }
+

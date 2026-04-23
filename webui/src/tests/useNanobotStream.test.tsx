@@ -2,7 +2,7 @@ import { act, renderHook } from "@testing-library/react";
 import type { ReactNode } from "react";
 import { describe, expect, it, vi } from "vitest";
 
-import { useNanobotStream } from "@/hooks/useNanobotStream";
+import { usezerobotStream } from "@/hooks/usezerobotStream";
 import type { InboundEvent } from "@/lib/types";
 import { ClientProvider } from "@/providers/ClientProvider";
 
@@ -41,7 +41,7 @@ function wrap(client: ReturnType<typeof fakeClient>["client"]) {
   return function Wrapper({ children }: { children: ReactNode }) {
     return (
       <ClientProvider
-        client={client as unknown as import("@/lib/nanobot-client").NanobotClient}
+        client={client as unknown as import("@/lib/zerobot-client").zerobotClient}
         token="tok"
       >
         {children}
@@ -50,10 +50,10 @@ function wrap(client: ReturnType<typeof fakeClient>["client"]) {
   };
 }
 
-describe("useNanobotStream", () => {
+describe("usezerobotStream", () => {
   it("collapses consecutive tool_hint frames into one trace row", () => {
     const fake = fakeClient();
-    const { result } = renderHook(() => useNanobotStream("chat-t", []), {
+    const { result } = renderHook(() => usezerobotStream("chat-t", []), {
       wrapper: wrap(fake.client),
     });
 
@@ -93,3 +93,4 @@ describe("useNanobotStream", () => {
     expect(result.current.messages[1].kind).toBeUndefined();
   });
 });
+

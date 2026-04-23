@@ -9,8 +9,8 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from nanobot.agent.context import ContextBuilder
-from nanobot.utils.document import extract_documents
+from zerobot.agent.context import ContextBuilder
+from zerobot.utils.document import extract_documents
 
 
 def _make_builder(tmp_path: Path) -> ContextBuilder:
@@ -111,3 +111,4 @@ def test_drain_pending_path_without_extract_loses_document(tmp_path: Path) -> No
     # The document text is LOST — _build_user_content ignores non-images
     assert result == "summarize"  # only the original text, no doc content
     assert "Secret data" not in result
+

@@ -38,3 +38,4 @@ export function deriveWsUrl(wsPath: string, token: string): string {
   const host = window.location.host;
   return `${scheme}://${host}${path}${query}`;
 }
+

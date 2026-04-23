@@ -1,4 +1,4 @@
-from nanobot.session.manager import Session
+from zerobot.session.manager import Session
 
 
 def _assert_no_orphans(history: list[dict]) -> None:
@@ -269,3 +269,4 @@ def test_get_history_ignores_media_kwarg_on_non_user_rows():
     # List content is passed through verbatim — the synthesizer only
     # rewrites plain-string content.
     assert history[0]["content"] == [{"type": "text", "text": "structured"}]
+

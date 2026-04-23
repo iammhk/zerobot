@@ -26,7 +26,7 @@ tools:
 To allow the agent to set its configuration (e.g. switch models, adjust parameters), set `tools.my.allow_set: true`.
 
 Legacy `tools.myEnabled` / `tools.mySet` keys are auto-migrated on load, and
-rewritten in-place the next time `nanobot onboard` refreshes the config.
+rewritten in-place the next time `zerobot onboard` refreshes the config.
 
 All modifications are held in memory only — restart restores defaults.
 
@@ -93,7 +93,7 @@ my(action="set", key="context_window_tokens", value=131072)
 You can also store custom state in your scratchpad:
 
 ```text
-my(action="set", key="current_project", value="nanobot")
+my(action="set", key="current_project", value="zerobot")
 my(action="set", key="user_style_preference", value="concise")
 my(action="set", key="task_complexity", value="high")
 # → These values persist into the next conversation turn
@@ -205,3 +205,4 @@ Can be checked but not set:
 ### Sensitive field protection
 
 Sub-fields matching sensitive names (`api_key`, `password`, `secret`, `token`, etc.) are blocked from both check and set, regardless of parent path. This prevents credential leaks via dot-path traversal (e.g. `web_config.search.api_key`).
+

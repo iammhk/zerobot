@@ -104,3 +104,4 @@ export async function deleteSession(
   );
   return body.deleted;
 }
+

@@ -107,3 +107,4 @@ export default {
   },
   plugins: [animate, typography],
 };
+

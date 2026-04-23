@@ -47,7 +47,7 @@ vi.mock("@/lib/bootstrap", () => ({
   deriveWsUrl: vi.fn(() => "ws://test"),
 }));
 
-vi.mock("@/lib/nanobot-client", () => {
+vi.mock("@/lib/zerobot-client", () => {
   class MockClient {
     status = "idle" as const;
     defaultChatId: string | null = null;
@@ -62,7 +62,7 @@ vi.mock("@/lib/nanobot-client", () => {
     updateUrl = vi.fn();
   }
 
-  return { NanobotClient: MockClient };
+  return { zerobotClient: MockClient };
 });
 
 import App from "@/App";
@@ -147,3 +147,4 @@ describe("App layout", () => {
     expect(document.body.style.pointerEvents).not.toBe("none");
   }, 15_000);
 });
+

@@ -9,7 +9,7 @@ import pytest
 
 # Check optional Feishu dependencies before running tests
 try:
-    from nanobot.channels import feishu
+    from zerobot.channels import feishu
     FEISHU_AVAILABLE = getattr(feishu, "FEISHU_AVAILABLE", False)
 except ImportError:
     FEISHU_AVAILABLE = False
@@ -17,9 +17,9 @@ except ImportError:
 if not FEISHU_AVAILABLE:
     pytest.skip("Feishu dependencies not installed (lark-oapi)", allow_module_level=True)
 
-from nanobot.bus.events import OutboundMessage
-from nanobot.bus.queue import MessageBus
-from nanobot.channels.feishu import FeishuChannel, FeishuConfig
+from zerobot.bus.events import OutboundMessage
+from zerobot.bus.queue import MessageBus
+from zerobot.channels.feishu import FeishuChannel, FeishuConfig
 
 
 # ---------------------------------------------------------------------------
@@ -443,3 +443,4 @@ async def test_on_message_no_extra_api_call_when_no_parent_id() -> None:
 
     channel._client.im.v1.message.get.assert_not_called()
     assert len(captured) == 1
+

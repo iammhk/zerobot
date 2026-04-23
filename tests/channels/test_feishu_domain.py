@@ -3,8 +3,8 @@ from unittest.mock import MagicMock
 
 import pytest
 
-from nanobot.bus.queue import MessageBus
-from nanobot.channels.feishu import FeishuChannel, FeishuConfig
+from zerobot.bus.queue import MessageBus
+from zerobot.channels.feishu import FeishuChannel, FeishuConfig
 
 
 def _make_channel(domain: str = "feishu") -> FeishuChannel:
@@ -46,3 +46,4 @@ class TestFeishuConfigDomain:
     def test_channel_persists_feishu_domain_from_config(self):
         ch = _make_channel(domain="feishu")
         assert ch.config.domain == "feishu"
+

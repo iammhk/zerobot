@@ -2,7 +2,7 @@
 
 from pathlib import Path
 
-from nanobot.session.manager import Session, SessionManager
+from zerobot.session.manager import Session, SessionManager
 
 
 def _seed(workspace: Path, key: str = "telegram:abc") -> SessionManager:
@@ -63,3 +63,4 @@ def test_safe_key_matches_internal_path(tmp_path: Path) -> None:
     key = "telegram:abc/def"
     expected = sm._get_session_path(key).name
     assert SessionManager.safe_key(key) + ".jsonl" == expected
+

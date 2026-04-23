@@ -2,7 +2,7 @@
 
 from pathlib import Path
 
-from nanobot.utils.document import (
+from zerobot.utils.document import (
     SUPPORTED_EXTENSIONS,
     _is_text_extension,
     extract_text,
@@ -314,3 +314,4 @@ class TestIsTextExtension:
         assert _is_text_extension(".txt") is True
         assert _is_text_extension(".TXT") is False
         assert _is_text_extension(".pdf") is False
+

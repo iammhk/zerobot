@@ -7,7 +7,7 @@ were passed to Anthropic unconverted, causing silent image drops with a
 warning.
 """
 
-from nanobot.providers.anthropic_provider import AnthropicProvider
+from zerobot.providers.anthropic_provider import AnthropicProvider
 
 
 def test_tool_result_block_converts_image_url_in_list_content():
@@ -55,3 +55,4 @@ def test_tool_result_block_preserves_string_content():
     assert block["type"] == "tool_result"
     assert block["tool_use_id"] == "call_2"
     assert block["content"] == "plain tool output"
+

@@ -5,7 +5,7 @@ from datetime import datetime
 
 import pytest
 
-from nanobot.agent.memory import MemoryStore
+from zerobot.agent.memory import MemoryStore
 
 
 @pytest.fixture
@@ -313,3 +313,4 @@ class TestLegacyHistoryMigration:
         assert entries[0]["timestamp"] == "2026-04-01 10:00"
         assert "Broken" in entries[0]["content"]
         assert "migration." in entries[0]["content"]
+

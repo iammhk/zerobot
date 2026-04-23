@@ -4,9 +4,9 @@ from datetime import datetime, timezone
 
 import pytest
 
-from nanobot.agent.tools.cron import CronTool
-from nanobot.cron.service import CronService
-from nanobot.cron.types import CronJob, CronJobState, CronPayload, CronSchedule
+from zerobot.agent.tools.cron import CronTool
+from zerobot.cron.service import CronService
+from zerobot.cron.types import CronJob, CronJobState, CronPayload, CronSchedule
 
 
 def _make_tool(tmp_path) -> CronTool:
@@ -394,3 +394,4 @@ def test_list_excludes_disabled_jobs(tmp_path) -> None:
     result = tool._list_jobs()
     assert "Paused job" not in result
     assert result == "No scheduled jobs."
+

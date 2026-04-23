@@ -1,6 +1,6 @@
 import pytest
 
-from nanobot.agent.tools.message import MessageTool
+from zerobot.agent.tools.message import MessageTool
 
 
 @pytest.mark.asyncio
@@ -29,3 +29,4 @@ async def test_message_tool_rejects_malformed_buttons(bad) -> None:
         content="hi", channel="telegram", chat_id="1", buttons=bad,
     )
     assert result == "Error: buttons must be a list of list of strings"
+

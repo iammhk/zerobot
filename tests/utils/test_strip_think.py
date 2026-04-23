@@ -1,4 +1,4 @@
-from nanobot.utils.helpers import strip_think
+from zerobot.utils.helpers import strip_think
 
 
 class TestStripThinkTag:
@@ -134,3 +134,4 @@ class TestStripThinkConservativePreserve:
     def test_literal_channel_marker_in_code_block_preserved(self):
         text = "Example:\n```\nif line.startswith('<channel|>'):\n    skip()\n```"
         assert strip_think(text) == text
+

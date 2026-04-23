@@ -33,7 +33,7 @@ function makeClient() {
 function wrap(client: ReturnType<typeof makeClient>, children: ReactNode) {
   return (
     <ClientProvider
-      client={client as unknown as import("@/lib/nanobot-client").NanobotClient}
+      client={client as unknown as import("@/lib/zerobot-client").zerobotClient}
       token="tok"
     >
       {children}
@@ -173,7 +173,7 @@ describe("ThreadShell", () => {
           client,
           <ThreadShell
             session={null}
-            title="nanobot"
+            title="zerobot"
             onToggleSidebar={() => {}}
             onGoHome={() => {}}
             onNewChat={onNewChat}
@@ -412,3 +412,4 @@ describe("ThreadShell", () => {
     expect(screen.queryByText("from chat a")).not.toBeInTheDocument();
   });
 });
+

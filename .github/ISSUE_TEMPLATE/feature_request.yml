@@ -34,7 +34,7 @@ body:
     id: component
     attributes:
       label: Related Component
-      description: Which part of nanobot does this relate to?
+      description: Which part of zerobot does this relate to?
       options:
         - Channel (WeChat, Feishu, Telegram, etc.)
         - LLM Provider
@@ -53,3 +53,4 @@ body:
     attributes:
       label: Additional Context
       description: Any other context, examples from other projects, screenshots, etc.
+

@@ -14,8 +14,8 @@ from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
-from nanobot.providers.openai_compat_provider import OpenAICompatProvider
-from nanobot.providers.registry import find_by_name
+from zerobot.providers.openai_compat_provider import OpenAICompatProvider
+from zerobot.providers.registry import find_by_name
 
 
 def _fake_chat_response(content: str = "ok") -> SimpleNamespace:
@@ -123,7 +123,7 @@ def test_openrouter_spec_is_gateway() -> None:
 
 def test_openrouter_sets_default_attribution_headers() -> None:
     spec = find_by_name("openrouter")
-    with patch("nanobot.providers.openai_compat_provider.AsyncOpenAI") as MockClient:
+    with patch("zerobot.providers.openai_compat_provider.AsyncOpenAI") as MockClient:
         OpenAICompatProvider(
             api_key="sk-or-test-key",
             api_base="https://openrouter.ai/api/v1",
@@ -132,30 +132,30 @@ def test_openrouter_sets_default_attribution_headers() -> None:
         )
 
     headers = MockClient.call_args.kwargs["default_headers"]
-    assert headers["HTTP-Referer"] == "https://github.com/HKUDS/nanobot"
-    assert headers["X-OpenRouter-Title"] == "nanobot"
+    assert headers["HTTP-Referer"] == "https://github.com/HKUDS/zerobot"
+    assert headers["X-OpenRouter-Title"] == "zerobot"
     assert headers["X-OpenRouter-Categories"] == "cli-agent,personal-agent"
     assert "x-session-affinity" in headers
 
 
 def test_openrouter_user_headers_override_default_attribution() -> None:
     spec = find_by_name("openrouter")
-    with patch("nanobot.providers.openai_compat_provider.AsyncOpenAI") as MockClient:
+    with patch("zerobot.providers.openai_compat_provider.AsyncOpenAI") as MockClient:
         OpenAICompatProvider(
             api_key="sk-or-test-key",
             api_base="https://openrouter.ai/api/v1",
             default_model="anthropic/claude-sonnet-4-5",
             extra_headers={
-                "HTTP-Referer": "https://nanobot.ai",
-                "X-OpenRouter-Title": "Nanobot Pro",
+                "HTTP-Referer": "https://zerobot.ai",
+                "X-OpenRouter-Title": "zerobot Pro",
                 "X-Custom-App": "enabled",
             },
             spec=spec,
         )
 
     headers = MockClient.call_args.kwargs["default_headers"]
-    assert headers["HTTP-Referer"] == "https://nanobot.ai"
-    assert headers["X-OpenRouter-Title"] == "Nanobot Pro"
+    assert headers["HTTP-Referer"] == "https://zerobot.ai"
+    assert headers["X-OpenRouter-Title"] == "zerobot Pro"
     assert headers["X-OpenRouter-Categories"] == "cli-agent,personal-agent"
     assert headers["X-Custom-App"] == "enabled"
 
@@ -166,7 +166,7 @@ async def test_openrouter_keeps_model_name_intact() -> None:
     mock_create = AsyncMock(return_value=_fake_chat_response())
     spec = find_by_name("openrouter")
 
-    with patch("nanobot.providers.openai_compat_provider.AsyncOpenAI") as MockClient:
+    with patch("zerobot.providers.openai_compat_provider.AsyncOpenAI") as MockClient:
         client_instance = MockClient.return_value
         client_instance.chat.completions.create = mock_create
 
@@ -191,7 +191,7 @@ async def test_aihubmix_strips_model_prefix() -> None:
     mock_create = AsyncMock(return_value=_fake_chat_response())
     spec = find_by_name("aihubmix")
 
-    with patch("nanobot.providers.openai_compat_provider.AsyncOpenAI") as MockClient:
+    with patch("zerobot.providers.openai_compat_provider.AsyncOpenAI") as MockClient:
         client_instance = MockClient.return_value
         client_instance.chat.completions.create = mock_create
 
@@ -216,7 +216,7 @@ async def test_standard_provider_passes_model_through() -> None:
     mock_create = AsyncMock(return_value=_fake_chat_response())
     spec = find_by_name("deepseek")
 
-    with patch("nanobot.providers.openai_compat_provider.AsyncOpenAI") as MockClient:
+    with patch("zerobot.providers.openai_compat_provider.AsyncOpenAI") as MockClient:
         client_instance = MockClient.return_value
         client_instance.chat.completions.create = mock_create
 
@@ -240,7 +240,7 @@ async def test_openai_compat_preserves_extra_content_on_tool_calls() -> None:
     mock_create = AsyncMock(return_value=_fake_tool_call_response())
     spec = find_by_name("gemini")
 
-    with patch("nanobot.providers.openai_compat_provider.AsyncOpenAI") as MockClient:
+    with patch("zerobot.providers.openai_compat_provider.AsyncOpenAI") as MockClient:
         client_instance = MockClient.return_value
         client_instance.chat.completions.create = mock_create
 
@@ -268,7 +268,7 @@ async def test_openai_compat_preserves_extra_content_on_tool_calls() -> None:
 def test_openai_model_passthrough() -> None:
     """OpenAI models pass through unchanged."""
     spec = find_by_name("openai")
-    with patch("nanobot.providers.openai_compat_provider.AsyncOpenAI"):
+    with patch("zerobot.providers.openai_compat_provider.AsyncOpenAI"):
         provider = OpenAICompatProvider(
             api_key="sk-test-key",
             default_model="gpt-4o",
@@ -283,7 +283,7 @@ async def test_direct_openai_gpt5_uses_responses_api() -> None:
     mock_responses = AsyncMock(return_value=_fake_responses_response("from responses"))
     spec = find_by_name("openai")
 
-    with patch("nanobot.providers.openai_compat_provider.AsyncOpenAI") as MockClient:
+    with patch("zerobot.providers.openai_compat_provider.AsyncOpenAI") as MockClient:
         client_instance = MockClient.return_value
         client_instance.chat.completions.create = mock_chat
         client_instance.responses.create = mock_responses
@@ -314,7 +314,7 @@ async def test_direct_openai_reasoning_prefers_responses_api() -> None:
     mock_responses = AsyncMock(return_value=_fake_responses_response("reasoned"))
     spec = find_by_name("openai")
 
-    with patch("nanobot.providers.openai_compat_provider.AsyncOpenAI") as MockClient:
+    with patch("zerobot.providers.openai_compat_provider.AsyncOpenAI") as MockClient:
         client_instance = MockClient.return_value
         client_instance.chat.completions.create = mock_chat
         client_instance.responses.create = mock_responses
@@ -343,7 +343,7 @@ async def test_direct_openai_gpt4o_stays_on_chat_completions() -> None:
     mock_responses = AsyncMock(return_value=_fake_responses_response())
     spec = find_by_name("openai")
 
-    with patch("nanobot.providers.openai_compat_provider.AsyncOpenAI") as MockClient:
+    with patch("zerobot.providers.openai_compat_provider.AsyncOpenAI") as MockClient:
         client_instance = MockClient.return_value
         client_instance.chat.completions.create = mock_chat
         client_instance.responses.create = mock_responses
@@ -368,7 +368,7 @@ async def test_openrouter_gpt5_stays_on_chat_completions() -> None:
     mock_responses = AsyncMock(return_value=_fake_responses_response())
     spec = find_by_name("openrouter")
 
-    with patch("nanobot.providers.openai_compat_provider.AsyncOpenAI") as MockClient:
+    with patch("zerobot.providers.openai_compat_provider.AsyncOpenAI") as MockClient:
         client_instance = MockClient.return_value
         client_instance.chat.completions.create = mock_chat
         client_instance.responses.create = mock_responses
@@ -394,7 +394,7 @@ async def test_direct_openai_streaming_gpt5_uses_responses_api() -> None:
     mock_responses = AsyncMock(return_value=_fake_responses_stream("hi"))
     spec = find_by_name("openai")
 
-    with patch("nanobot.providers.openai_compat_provider.AsyncOpenAI") as MockClient:
+    with patch("zerobot.providers.openai_compat_provider.AsyncOpenAI") as MockClient:
         client_instance = MockClient.return_value
         client_instance.chat.completions.create = mock_chat
         client_instance.responses.create = mock_responses
@@ -421,7 +421,7 @@ async def test_direct_openai_responses_404_falls_back_to_chat_completions() -> N
     mock_responses = AsyncMock(side_effect=_FakeResponsesError(404, "Responses endpoint not supported"))
     spec = find_by_name("openai")
 
-    with patch("nanobot.providers.openai_compat_provider.AsyncOpenAI") as MockClient:
+    with patch("zerobot.providers.openai_compat_provider.AsyncOpenAI") as MockClient:
         client_instance = MockClient.return_value
         client_instance.chat.completions.create = mock_chat
         client_instance.responses.create = mock_responses
@@ -447,7 +447,7 @@ async def test_direct_openai_open_circuit_skips_responses_api() -> None:
     mock_responses = AsyncMock(return_value=_fake_responses_response("from responses"))
     spec = find_by_name("openai")
 
-    with patch("nanobot.providers.openai_compat_provider.AsyncOpenAI") as MockClient:
+    with patch("zerobot.providers.openai_compat_provider.AsyncOpenAI") as MockClient:
         client_instance = MockClient.return_value
         client_instance.chat.completions.create = mock_chat
         client_instance.responses.create = mock_responses
@@ -478,7 +478,7 @@ async def test_direct_openai_stream_responses_unsupported_param_falls_back() -> 
     )
     spec = find_by_name("openai")
 
-    with patch("nanobot.providers.openai_compat_provider.AsyncOpenAI") as MockClient:
+    with patch("zerobot.providers.openai_compat_provider.AsyncOpenAI") as MockClient:
         client_instance = MockClient.return_value
         client_instance.chat.completions.create = mock_chat
         client_instance.responses.create = mock_responses
@@ -504,7 +504,7 @@ async def test_direct_openai_responses_rate_limit_does_not_fallback() -> None:
     mock_responses = AsyncMock(side_effect=_FakeResponsesError(429, "rate limit"))
     spec = find_by_name("openai")
 
-    with patch("nanobot.providers.openai_compat_provider.AsyncOpenAI") as MockClient:
+    with patch("zerobot.providers.openai_compat_provider.AsyncOpenAI") as MockClient:
         client_instance = MockClient.return_value
         client_instance.chat.completions.create = mock_chat
         client_instance.responses.create = mock_responses
@@ -533,7 +533,7 @@ def test_openai_compat_supports_temperature_matches_reasoning_model_rules() -> N
 
 def test_openai_compat_build_kwargs_uses_gpt5_safe_parameters() -> None:
     spec = find_by_name("openai")
-    with patch("nanobot.providers.openai_compat_provider.AsyncOpenAI"):
+    with patch("zerobot.providers.openai_compat_provider.AsyncOpenAI"):
         provider = OpenAICompatProvider(
             api_key="sk-test-key",
             default_model="gpt-5-chat",
@@ -557,7 +557,7 @@ def test_openai_compat_build_kwargs_uses_gpt5_safe_parameters() -> None:
 
 
 def test_openai_compat_preserves_message_level_reasoning_fields() -> None:
-    with patch("nanobot.providers.openai_compat_provider.AsyncOpenAI"):
+    with patch("zerobot.providers.openai_compat_provider.AsyncOpenAI"):
         provider = OpenAICompatProvider()
 
     sanitized = provider._sanitize_messages([
@@ -586,7 +586,7 @@ def test_openai_compat_preserves_message_level_reasoning_fields() -> None:
 
 
 def test_openai_compat_keeps_tool_calls_after_consecutive_assistant_messages() -> None:
-    with patch("nanobot.providers.openai_compat_provider.AsyncOpenAI"):
+    with patch("zerobot.providers.openai_compat_provider.AsyncOpenAI"):
         provider = OpenAICompatProvider()
 
     sanitized = provider._sanitize_messages([
@@ -614,7 +614,7 @@ def test_openai_compat_keeps_tool_calls_after_consecutive_assistant_messages() -
 
 
 def test_openai_compat_stringifies_dict_tool_arguments() -> None:
-    with patch("nanobot.providers.openai_compat_provider.AsyncOpenAI"):
+    with patch("zerobot.providers.openai_compat_provider.AsyncOpenAI"):
         provider = OpenAICompatProvider()
 
     sanitized = provider._sanitize_messages([
@@ -638,7 +638,7 @@ def test_openai_compat_stringifies_dict_tool_arguments() -> None:
 
 
 def test_openai_compat_repairs_non_json_tool_arguments_string() -> None:
-    with patch("nanobot.providers.openai_compat_provider.AsyncOpenAI"):
+    with patch("zerobot.providers.openai_compat_provider.AsyncOpenAI"):
         provider = OpenAICompatProvider()
 
     sanitized = provider._sanitize_messages([
@@ -662,7 +662,7 @@ def test_openai_compat_repairs_non_json_tool_arguments_string() -> None:
 
 
 def test_openai_compat_defaults_missing_tool_arguments_to_empty_object() -> None:
-    with patch("nanobot.providers.openai_compat_provider.AsyncOpenAI"):
+    with patch("zerobot.providers.openai_compat_provider.AsyncOpenAI"):
         provider = OpenAICompatProvider()
 
     sanitized = provider._sanitize_messages([
@@ -687,11 +687,11 @@ def test_openai_compat_defaults_missing_tool_arguments_to_empty_object() -> None
 
 @pytest.mark.asyncio
 async def test_openai_compat_stream_watchdog_returns_error_on_stall(monkeypatch) -> None:
-    monkeypatch.setenv("NANOBOT_STREAM_IDLE_TIMEOUT_S", "0")
+    monkeypatch.setenv("zerobot_STREAM_IDLE_TIMEOUT_S", "0")
     mock_create = AsyncMock(return_value=_StalledStream())
     spec = find_by_name("openai")
 
-    with patch("nanobot.providers.openai_compat_provider.AsyncOpenAI") as MockClient:
+    with patch("zerobot.providers.openai_compat_provider.AsyncOpenAI") as MockClient:
         client_instance = MockClient.return_value
         client_instance.chat.completions.create = mock_create
 
@@ -716,7 +716,7 @@ async def test_openai_compat_stream_watchdog_returns_error_on_stall(monkeypatch)
 
 def _build_kwargs_for(provider_name: str, model: str, reasoning_effort=None):
     spec = find_by_name(provider_name)
-    with patch("nanobot.providers.openai_compat_provider.AsyncOpenAI"):
+    with patch("zerobot.providers.openai_compat_provider.AsyncOpenAI"):
         p = OpenAICompatProvider(api_key="k", default_model=model, spec=spec)
     return p._build_kwargs(
         messages=[{"role": "user", "content": "hi"}],
@@ -855,3 +855,4 @@ def test_kimi_k2_thinking_series_no_thinking_injection() -> None:
     """kimi-k2-thinking series models must NOT receive extra_body.thinking."""
     kw = _build_kwargs_for("moonshot", "kimi-k2-thinking", reasoning_effort="high")
     assert "extra_body" not in kw
+

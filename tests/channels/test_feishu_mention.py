@@ -4,7 +4,7 @@ from types import SimpleNamespace
 
 import pytest
 
-from nanobot.channels.feishu import FeishuChannel
+from zerobot.channels.feishu import FeishuChannel
 
 
 def _make_channel(bot_open_id: str | None = None) -> FeishuChannel:
@@ -60,3 +60,4 @@ class TestIsBotMentioned:
         ch = _make_channel(bot_open_id="ou_bot123")
         msg = _make_message(mentions=None)
         assert ch._is_bot_mentioned(msg) is False
+

@@ -197,3 +197,4 @@ function NavButton({ side, label, onClick }: NavButtonProps) {
     </button>
   );
 }
+

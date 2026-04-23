@@ -1,6 +1,6 @@
 """Tests for AnthropicProvider._merge_consecutive."""
 
-from nanobot.providers.anthropic_provider import AnthropicProvider
+from zerobot.providers.anthropic_provider import AnthropicProvider
 
 
 class TestMergeConsecutive:
@@ -137,3 +137,4 @@ class TestMergeConsecutive:
         ]
         result = AnthropicProvider._merge_consecutive(msgs)
         assert [m["role"] for m in result] == ["assistant", "user"]
+

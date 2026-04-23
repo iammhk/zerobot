@@ -2,7 +2,7 @@
 
 from types import SimpleNamespace
 
-from nanobot.channels.feishu import FeishuChannel
+from zerobot.channels.feishu import FeishuChannel
 
 
 def _mention(key: str, name: str, open_id: str = "", user_id: str = ""):
@@ -57,3 +57,4 @@ class TestResolveMentions:
         mentions = [_mention("@_user_99", "Ghost", open_id="ou_ghost")]
         result = FeishuChannel._resolve_mentions(text, mentions)
         assert result == "hello world"
+

@@ -1,12 +1,12 @@
 [project]
-name = "nanobot-ai"
+name = "zerobot-ai"
 version = "0.1.5.post2"
-description = "A lightweight personal AI assistant framework"
+description = "A lightweight personal AI assistant framework (optimized for Pi Zero)"
 readme = { file = "README.md", content-type = "text/markdown" }
 requires-python = ">=3.11"
 license = {text = "MIT"}
 authors = [
-    {name = "nanobot contributors"}
+    {name = "zerobot contributors"}
 ]
 keywords = ["ai", "agent", "chatbot"]
 classifiers = [
@@ -102,7 +102,7 @@ dev = [
 ]
 
 [project.scripts]
-nanobot = "nanobot.cli.commands:app"
+zerobot = "zerobot.cli.commands:app"
 
 [build-system]
 requires = ["hatchling"]
@@ -113,24 +113,24 @@ allow-direct-references = true
 
 [tool.hatch.build]
 include = [
-    "nanobot/**/*.py",
-    "nanobot/templates/**/*.md",
-    "nanobot/skills/**/*.md",
-    "nanobot/skills/**/*.sh",
+    "zerobot/**/*.py",
+    "zerobot/templates/**/*.md",
+    "zerobot/skills/**/*.md",
+    "zerobot/skills/**/*.sh",
 ]
 
 [tool.hatch.build.targets.wheel]
-packages = ["nanobot"]
+packages = ["zerobot"]
 
 [tool.hatch.build.targets.wheel.sources]
-"nanobot" = "nanobot"
+"zerobot" = "zerobot"
 
 [tool.hatch.build.targets.wheel.force-include]
-"bridge" = "nanobot/bridge"
+"bridge" = "zerobot/bridge"
 
 [tool.hatch.build.targets.sdist]
 include = [
-    "nanobot/",
+    "zerobot/",
     "bridge/",
     "README.md",
     "LICENSE",
@@ -151,7 +151,7 @@ asyncio_mode = "auto"
 testpaths = ["tests"]
 
 [tool.coverage.run]
-source = ["nanobot"]
+source = ["zerobot"]
 omit = ["tests/*", "**/tests/*"]
 
 [tool.coverage.report]
@@ -162,3 +162,4 @@ exclude_lines = [
     "if __name__ == .__main__.:",
     "if TYPE_CHECKING:",
 ]
+

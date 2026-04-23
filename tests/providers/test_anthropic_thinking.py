@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from unittest.mock import patch
 
-from nanobot.providers.anthropic_provider import AnthropicProvider
+from zerobot.providers.anthropic_provider import AnthropicProvider
 
 
 def _make_provider(model: str = "claude-sonnet-4-6") -> AnthropicProvider:
@@ -63,3 +63,4 @@ def test_none_does_not_enable_thinking() -> None:
     kw = _build(_make_provider(), None)
     assert "thinking" not in kw
     assert kw["temperature"] == 0.7
+

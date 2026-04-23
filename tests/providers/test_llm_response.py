@@ -11,7 +11,7 @@ from __future__ import annotations
 
 import pytest
 
-from nanobot.providers.base import LLMResponse, ToolCallRequest
+from zerobot.providers.base import LLMResponse, ToolCallRequest
 
 
 def _response(finish_reason: str, *, with_tool_call: bool = True) -> LLMResponse:
@@ -55,3 +55,4 @@ class TestShouldExecuteTools:
         resp = _response(anomalous_reason)
         assert resp.has_tool_calls is True
         assert resp.should_execute_tools is False
+

@@ -14,8 +14,8 @@ from unittest.mock import AsyncMock, MagicMock
 import pytest
 import websockets
 
-from nanobot.channels.websocket import WebSocketChannel
-from nanobot.bus.events import OutboundMessage
+from zerobot.channels.websocket import WebSocketChannel
+from zerobot.bus.events import OutboundMessage
 from ws_test_client import WsTestClient, issue_token, issue_token_ok
 
 
@@ -516,3 +516,4 @@ async def test_invalid_json_as_plain_text(bus: MagicMock) -> None:
             assert bus.publish_inbound.call_args[0][0].content == "{broken json"
     finally:
         await ch.stop(); await t
+

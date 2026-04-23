@@ -70,3 +70,4 @@ i18n.on("languageChanged", syncLocaleSideEffects);
 
 export { LOCALE_STORAGE_KEY };
 export default i18n;
+

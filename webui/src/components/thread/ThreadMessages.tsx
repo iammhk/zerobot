@@ -14,3 +14,4 @@ export function ThreadMessages({ messages }: ThreadMessagesProps) {
     </div>
   );
 }
+

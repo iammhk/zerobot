@@ -171,3 +171,4 @@ describe("ThreadComposer — image attachments", () => {
     expect(onSend).not.toHaveBeenCalled();
   });
 });
+

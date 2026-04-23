@@ -95,3 +95,4 @@ export function disposeImageEncoder(): void {
   }
   pending.clear();
 }
+

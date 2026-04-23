@@ -41,3 +41,4 @@ describe("MessageBubble", () => {
     expect(screen.queryByText('weather("get")')).not.toBeInTheDocument();
   });
 });
+

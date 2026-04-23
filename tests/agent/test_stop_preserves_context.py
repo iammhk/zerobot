@@ -4,7 +4,7 @@ When /stop cancels an active task, the runtime checkpoint (tool results,
 assistant messages accumulated so far) should be materialized into session
 history rather than silently discarded.
 
-See: https://github.com/HKUDS/nanobot/issues/2966
+See: https://github.com/HKUDS/zerobot/issues/2966
 """
 
 from __future__ import annotations
@@ -16,7 +16,7 @@ from unittest.mock import MagicMock, patch, AsyncMock
 
 import pytest
 
-from nanobot.agent.loop import AgentLoop
+from zerobot.agent.loop import AgentLoop
 
 
 @pytest.fixture
@@ -96,8 +96,8 @@ async def test_dispatch_cancellation_restores_checkpoint():
     isolation, so a future refactor that drops the cancel-time restore is
     caught by CI instead of silently regressing.
     """
-    from nanobot.bus.events import InboundMessage
-    from nanobot.bus.queue import MessageBus
+    from zerobot.bus.events import InboundMessage
+    from zerobot.bus.queue import MessageBus
 
     bus = MessageBus()
     provider = MagicMock()
@@ -105,9 +105,9 @@ async def test_dispatch_cancellation_restores_checkpoint():
     workspace = MagicMock()
     workspace.__truediv__ = MagicMock(return_value=MagicMock())
 
-    with patch("nanobot.agent.loop.ContextBuilder"), \
-         patch("nanobot.agent.loop.SessionManager"), \
-         patch("nanobot.agent.loop.SubagentManager") as MockSubMgr:
+    with patch("zerobot.agent.loop.ContextBuilder"), \
+         patch("zerobot.agent.loop.SessionManager"), \
+         patch("zerobot.agent.loop.SubagentManager") as MockSubMgr:
         MockSubMgr.return_value.cancel_by_session = AsyncMock(return_value=0)
         loop = AgentLoop(bus=bus, provider=provider, workspace=workspace)
 
@@ -160,3 +160,4 @@ async def test_dispatch_cancellation_restores_checkpoint():
         "Checkpoint metadata should be cleared after restore"
     assert loop.sessions.save.called, \
         "Session should be persisted so the restored state survives process restart"
+

@@ -5,10 +5,10 @@ from unittest.mock import AsyncMock, MagicMock
 
 import pytest
 
-from nanobot.agent.loop import AgentLoop
-from nanobot.bus.events import InboundMessage
-from nanobot.bus.queue import MessageBus
-from nanobot.providers.base import LLMResponse, ToolCallRequest
+from zerobot.agent.loop import AgentLoop
+from zerobot.bus.events import InboundMessage
+from zerobot.bus.queue import MessageBus
+from zerobot.providers.base import LLMResponse, ToolCallRequest
 
 
 def _make_loop(tmp_path: Path) -> AgentLoop:
@@ -128,3 +128,4 @@ class TestToolEventProgress:
         finish = finish_msgs[0].metadata["_tool_events"][0]
         assert finish["phase"] == "end"
         assert finish["result"] == "file.txt"
+

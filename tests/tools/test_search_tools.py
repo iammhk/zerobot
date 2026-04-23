@@ -10,10 +10,10 @@ from unittest.mock import AsyncMock, MagicMock
 
 import pytest
 
-from nanobot.agent.loop import AgentLoop
-from nanobot.agent.subagent import SubagentManager, SubagentStatus
-from nanobot.agent.tools.search import GlobTool, GrepTool
-from nanobot.bus.queue import MessageBus
+from zerobot.agent.loop import AgentLoop
+from zerobot.agent.subagent import SubagentManager, SubagentStatus
+from zerobot.agent.tools.search import GlobTool, GrepTool
+from zerobot.bus.queue import MessageBus
 
 
 @pytest.mark.asyncio
@@ -353,3 +353,4 @@ def test_subagent_prompt_respects_disabled_skills(tmp_path: Path) -> None:
 
     assert "alpha" not in prompt
     assert "beta" in prompt
+

@@ -3,7 +3,7 @@ x-common-config: &common-config
     context: .
     dockerfile: Dockerfile
   volumes:
-    - ~/.nanobot:/home/nanobot/.nanobot
+    - ~/.zerobot:/home/zerobot/.zerobot
   cap_drop:
     - ALL
   cap_add:
@@ -13,8 +13,8 @@ x-common-config: &common-config
     - seccomp=unconfined
 
 services:
-  nanobot-gateway:
-    container_name: nanobot-gateway
+  zerobot-gateway:
+    container_name: zerobot-gateway
     <<: *common-config
     command: ["gateway"]
     restart: unless-stopped
@@ -29,11 +29,11 @@ services:
           cpus: "0.25"
           memory: 256M
 
-  nanobot-api:
-    container_name: nanobot-api
+  zerobot-api:
+    container_name: zerobot-api
     <<: *common-config
     command:
-      ["serve", "--host", "0.0.0.0", "-w", "/home/nanobot/.nanobot/api-workspace"]
+      ["serve", "--host", "0.0.0.0", "-w", "/home/zerobot/.zerobot/api-workspace"]
     restart: unless-stopped
     ports:
       - 127.0.0.1:8900:8900
@@ -46,10 +46,11 @@ services:
           cpus: "0.25"
           memory: 256M
 
-  nanobot-cli:
+  zerobot-cli:
     <<: *common-config
     profiles:
       - cli
     command: ["status"]
     stdin_open: true
     tty: true
+

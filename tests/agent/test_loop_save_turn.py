@@ -4,16 +4,16 @@ from unittest.mock import AsyncMock, MagicMock
 
 import pytest
 
-from nanobot.agent.context import ContextBuilder
-from nanobot.agent.loop import AgentLoop
-from nanobot.bus.events import InboundMessage
-from nanobot.bus.queue import MessageBus
-from nanobot.session.manager import Session
+from zerobot.agent.context import ContextBuilder
+from zerobot.agent.loop import AgentLoop
+from zerobot.bus.events import InboundMessage
+from zerobot.bus.queue import MessageBus
+from zerobot.session.manager import Session
 
 
 def _mk_loop() -> AgentLoop:
     loop = AgentLoop.__new__(AgentLoop)
-    from nanobot.config.schema import AgentDefaults
+    from zerobot.config.schema import AgentDefaults
 
     loop.max_tool_result_chars = AgentDefaults().max_tool_result_chars
     return loop
@@ -394,8 +394,8 @@ async def test_next_turn_after_crash_closes_pending_user_turn_before_new_input(t
 
 @pytest.mark.asyncio
 async def test_stop_preserves_runtime_checkpoint_for_next_turn(tmp_path: Path) -> None:
-    from nanobot.command.builtin import cmd_stop
-    from nanobot.command.router import CommandContext
+    from zerobot.command.builtin import cmd_stop
+    from zerobot.command.router import CommandContext
 
     loop = _make_full_loop(tmp_path)
     loop.consolidator.maybe_consolidate_by_tokens = AsyncMock(return_value=False)  # type: ignore[method-assign]
@@ -657,3 +657,4 @@ def test_subagent_followup_skips_empty_content() -> None:
 
     assert loop._persist_subagent_followup(session, msg) is False
     assert session.messages == []
+

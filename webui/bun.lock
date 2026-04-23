@@ -3,7 +3,7 @@
   "configVersion": 1,
   "workspaces": {
     "": {
-      "name": "nanobot-webui",
+      "name": "zerobot-webui",
       "dependencies": {
         "@radix-ui/react-alert-dialog": "^1.1.4",
         "@radix-ui/react-avatar": "^1.1.2",
@@ -949,3 +949,4 @@
     "mdast-util-mdx-jsx/parse-entities/is-alphanumerical/is-alphabetical": ["is-alphabetical@2.0.1", "", {}, "sha512-FWyyY60MeTNyeSRpkM2Iry0G9hpr7/9kD40mD/cGQEuilcZYS4okz8SN2Q6rLCJ8gbCt6fN+rC+6tMGS99LaxQ=="],
   }
 }
+

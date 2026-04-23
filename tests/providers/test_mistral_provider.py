@@ -1,7 +1,7 @@
 """Tests for the Mistral provider registration."""
 
-from nanobot.config.schema import ProvidersConfig
-from nanobot.providers.registry import PROVIDERS
+from zerobot.config.schema import ProvidersConfig
+from zerobot.providers.registry import PROVIDERS
 
 
 def test_mistral_config_field_exists():
@@ -18,3 +18,4 @@ def test_mistral_provider_in_registry():
     mistral = specs["mistral"]
     assert mistral.env_key == "MISTRAL_API_KEY"
     assert mistral.default_api_base == "https://api.mistral.ai/v1"
+

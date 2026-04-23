@@ -19,14 +19,14 @@ def test_source_checkout_import_uses_pyproject_version_without_metadata() -> Non
         import types
 
         sys.path.insert(0, {str(repo_root)!r})
-        fake = types.ModuleType("nanobot.nanobot")
-        fake.Nanobot = object
+        fake = types.ModuleType("zerobot.zerobot")
+        fake.zerobot = object
         fake.RunResult = object
-        sys.modules["nanobot.nanobot"] = fake
+        sys.modules["zerobot.zerobot"] = fake
 
-        import nanobot
+        import zerobot
 
-        print(nanobot.__version__)
+        print(zerobot.__version__)
         """
     )
 
@@ -39,3 +39,4 @@ def test_source_checkout_import_uses_pyproject_version_without_metadata() -> Non
 
     assert proc.returncode == 0, proc.stderr
     assert proc.stdout.strip() == expected
+

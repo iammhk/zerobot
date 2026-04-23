@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 
 import { useClient } from "@/providers/ClientProvider";
-import type { StreamError } from "@/lib/nanobot-client";
+import type { StreamError } from "@/lib/zerobot-client";
 import type {
   InboundEvent,
   OutboundMedia,
@@ -33,7 +33,7 @@ export interface SendImage {
   preview: UIImage;
 }
 
-export function useNanobotStream(
+export function usezerobotStream(
   chatId: string | null,
   initialMessages: UIMessage[] = [],
 ): {
@@ -212,3 +212,4 @@ export function useNanobotStream(
     dismissStreamError,
   };
 }
+

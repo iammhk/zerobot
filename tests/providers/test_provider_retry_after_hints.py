@@ -1,8 +1,8 @@
 from types import SimpleNamespace
 
-from nanobot.providers.anthropic_provider import AnthropicProvider
-from nanobot.providers.azure_openai_provider import AzureOpenAIProvider
-from nanobot.providers.openai_compat_provider import OpenAICompatProvider
+from zerobot.providers.anthropic_provider import AnthropicProvider
+from zerobot.providers.azure_openai_provider import AzureOpenAIProvider
+from zerobot.providers.openai_compat_provider import OpenAICompatProvider
 
 
 def test_openai_compat_error_captures_retry_after_from_headers() -> None:
@@ -40,3 +40,4 @@ def test_anthropic_error_captures_retry_after_from_headers() -> None:
     response = AnthropicProvider._handle_error(err)
 
     assert response.retry_after == 20.0
+

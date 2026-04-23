@@ -1,6 +1,6 @@
 # Check optional Feishu dependencies before running tests
 try:
-    from nanobot.channels import feishu
+    from zerobot.channels import feishu
     FEISHU_AVAILABLE = getattr(feishu, "FEISHU_AVAILABLE", False)
 except ImportError:
     FEISHU_AVAILABLE = False
@@ -9,7 +9,7 @@ if not FEISHU_AVAILABLE:
     import pytest
     pytest.skip("Feishu dependencies not installed (lark-oapi)", allow_module_level=True)
 
-from nanobot.channels.feishu import FeishuChannel
+from zerobot.channels.feishu import FeishuChannel
 
 
 def test_parse_md_table_strips_markdown_formatting_in_headers_and_cells() -> None:
@@ -66,3 +66,4 @@ def test_split_headings_keeps_markdown_body_and_code_blocks_intact() -> None:
     assert elements[1]["tag"] == "markdown"
     assert "Body with **bold** text." in elements[1]["content"]
     assert "```python\nprint('hi')\n```" in elements[1]["content"]
+

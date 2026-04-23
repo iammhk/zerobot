@@ -10,8 +10,8 @@ from unittest.mock import AsyncMock, MagicMock
 import httpx
 import pytest
 
-from nanobot.channels.websocket import WebSocketChannel
-from nanobot.session.manager import Session, SessionManager
+from zerobot.channels.websocket import WebSocketChannel
+from zerobot.session.manager import Session, SessionManager
 
 _PORT = 29900
 
@@ -379,3 +379,4 @@ async def test_api_token_pool_purges_expired(bus: MagicMock, tmp_path: Path) -> 
         headers = {"Authorization": "Bearer live"}
 
     assert channel._check_api_token(_LiveReq()) is True
+

@@ -62,3 +62,4 @@ describe("localized format helpers", () => {
     expect(english).not.toBe(french);
   });
 });
+

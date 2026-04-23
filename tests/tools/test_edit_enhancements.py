@@ -3,8 +3,8 @@
 
 import pytest
 
-from nanobot.agent.tools.filesystem import EditFileTool, ReadFileTool, WriteFileTool
-from nanobot.agent.tools import file_state
+from zerobot.agent.tools.filesystem import EditFileTool, ReadFileTool, WriteFileTool
+from zerobot.agent.tools import file_state
 
 
 # ---------------------------------------------------------------------------
@@ -150,3 +150,4 @@ class TestEditPathSuggestion:
             path=str(tmp_path / "nonexistent.py"), old_text="a", new_text="b",
         )
         assert "Error" in result
+

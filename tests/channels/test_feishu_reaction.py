@@ -4,8 +4,8 @@ from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
-from nanobot.bus.queue import MessageBus
-from nanobot.channels.feishu import FeishuChannel, FeishuConfig, _FeishuStreamBuf
+from zerobot.bus.queue import MessageBus
+from zerobot.channels.feishu import FeishuChannel, FeishuConfig, _FeishuStreamBuf
 
 
 def _make_channel() -> FeishuChannel:
@@ -236,3 +236,4 @@ class TestStreamEndReactionCleanup:
         )
 
         ch._remove_reaction.assert_not_called()
+

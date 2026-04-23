@@ -284,3 +284,4 @@ function TraceGroup({ message, animClass }: TraceGroupProps) {
     </div>
   );
 }
+

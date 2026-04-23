@@ -13,8 +13,8 @@ import time
 
 import pytest
 
-from nanobot.agent.tools.filesystem import EditFileTool, ReadFileTool, _find_match
-from nanobot.agent.tools import file_state
+from zerobot.agent.tools.filesystem import EditFileTool, ReadFileTool, _find_match
+from zerobot.agent.tools import file_state
 
 
 @pytest.fixture(autouse=True)
@@ -421,3 +421,4 @@ class TestStaleDetectionContentFallback:
         assert "Successfully" in result
         # Should NOT warn about modification since content is the same
         assert "modified" not in result.lower()
+

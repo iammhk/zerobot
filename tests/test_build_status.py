@@ -1,6 +1,6 @@
 """Tests for build_status_content cache hit rate display."""
 
-from nanobot.utils.helpers import build_status_content
+from zerobot.utils.helpers import build_status_content
 
 
 def test_status_shows_cache_hit_rate():
@@ -90,3 +90,4 @@ def test_status_context_pct_capped_at_999():
         max_completion_tokens=4096,
     )
     assert "(999% of input budget)" in content
+

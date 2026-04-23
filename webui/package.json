@@ -1,5 +1,5 @@
 {
-  "name": "nanobot-webui",
+  "name": "zerobot-webui",
   "private": true,
   "version": "0.1.0",
   "type": "module",
@@ -55,3 +55,4 @@
     "vitest": "^2.1.8"
   }
 }
+

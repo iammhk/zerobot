@@ -7,7 +7,7 @@ import pytest
 
 # Check optional QQ dependencies before running tests
 try:
-    from nanobot.channels import qq
+    from zerobot.channels import qq
     QQ_AVAILABLE = getattr(qq, "QQ_AVAILABLE", False)
 except ImportError:
     QQ_AVAILABLE = False
@@ -17,9 +17,9 @@ if not QQ_AVAILABLE:
 
 import aiohttp
 
-from nanobot.bus.events import OutboundMessage
-from nanobot.bus.queue import MessageBus
-from nanobot.channels.qq import QQChannel, QQConfig
+from zerobot.bus.events import OutboundMessage
+from zerobot.bus.queue import MessageBus
+from zerobot.channels.qq import QQChannel, QQConfig
 
 
 class _FakeApi:
@@ -391,3 +391,4 @@ async def test_send_propagates_network_error_no_fallback() -> None:
 
     # No fallback text should have been sent
     assert len(channel._client.api.c2c_calls) == 0
+

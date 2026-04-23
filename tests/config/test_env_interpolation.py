@@ -2,7 +2,7 @@ import json
 
 import pytest
 
-from nanobot.config.loader import (
+from zerobot.config.loader import (
     _resolve_env_vars,
     load_config,
     resolve_config_env_vars,
@@ -127,3 +127,4 @@ class TestResolveConfig:
         assert resolved.agents.defaults.dream.describe_schedule() == (
             "cron 5 11 * * * (legacy)"
         )
+

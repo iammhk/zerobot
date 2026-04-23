@@ -4,10 +4,10 @@ import pytest
 
 from unittest.mock import AsyncMock, MagicMock, patch
 
-from nanobot.agent.memory import Dream, MemoryStore
-from nanobot.agent.runner import AgentRunResult
-from nanobot.agent.skills import BUILTIN_SKILLS_DIR
-from nanobot.utils.gitstore import LineAge
+from zerobot.agent.memory import Dream, MemoryStore
+from zerobot.agent.runner import AgentRunResult
+from zerobot.agent.skills import BUILTIN_SKILLS_DIR
+from zerobot.utils.gitstore import LineAge
 
 
 @pytest.fixture
@@ -255,4 +255,5 @@ class TestDreamRun:
         system_msg = mock_provider.chat_with_retry.call_args.kwargs["messages"][0]["content"]
         # The template renders with stale_threshold_days=14 → LLM must see "N>14"
         assert "N>14" in system_msg
+
 

@@ -2,8 +2,8 @@ from __future__ import annotations
 
 from typing import Any
 
-from nanobot.agent.tools.base import Tool
-from nanobot.agent.tools.registry import ToolRegistry
+from zerobot.agent.tools.base import Tool
+from zerobot.agent.tools.registry import ToolRegistry
 
 
 class _FakeTool(Tool):
@@ -101,3 +101,4 @@ def test_unregister_invalidates_cache() -> None:
     second = registry.get_definitions()
     assert first is not second
     assert len(second) == 1
+

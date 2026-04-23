@@ -1,20 +1,20 @@
 {
   "app": {
-    "brand": "nanobot",
+    "brand": "zerobot",
     "loading": {
-      "connecting": "Conectando con nanobot…",
-      "boot": "Cargando nanobot…"
+      "connecting": "Conectando con zerobot…",
+      "boot": "Cargando zerobot…"
     },
     "error": {
-      "title": "No se pudo conectar con nanobot",
-      "gatewayHint": "Asegúrate de que la gateway esté en ejecución (`nanobot gateway`) y de que esta página esté abierta en la misma máquina."
+      "title": "No se pudo conectar con zerobot",
+      "gatewayHint": "Asegúrate de que la gateway esté en ejecución (`zerobot gateway`) y de que esta página esté abierta en la misma máquina."
     },
     "documentTitle": {
-      "base": "nanobot",
-      "chat": "{{title}} · nanobot"
+      "base": "zerobot",
+      "chat": "{{title}} · zerobot"
     },
     "meta": {
-      "description": "Interfaz web de nanobot: conversa con tu espacio de trabajo de nanobot."
+      "description": "Interfaz web de zerobot: conversa con tu espacio de trabajo de zerobot."
     }
   },
   "sidebar": {
@@ -110,3 +110,4 @@
     }
   }
 }
+

@@ -1,4 +1,4 @@
-export const LOCALE_STORAGE_KEY = "nanobot.locale";
+export const LOCALE_STORAGE_KEY = "zerobot.locale";
 
 export const supportedLocales = [
   { code: "en", label: "English", nativeLabel: "English" },
@@ -91,3 +91,4 @@ export function applyDocumentLocale(locale: SupportedLocale): void {
 export function localeOption(locale: SupportedLocale) {
   return supportedLocales.find((entry) => entry.code === locale) ?? supportedLocales[0];
 }
+

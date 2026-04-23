@@ -1,12 +1,12 @@
 from unittest.mock import patch
 
-from nanobot.providers.anthropic_provider import AnthropicProvider
-from nanobot.providers.azure_openai_provider import AzureOpenAIProvider
-from nanobot.providers.openai_compat_provider import OpenAICompatProvider
+from zerobot.providers.anthropic_provider import AnthropicProvider
+from zerobot.providers.azure_openai_provider import AzureOpenAIProvider
+from zerobot.providers.openai_compat_provider import OpenAICompatProvider
 
 
 def test_openai_compat_disables_sdk_retries_by_default() -> None:
-    with patch("nanobot.providers.openai_compat_provider.AsyncOpenAI") as mock_client:
+    with patch("zerobot.providers.openai_compat_provider.AsyncOpenAI") as mock_client:
         OpenAICompatProvider(api_key="sk-test", default_model="gpt-4o")
 
     kwargs = mock_client.call_args.kwargs
@@ -22,7 +22,7 @@ def test_anthropic_disables_sdk_retries_by_default() -> None:
 
 
 def test_azure_openai_disables_sdk_retries_by_default() -> None:
-    with patch("nanobot.providers.azure_openai_provider.AsyncOpenAI") as mock_client:
+    with patch("zerobot.providers.azure_openai_provider.AsyncOpenAI") as mock_client:
         AzureOpenAIProvider(
             api_key="sk-test",
             api_base="https://example.openai.azure.com",
@@ -31,3 +31,4 @@ def test_azure_openai_disables_sdk_retries_by_default() -> None:
 
     kwargs = mock_client.call_args.kwargs
     assert kwargs["max_retries"] == 0
+

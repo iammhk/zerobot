@@ -4,7 +4,7 @@ import json
 
 import pytest
 
-from nanobot.agent.tools.notebook import NotebookEditTool
+from zerobot.agent.tools.notebook import NotebookEditTool
 
 
 def _make_notebook(cells: list[dict] | None = None, nbformat: int = 4, nbformat_minor: int = 5) -> dict:
@@ -145,3 +145,4 @@ class TestNotebookEdit:
         result = await tool.execute(path=path, cell_index=0, new_source="x", cell_type="raw")
         assert "Error" in result
         assert "cell_type" in result
+

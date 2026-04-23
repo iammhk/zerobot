@@ -1,7 +1,7 @@
 from types import SimpleNamespace
 
-from nanobot.providers.anthropic_provider import AnthropicProvider
-from nanobot.providers.openai_compat_provider import OpenAICompatProvider
+from zerobot.providers.anthropic_provider import AnthropicProvider
+from zerobot.providers.openai_compat_provider import OpenAICompatProvider
 
 
 def _fake_response(
@@ -79,3 +79,4 @@ def test_anthropic_handle_error_marks_connection_kind() -> None:
 
     assert response.finish_reason == "error"
     assert response.error_kind == "connection"
+

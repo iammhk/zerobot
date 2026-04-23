@@ -1,6 +1,6 @@
 # Multiple Instances
 
-Run multiple nanobot instances simultaneously with separate configs and runtime data. Use `--config` as the main entrypoint. Optionally pass `--workspace` during `onboard` when you want to initialize or update the saved workspace for a specific instance.
+Run multiple zerobot instances simultaneously with separate configs and runtime data. Use `--config` as the main entrypoint. Optionally pass `--workspace` during `onboard` when you want to initialize or update the saved workspace for a specific instance.
 
 ## Quick Start
 
@@ -10,50 +10,50 @@ If you want each instance to have its own dedicated workspace from the start, pa
 
 ```bash
 # Create separate instance configs and workspaces
-nanobot onboard --config ~/.nanobot-telegram/config.json --workspace ~/.nanobot-telegram/workspace
-nanobot onboard --config ~/.nanobot-discord/config.json --workspace ~/.nanobot-discord/workspace
-nanobot onboard --config ~/.nanobot-feishu/config.json --workspace ~/.nanobot-feishu/workspace
+zerobot onboard --config ~/.zerobot-telegram/config.json --workspace ~/.zerobot-telegram/workspace
+zerobot onboard --config ~/.zerobot-discord/config.json --workspace ~/.zerobot-discord/workspace
+zerobot onboard --config ~/.zerobot-feishu/config.json --workspace ~/.zerobot-feishu/workspace
 ```
 
 **Configure each instance:**
 
-Edit `~/.nanobot-telegram/config.json`, `~/.nanobot-discord/config.json`, etc. with different channel settings. The workspace you passed during `onboard` is saved into each config as that instance's default workspace.
+Edit `~/.zerobot-telegram/config.json`, `~/.zerobot-discord/config.json`, etc. with different channel settings. The workspace you passed during `onboard` is saved into each config as that instance's default workspace.
 
 **Run instances:**
 
 ```bash
 # Instance A - Telegram bot
-nanobot gateway --config ~/.nanobot-telegram/config.json
+zerobot gateway --config ~/.zerobot-telegram/config.json
 
 # Instance B - Discord bot
-nanobot gateway --config ~/.nanobot-discord/config.json
+zerobot gateway --config ~/.zerobot-discord/config.json
 
 # Instance C - Feishu bot with custom port
-nanobot gateway --config ~/.nanobot-feishu/config.json --port 18792
+zerobot gateway --config ~/.zerobot-feishu/config.json --port 18792
 ```
 
 ## Path Resolution
 
-When using `--config`, nanobot derives its runtime data directory from the config file location. The workspace still comes from `agents.defaults.workspace` unless you override it with `--workspace`.
+When using `--config`, zerobot derives its runtime data directory from the config file location. The workspace still comes from `agents.defaults.workspace` unless you override it with `--workspace`.
 
 To open a CLI session against one of these instances locally:
 
 ```bash
-nanobot agent -c ~/.nanobot-telegram/config.json -m "Hello from Telegram instance"
-nanobot agent -c ~/.nanobot-discord/config.json -m "Hello from Discord instance"
+zerobot agent -c ~/.zerobot-telegram/config.json -m "Hello from Telegram instance"
+zerobot agent -c ~/.zerobot-discord/config.json -m "Hello from Discord instance"
 
 # Optional one-off workspace override
-nanobot agent -c ~/.nanobot-telegram/config.json -w /tmp/nanobot-telegram-test
+zerobot agent -c ~/.zerobot-telegram/config.json -w /tmp/zerobot-telegram-test
 ```
 
-> `nanobot agent` starts a local CLI agent using the selected workspace/config. It does not attach to or proxy through an already running `nanobot gateway` process.
+> `zerobot agent` starts a local CLI agent using the selected workspace/config. It does not attach to or proxy through an already running `zerobot gateway` process.
 
 | Component | Resolved From | Example |
 |-----------|---------------|---------|
-| **Config** | `--config` path | `~/.nanobot-A/config.json` |
-| **Workspace** | `--workspace` or config | `~/.nanobot-A/workspace/` |
-| **Cron Jobs** | config directory | `~/.nanobot-A/cron/` |
-| **Media / runtime state** | config directory | `~/.nanobot-A/media/` |
+| **Config** | `--config` path | `~/.zerobot-A/config.json` |
+| **Workspace** | `--workspace` or config | `~/.zerobot-A/workspace/` |
+| **Cron Jobs** | config directory | `~/.zerobot-A/cron/` |
+| **Media / runtime state** | config directory | `~/.zerobot-A/media/` |
 
 ## How It Works
 
@@ -73,7 +73,7 @@ Example config:
 {
   "agents": {
     "defaults": {
-      "workspace": "~/.nanobot-telegram/workspace",
+      "workspace": "~/.zerobot-telegram/workspace",
       "model": "anthropic/claude-sonnet-4-6"
     }
   },
@@ -93,8 +93,8 @@ Example config:
 Start separate instances:
 
 ```bash
-nanobot gateway --config ~/.nanobot-telegram/config.json
-nanobot gateway --config ~/.nanobot-discord/config.json
+zerobot gateway --config ~/.zerobot-telegram/config.json
+zerobot gateway --config ~/.zerobot-discord/config.json
 ```
 
 Each gateway instance also exposes a lightweight HTTP health endpoint on
@@ -108,7 +108,7 @@ public or LAN-facing address.
 Override workspace for one-off runs when needed:
 
 ```bash
-nanobot gateway --config ~/.nanobot-telegram/config.json --workspace /tmp/nanobot-telegram-test
+zerobot gateway --config ~/.zerobot-telegram/config.json --workspace /tmp/zerobot-telegram-test
 ```
 
 ## Common Use Cases
@@ -124,3 +124,4 @@ nanobot gateway --config ~/.nanobot-telegram/config.json --workspace /tmp/nanobo
 - Use a different workspace per instance if you want isolated memory, sessions, and skills
 - `--workspace` overrides the workspace defined in the config file
 - Cron jobs and runtime media/state are derived from the config directory
+

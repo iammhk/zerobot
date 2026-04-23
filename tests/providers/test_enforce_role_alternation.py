@@ -1,6 +1,6 @@
 """Tests for LLMProvider._enforce_role_alternation."""
 
-from nanobot.providers.base import LLMProvider, _SYNTHETIC_USER_CONTENT
+from zerobot.providers.base import LLMProvider, _SYNTHETIC_USER_CONTENT
 
 
 class TestEnforceRoleAlternation:
@@ -238,3 +238,4 @@ class TestEnforceRoleAlternation:
         result = LLMProvider._enforce_role_alternation(msgs)
         assert result[1]["role"] == "user"
         assert result[1]["content"] == "hello"
+

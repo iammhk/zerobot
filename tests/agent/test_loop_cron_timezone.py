@@ -1,10 +1,10 @@
 from pathlib import Path
 from unittest.mock import MagicMock
 
-from nanobot.agent.loop import AgentLoop
-from nanobot.agent.tools.cron import CronTool
-from nanobot.bus.queue import MessageBus
-from nanobot.cron.service import CronService
+from zerobot.agent.loop import AgentLoop
+from zerobot.agent.tools.cron import CronTool
+from zerobot.bus.queue import MessageBus
+from zerobot.cron.service import CronService
 
 
 def test_agent_loop_registers_cron_tool_with_configured_timezone(tmp_path: Path) -> None:
@@ -25,3 +25,4 @@ def test_agent_loop_registers_cron_tool_with_configured_timezone(tmp_path: Path)
 
     assert isinstance(cron_tool, CronTool)
     assert cron_tool._default_timezone == "Asia/Shanghai"
+

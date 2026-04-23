@@ -2,14 +2,14 @@ from unittest.mock import AsyncMock, MagicMock
 
 import pytest
 
-from nanobot.agent.loop import AgentLoop
-import nanobot.agent.memory as memory_module
-from nanobot.bus.queue import MessageBus
-from nanobot.providers.base import LLMResponse
+from zerobot.agent.loop import AgentLoop
+import zerobot.agent.memory as memory_module
+from zerobot.bus.queue import MessageBus
+from zerobot.providers.base import LLMResponse
 
 
 def _make_loop(tmp_path, *, estimated_tokens: int, context_window_tokens: int) -> AgentLoop:
-    from nanobot.providers.base import GenerationSettings
+    from zerobot.providers.base import GenerationSettings
     provider = MagicMock()
     provider.get_default_model.return_value = "test-model"
     provider.generation = GenerationSettings(max_tokens=0)
@@ -250,3 +250,4 @@ async def test_preflight_consolidation_before_llm_call(tmp_path, monkeypatch) ->
     assert "consolidate" in order
     assert "llm" in order
     assert order.index("consolidate") < order.index("llm")
+

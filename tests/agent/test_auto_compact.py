@@ -7,12 +7,12 @@ from pathlib import Path
 
 import pytest
 
-from nanobot.agent.loop import AgentLoop
-from nanobot.bus.events import InboundMessage
-from nanobot.bus.queue import MessageBus
-from nanobot.config.schema import AgentDefaults
-from nanobot.command import CommandContext
-from nanobot.providers.base import LLMResponse
+from zerobot.agent.loop import AgentLoop
+from zerobot.bus.events import InboundMessage
+from zerobot.bus.queue import MessageBus
+from zerobot.config.schema import AgentDefaults
+from zerobot.command import CommandContext
+from zerobot.providers.base import LLMResponse
 
 
 def _make_loop(tmp_path: Path, session_ttl_minutes: int = 15) -> AgentLoop:
@@ -1008,3 +1008,4 @@ class TestSummaryPersistence:
         # Metadata should also be cleaned up
         assert "_last_summary" not in reloaded.metadata
         await loop.close_mcp()
+

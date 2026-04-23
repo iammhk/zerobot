@@ -4,7 +4,7 @@ import time
 
 import pytest
 
-from nanobot.providers.openai_compat_provider import (
+from zerobot.providers.openai_compat_provider import (
     OpenAICompatProvider,
     _RESPONSES_FAILURE_THRESHOLD,
     _RESPONSES_PROBE_INTERVAL_S,
@@ -75,3 +75,4 @@ def test_reasoning_effort_key_is_case_insensitive(provider):
     for _ in range(_RESPONSES_FAILURE_THRESHOLD):
         provider._record_responses_failure("o3", "High")
     assert provider._should_use_responses_api("o3", "high") is False
+

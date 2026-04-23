@@ -1,7 +1,7 @@
 import pytest
 
-from nanobot.utils.evaluator import evaluate_response
-from nanobot.providers.base import LLMProvider, LLMResponse, ToolCallRequest
+from zerobot.utils.evaluator import evaluate_response
+from zerobot.providers.base import LLMProvider, LLMResponse, ToolCallRequest
 
 
 class DummyProvider(LLMProvider):
@@ -61,3 +61,4 @@ async def test_no_tool_call_fallback() -> None:
     provider = DummyProvider([LLMResponse(content="I think you should notify", tool_calls=[])])
     result = await evaluate_response("some response", "some task", provider, "m")
     assert result is True
+

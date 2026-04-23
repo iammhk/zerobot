@@ -1,4 +1,4 @@
-"""Lightweight WebSocket test client for integration testing the nanobot WebSocket channel.
+"""Lightweight WebSocket test client for integration testing the zerobot WebSocket channel.
 
 Provides an async ``WsTestClient`` class and token-issuance helpers that
 integration tests can import and use directly::
@@ -225,3 +225,4 @@ async def issue_token_ok(
     token = data["token"]
     assert token.startswith("nbwt_"), f"Unexpected token format: {token}"
     return token
+

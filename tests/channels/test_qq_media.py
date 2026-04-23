@@ -6,7 +6,7 @@ from unittest.mock import AsyncMock, MagicMock, patch
 import pytest
 
 try:
-    from nanobot.channels import qq
+    from zerobot.channels import qq
 
     QQ_AVAILABLE = getattr(qq, "QQ_AVAILABLE", False)
 except ImportError:
@@ -15,9 +15,9 @@ except ImportError:
 if not QQ_AVAILABLE:
     pytest.skip("QQ dependencies not installed (qq-botpy)", allow_module_level=True)
 
-from nanobot.bus.events import OutboundMessage
-from nanobot.bus.queue import MessageBus
-from nanobot.channels.qq import (
+from zerobot.bus.events import OutboundMessage
+from zerobot.bus.queue import MessageBus
+from zerobot.channels.qq import (
     QQ_FILE_TYPE_FILE,
     QQ_FILE_TYPE_IMAGE,
     QQChannel,
@@ -302,3 +302,4 @@ async def test_post_base64file_filters_response_to_file_info() -> None:
     assert result == {"file_info": "fi_123"}
     assert "file_uuid" not in result
     assert "ttl" not in result
+

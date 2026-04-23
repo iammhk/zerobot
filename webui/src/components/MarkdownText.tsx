@@ -37,3 +37,4 @@ export function MarkdownText({ children, className }: MarkdownTextProps) {
     </Suspense>
   );
 }
+

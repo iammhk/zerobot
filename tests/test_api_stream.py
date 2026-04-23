@@ -9,7 +9,7 @@ from unittest.mock import AsyncMock, MagicMock
 import pytest
 import pytest_asyncio
 
-from nanobot.api.server import (
+from zerobot.api.server import (
     _sse_chunk,
     _SSE_DONE,
     create_app,
@@ -278,3 +278,4 @@ async def test_streaming_backend_failure_does_not_emit_success_terminator(aiohtt
     body = await resp.text()
     assert '"finish_reason": "stop"' not in body
     assert "[DONE]" not in body
+
