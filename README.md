@@ -127,8 +127,8 @@
 **Install from source**
 
 ```bash
-git clone https://github.com/HKUDS/zerobot.git
-cd zerobot
+git clone https://github.com/HKUDS/zeroclaw.git
+cd zeroclaw
 pip install -e .
 ```
 
