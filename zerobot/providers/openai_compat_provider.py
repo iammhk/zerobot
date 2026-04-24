@@ -979,6 +979,35 @@ class OpenAICompatProvider(LLMProvider):
         reasoning_effort: str | None = None,
         tool_choice: str | dict[str, Any] | None = None,
     ) -> LLMResponse:
+        # Auto-discover Ollama if needed
+        if (
+            self._spec
+            and self._spec.name == "ollama"
+            and not getattr(self, "_ollama_discovered", False)
+        ):
+            self._ollama_discovered = True
+            is_working = False
+            if self._effective_base:
+                from urllib.parse import urlparse
+                from zerobot.utils.network import scan_port
+
+                try:
+                    parsed = urlparse(self._effective_base)
+                    is_working = await scan_port(
+                        parsed.hostname or "localhost", parsed.port or 11434, timeout=0.5
+                    )
+                except Exception:
+                    pass
+
+            if not is_working:
+                from zerobot.utils.network import discover_ollama
+
+                found = await discover_ollama()
+                if found:
+                    logger.info(f"Ollama auto-discovered at {found}")
+                    self._effective_base = found
+                    self._client.base_url = found
+
         try:
             if self._should_use_responses_api(model, reasoning_effort):
                 try:
