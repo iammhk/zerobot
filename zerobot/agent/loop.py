@@ -29,6 +29,8 @@ from zerobot.agent.tools.search import GlobTool, GrepTool
 from zerobot.agent.tools.shell import ExecTool
 from zerobot.agent.tools.self import MyTool
 from zerobot.agent.tools.spawn import SpawnTool
+from zerobot.agent.tools.audio import AudioTool
+from zerobot.agent.tools.bluetooth import BluetoothTool
 from zerobot.agent.tools.web import WebFetchTool, WebSearchTool
 from zerobot.bus.events import InboundMessage, OutboundMessage
 from zerobot.bus.queue import MessageBus
@@ -319,6 +321,8 @@ class AgentLoop:
             self.tools.register(
                 CronTool(self.cron_service, default_timezone=self.context.timezone or "UTC")
             )
+        self.tools.register(BluetoothTool())
+        self.tools.register(AudioTool())
 
     async def _connect_mcp(self) -> None:
         """Connect to configured MCP servers (one-time, lazy)."""
