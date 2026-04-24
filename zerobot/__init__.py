@@ -27,7 +27,7 @@ def _resolve_version() -> str:
 __version__ = _resolve_version()
 __logo__ = "🐈"
 
-from zerobot.zerobot import zerobot, RunResult
+from zerobot.zerobot import Zerobot, RunResult
 
 __all__ = ["Zerobot", "RunResult"]
 

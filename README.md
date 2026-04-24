@@ -127,22 +127,15 @@
 **Install from source**
 
 ```bash
-git clone https://github.com/iammhk/zeroclaw.git
-cd zeroclaw
-pip install -e .
+git clone https://github.com/iammhk/zerobot.git
+cd zerobot
+# This installs the local rebranded 'zerobot' command
+uv tool install . 
 ```
 
-**Install with `uv`**
-
-```bash
-uv tool install zerobot-ai
-```
-
-**Install from PyPI**
-
-```bash
-pip install zerobot-ai
-```
+> [!TIP]
+> After installing, if you get `command not found`, ensure your local bin directory is in your PATH:
+> `export PATH="$HOME/.local/bin:$PATH"`
 
 ## 🍓 Low-Memory Devices (Raspberry Pi Zero 2 W)
 
