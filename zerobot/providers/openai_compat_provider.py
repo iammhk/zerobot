@@ -205,6 +205,8 @@ class OpenAICompatProvider(LLMProvider):
             default_headers=default_headers,
             max_retries=0,
         )
+        if spec and spec.name == "ollama":
+            logger.debug(f"Ollama provider initialized with base: {effective_base}")
 
         # Responses API circuit breaker: skip after repeated failures,
         # probe again after _RESPONSES_PROBE_INTERVAL_S seconds.
