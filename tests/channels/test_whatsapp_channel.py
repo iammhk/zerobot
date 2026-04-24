@@ -356,3 +356,4 @@ async def test_start_sends_auth_message_with_generated_token(monkeypatch, tmp_pa
         json.dumps({"type": "auth", "token": token_path.read_text(encoding="utf-8")})
     ]
 
+

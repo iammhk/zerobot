@@ -102,3 +102,4 @@ def test_unregister_invalidates_cache() -> None:
     assert first is not second
     assert len(second) == 1
 
+

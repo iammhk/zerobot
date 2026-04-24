@@ -380,3 +380,4 @@ async def test_agent_loop_no_hooks_backward_compat(tmp_path):
     )
     assert tools_used == ["list_dir", "list_dir"]
 
+

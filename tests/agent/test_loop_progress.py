@@ -129,3 +129,4 @@ class TestToolEventProgress:
         assert finish["phase"] == "end"
         assert finish["result"] == "file.txt"
 
+

@@ -1214,3 +1214,4 @@ async def test_notify_restart_done_enqueues_outbound_message():
     assert sent_msg.chat_id == "oc_123"
     assert sent_msg.content.startswith("Restart completed")
 
+

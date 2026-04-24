@@ -135,3 +135,4 @@ class TestStripThinkConservativePreserve:
         text = "Example:\n```\nif line.startswith('<channel|>'):\n    skip()\n```"
         assert strip_think(text) == text
 
+

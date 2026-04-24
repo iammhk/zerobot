@@ -72,3 +72,4 @@ def test_local_provider_502_error_includes_reachability_hint() -> None:
     assert "http://localhost:11434/v1" in result.content
     assert "proxy/tunnel" in result.content
 
+

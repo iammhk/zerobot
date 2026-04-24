@@ -367,3 +367,4 @@ async def test_prompt_no_retry_on_non_transient():
     assert "RuntimeError" in output
     assert session.get_prompt.call_count == 1
 
+

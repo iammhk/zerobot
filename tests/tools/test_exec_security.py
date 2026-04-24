@@ -183,3 +183,4 @@ async def test_exec_ignores_workspace_check_when_not_restricted(tmp_path):
     assert "ok" in result
     assert "outside the configured workspace" not in result
 
+

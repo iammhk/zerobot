@@ -239,3 +239,4 @@ class TestEnforceRoleAlternation:
         assert result[1]["role"] == "user"
         assert result[1]["content"] == "hello"
 
+

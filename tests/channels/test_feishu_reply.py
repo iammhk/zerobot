@@ -444,3 +444,4 @@ async def test_on_message_no_extra_api_call_when_no_parent_id() -> None:
     channel._client.im.v1.message.get.assert_not_called()
     assert len(captured) == 1
 
+

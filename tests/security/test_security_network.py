@@ -144,3 +144,4 @@ def test_whitelist_invalid_cidr_ignored():
     finally:
         configure_ssrf_whitelist([])
 
+

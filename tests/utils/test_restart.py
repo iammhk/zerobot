@@ -48,3 +48,4 @@ def test_should_show_cli_restart_notice():
     assert should_show_cli_restart_notice(non_cli, "cli:direct") is False
 
 
+

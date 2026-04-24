@@ -1028,3 +1028,4 @@ async def test_send_succeeds_normally() -> None:
     assert sent_messages[0].content == "hello world"
     assert sent_messages[0].chat_id == "123"
 
+

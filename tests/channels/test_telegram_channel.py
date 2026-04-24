@@ -1714,3 +1714,4 @@ async def test_send_uses_native_keyboard_when_flag_on() -> None:
     assert isinstance(sent.get("reply_markup"), InlineKeyboardMarkup)
     assert "[Yes]" not in sent["text"]  # native keyboard owns the rendering
 
+

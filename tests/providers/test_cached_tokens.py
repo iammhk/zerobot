@@ -232,3 +232,4 @@ def test_anthropic_no_cache_fields():
     result = AnthropicProvider._parse_response(response)
     assert "cached_tokens" not in result.usage
 
+

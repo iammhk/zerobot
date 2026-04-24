@@ -251,3 +251,4 @@ async def test_preflight_consolidation_before_llm_call(tmp_path, monkeypatch) ->
     assert "llm" in order
     assert order.index("consolidate") < order.index("llm")
 
+

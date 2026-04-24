@@ -47,3 +47,4 @@ def test_dream_config_uses_model_override_name_and_accepts_legacy_model() -> Non
     assert dumped["modelOverride"] == "openrouter/sonnet"
     assert "model" not in dumped
 
+

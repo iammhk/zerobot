@@ -517,3 +517,4 @@ async def test_invalid_json_as_plain_text(bus: MagicMock) -> None:
     finally:
         await ch.stop(); await t
 
+

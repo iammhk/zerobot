@@ -454,3 +454,4 @@ async def test_send_media_ref_short_circuits_on_upload_transport_error() -> None
     methods = [c["method"] for c in channel._http.calls]
     assert methods == ["POST", "GET", "POST"]
 
+

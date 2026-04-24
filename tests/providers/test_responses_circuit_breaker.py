@@ -76,3 +76,4 @@ def test_reasoning_effort_key_is_case_insensitive(provider):
         provider._record_responses_failure("o3", "High")
     assert provider._should_use_responses_api("o3", "high") is False
 
+

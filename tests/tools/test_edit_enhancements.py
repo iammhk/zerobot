@@ -151,3 +151,4 @@ class TestEditPathSuggestion:
         )
         assert "Error" in result
 
+

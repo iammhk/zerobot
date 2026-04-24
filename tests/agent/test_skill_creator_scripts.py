@@ -126,3 +126,4 @@ def test_package_skill_rejects_symlink(tmp_path: Path) -> None:
     assert archive_path is None
     assert not (tmp_path / "dist" / "symlink-skill.skill").exists()
 
+

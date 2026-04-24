@@ -961,3 +961,4 @@ class TestMainMenuUpdate:
         assert result.should_save is True
         assert pause_called["n"] == 1
 
+

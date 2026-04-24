@@ -64,3 +64,4 @@ def test_none_does_not_enable_thinking() -> None:
     assert "thinking" not in kw
     assert kw["temperature"] == 0.7
 
+

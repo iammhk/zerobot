@@ -112,3 +112,4 @@ def test_drain_pending_path_without_extract_loses_document(tmp_path: Path) -> No
     assert result == "summarize"  # only the original text, no doc content
     assert "Secret data" not in result
 
+

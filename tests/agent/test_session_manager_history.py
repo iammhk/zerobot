@@ -270,3 +270,4 @@ def test_get_history_ignores_media_kwarg_on_non_user_rows():
     # rewrites plain-string content.
     assert history[0]["content"] == [{"type": "text", "text": "structured"}]
 
+

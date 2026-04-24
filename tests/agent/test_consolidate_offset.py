@@ -618,3 +618,4 @@ class TestNewCommandArchival:
         await loop.close_mcp()
         assert archived.is_set()
 
+

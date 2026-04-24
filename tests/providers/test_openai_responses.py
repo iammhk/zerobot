@@ -521,3 +521,4 @@ class TestConsumeSdkStream:
         mock_logger.warning.assert_called_once()
         assert "Failed to parse tool call arguments" in str(mock_logger.warning.call_args)
 
+

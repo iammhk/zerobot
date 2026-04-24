@@ -20,3 +20,4 @@ def test_minimax_anthropic_provider_in_registry():
     assert minimax_anthropic.backend == "anthropic"
     assert minimax_anthropic.default_api_base == "https://api.minimax.io/anthropic"
 
+

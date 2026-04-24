@@ -282,3 +282,4 @@ async def test_duckduckgo_timeout_returns_error(monkeypatch):
     gate.set()
     assert "Error" in result
 
+

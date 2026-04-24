@@ -262,3 +262,4 @@ class TestRepairCorruptFile:
         assert session.messages == []
         assert session.key == "test:fallback"
 
+

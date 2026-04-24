@@ -856,3 +856,4 @@ def test_kimi_k2_thinking_series_no_thinking_injection() -> None:
     kw = _build_kwargs_for("moonshot", "kimi-k2-thinking", reasoning_effort="high")
     assert "extra_body" not in kw
 
+

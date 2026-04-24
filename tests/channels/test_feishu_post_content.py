@@ -75,3 +75,4 @@ def test_register_optional_event_calls_supported_method() -> None:
     assert same is builder
     assert called == [handler]
 
+

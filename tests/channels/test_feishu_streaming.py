@@ -400,3 +400,4 @@ class TestSendMessageReturnsId:
         result = ch._send_message_sync("chat_id", "oc_chat1", "text", '{"text":"hi"}')
         assert result is None
 
+

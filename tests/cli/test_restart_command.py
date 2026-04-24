@@ -257,3 +257,4 @@ class TestRestartCommand:
         assert response is not None
         assert response.metadata == {"render_as": "text"}
 
+

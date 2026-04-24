@@ -56,3 +56,4 @@ def test_tool_result_block_preserves_string_content():
     assert block["tool_use_id"] == "call_2"
     assert block["content"] == "plain tool output"
 
+

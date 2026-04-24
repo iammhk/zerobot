@@ -19,3 +19,4 @@ def test_mistral_provider_in_registry():
     assert mistral.env_key == "MISTRAL_API_KEY"
     assert mistral.default_api_base == "https://api.mistral.ai/v1"
 
+

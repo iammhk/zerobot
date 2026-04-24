@@ -314,3 +314,4 @@ class TestLegacyHistoryMigration:
         assert "Broken" in entries[0]["content"]
         assert "migration." in entries[0]["content"]
 
+

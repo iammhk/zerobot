@@ -62,3 +62,4 @@ async def test_no_tool_call_fallback() -> None:
     result = await evaluate_response("some response", "some task", provider, "m")
     assert result is True
 
+

@@ -398,3 +398,4 @@ def test_get_skill_metadata_handles_yaml_types(tmp_path: Path) -> None:
     # metadata is a parsed dict, not a JSON string
     assert isinstance(meta.get("metadata"), dict)
 
+

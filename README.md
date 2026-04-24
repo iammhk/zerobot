@@ -152,10 +152,10 @@ Running **zerobot** on devices with 512MB RAM requires specific optimizations to
   ```
 
 ### 2. Streamlined Installation
-Install only the core and the specific channel you need. Avoid `pip install .` as it pulls in all SDKs.
+Inside the `zerobot` folder on your Pi:
 ```bash
-# Recommended: Use uv for faster, leaner installs
-uv tool install zerobot-ai
+# Force reinstall to ensure the latest local changes are applied
+uv tool install --force .
 ```
 
 ### 3. Headless Setup

@@ -104,3 +104,4 @@ class TestAbbreviatePathURLs:
         assert "a.co" in result
         assert "/\u2026/" in result
 
+

@@ -86,3 +86,4 @@ def test_openai_compat_marks_only_tail_without_mcp() -> None:
     )
     assert _marked_openai_tool_names(marked_tools) == ["write_file"]
 
+

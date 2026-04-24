@@ -215,3 +215,4 @@ class TestNestedRepoProtection:
         assert result is False
         assert not (workspace / ".git").exists()
 
+

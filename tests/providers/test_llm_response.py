@@ -56,3 +56,4 @@ class TestShouldExecuteTools:
         assert resp.has_tool_calls is True
         assert resp.should_execute_tools is False
 
+

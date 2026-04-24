@@ -506,3 +506,4 @@ class TestStopCommandWithUnifiedSession:
         # Both tasks should be cancelled
         assert "Stopped 2 task" in result.content
 
+

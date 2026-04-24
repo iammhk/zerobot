@@ -1186,3 +1186,4 @@ async def test_send_media_network_error_does_not_double_api_calls() -> None:
     channel._send_media_file.assert_awaited_once()
     channel._send_text.assert_not_awaited()
 
+

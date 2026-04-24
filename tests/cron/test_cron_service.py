@@ -574,3 +574,4 @@ async def test_list_jobs_during_on_job_does_not_cause_stale_reload(tmp_path) -> 
         assert next_run is not None
         assert next_run > now_ms, f"Job '{j['name']}' next_run should be in the future"
 
+

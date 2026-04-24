@@ -128,3 +128,4 @@ class TestResolveConfig:
             "cron 5 11 * * * (legacy)"
         )
 
+

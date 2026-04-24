@@ -198,3 +198,4 @@ async def test_cron_tool_no_context_returns_error(tmp_path) -> None:
     result = await tool.execute(action="add", message="test", every_seconds=60)
     assert result == "Error: no session context (channel/chat_id)"
 
+

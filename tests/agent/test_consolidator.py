@@ -166,3 +166,4 @@ class TestConsolidatorTokenBudget:
         consolidator.archive.assert_not_awaited()
         assert session.last_consolidated == 0
 
+

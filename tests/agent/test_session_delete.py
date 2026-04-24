@@ -64,3 +64,4 @@ def test_safe_key_matches_internal_path(tmp_path: Path) -> None:
     expected = sm._get_session_path(key).name
     assert SessionManager.safe_key(key) + ".jsonl" == expected
 
+

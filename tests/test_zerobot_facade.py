@@ -8,7 +8,7 @@ from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
-from zerobot.zerobot import zerobot, RunResult
+from zerobot.zerobot import Zerobot, RunResult
 
 
 def _write_config(tmp_path: Path, overrides: dict | None = None) -> Path:
@@ -166,4 +166,5 @@ def test_import_from_top_level():
     from zerobot import zerobot as N, RunResult as R
     assert N is zerobot
     assert R is RunResult
+
 

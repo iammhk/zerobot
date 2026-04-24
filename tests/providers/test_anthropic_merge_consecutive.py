@@ -138,3 +138,4 @@ class TestMergeConsecutive:
         result = AnthropicProvider._merge_consecutive(msgs)
         assert [m["role"] for m in result] == ["assistant", "user"]
 
+

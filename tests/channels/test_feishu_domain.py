@@ -47,3 +47,4 @@ class TestFeishuConfigDomain:
         ch = _make_channel(domain="feishu")
         assert ch.config.domain == "feishu"
 
+

@@ -419,3 +419,4 @@ async def test_non_string_content_still_rejected() -> None:
     err = json.loads(mock_conn.send.call_args[0][0])
     assert err["detail"] == "missing content"
 
+

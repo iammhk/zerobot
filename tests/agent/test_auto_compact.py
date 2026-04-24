@@ -1009,3 +1009,4 @@ class TestSummaryPersistence:
         assert "_last_summary" not in reloaded.metadata
         await loop.close_mcp()
 
+

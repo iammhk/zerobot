@@ -226,3 +226,4 @@ async def issue_token_ok(
     assert token.startswith("nbwt_"), f"Unexpected token format: {token}"
     return token
 
+

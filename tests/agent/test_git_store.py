@@ -233,3 +233,4 @@ class TestMemoryStoreGitProperty:
         store = MemoryStore(tmp_path)
         assert store.git is store._git
 
+

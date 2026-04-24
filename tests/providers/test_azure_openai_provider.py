@@ -407,3 +407,4 @@ def test_get_default_model():
     )
     assert provider.get_default_model() == "my-deploy"
 
+

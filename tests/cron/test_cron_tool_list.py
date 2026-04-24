@@ -395,3 +395,4 @@ def test_list_excludes_disabled_jobs(tmp_path) -> None:
     assert "Paused job" not in result
     assert result == "No scheduled jobs."
 
+

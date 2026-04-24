@@ -36,3 +36,4 @@ def test_is_allowed_denies_empty_dict_allow_from() -> None:
 
     assert channel.is_allowed("alice") is False
 
+

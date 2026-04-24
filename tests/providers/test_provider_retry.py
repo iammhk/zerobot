@@ -611,3 +611,4 @@ async def test_chat_stream_with_retry_normalizes_explicit_none_max_tokens() -> N
     assert provider.last_kwargs["max_tokens"] == 4096
     assert provider.last_kwargs["temperature"] == 0.7
 
+

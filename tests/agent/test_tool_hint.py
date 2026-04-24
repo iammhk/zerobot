@@ -255,3 +255,4 @@ class TestToolHintMixedFolding:
         parts = result.split(", ")
         assert len(parts) == 5
 
+

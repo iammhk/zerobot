@@ -67,3 +67,4 @@ def test_split_headings_keeps_markdown_body_and_code_blocks_intact() -> None:
     assert "Body with **bold** text." in elements[1]["content"]
     assert "```python\nprint('hi')\n```" in elements[1]["content"]
 
+

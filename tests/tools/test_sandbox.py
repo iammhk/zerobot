@@ -120,3 +120,4 @@ class TestUnknownBackend:
         with pytest.raises(ValueError):
             wrap_command("", "ls", ws, ws)
 
+

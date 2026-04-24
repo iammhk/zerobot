@@ -204,3 +204,4 @@ def test_stale_extra_content_in_tool_calls_survives_sanitize() -> None:
 
     assert sanitized[1]["tool_calls"][0]["extra_content"] == GEMINI_EXTRA
 
+

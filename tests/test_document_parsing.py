@@ -315,3 +315,4 @@ class TestIsTextExtension:
         assert _is_text_extension(".TXT") is False
         assert _is_text_extension(".pdf") is False
 
+

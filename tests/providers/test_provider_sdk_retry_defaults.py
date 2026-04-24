@@ -32,3 +32,4 @@ def test_azure_openai_disables_sdk_retries_by_default() -> None:
     kwargs = mock_client.call_args.kwargs
     assert kwargs["max_retries"] == 0
 
+

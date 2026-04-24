@@ -392,3 +392,4 @@ async def test_send_propagates_network_error_no_fallback() -> None:
     # No fallback text should have been sent
     assert len(channel._client.api.c2c_calls) == 0
 
+

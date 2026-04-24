@@ -55,3 +55,4 @@ docker rmi -f zerobot-test-onboarded 2>/dev/null || true
 docker rmi -f "$IMAGE_NAME" 2>/dev/null || true
 echo "Done."
 
+

@@ -422,3 +422,4 @@ class TestStaleDetectionContentFallback:
         # Should NOT warn about modification since content is the same
         assert "modified" not in result.lower()
 
+

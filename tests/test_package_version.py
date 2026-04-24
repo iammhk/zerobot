@@ -40,3 +40,4 @@ def test_source_checkout_import_uses_pyproject_version_without_metadata() -> Non
     assert proc.returncode == 0, proc.stderr
     assert proc.stdout.strip() == expected
 
+

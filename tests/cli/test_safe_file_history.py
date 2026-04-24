@@ -43,3 +43,4 @@ class TestSafeFileHistory:
         assert len(entries) == 1
         assert "\udce9" not in entries[0]
 
+

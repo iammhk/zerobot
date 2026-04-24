@@ -61,3 +61,4 @@ class TestIsBotMentioned:
         msg = _make_message(mentions=None)
         assert ch._is_bot_mentioned(msg) is False
 
+

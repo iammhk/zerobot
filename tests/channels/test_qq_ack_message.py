@@ -171,3 +171,4 @@ async def test_custom_ack_message_text() -> None:
     msg = await channel.bus.consume_inbound()
     assert msg.content == "test input"
 
+

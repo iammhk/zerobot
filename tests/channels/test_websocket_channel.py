@@ -824,3 +824,4 @@ def test_parse_envelope_rejects_legacy_and_garbage() -> None:
 def test_is_valid_chat_id(value: Any, expected: bool) -> None:
     assert _is_valid_chat_id(value) is expected
 
+

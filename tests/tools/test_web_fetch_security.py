@@ -112,3 +112,4 @@ async def test_web_fetch_blocks_private_redirect_before_returning_image(monkeypa
     assert "error" in data
     assert "redirect blocked" in data["error"].lower()
 
+

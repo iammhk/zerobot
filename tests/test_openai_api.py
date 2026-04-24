@@ -426,3 +426,4 @@ async def test_process_direct_accepts_media() -> None:
     assert captured_msg.media == ["/tmp/image.png", "/tmp/report.pdf"]
     assert captured_msg.content == "analyze this"
 
+

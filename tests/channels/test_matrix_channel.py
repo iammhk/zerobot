@@ -1626,3 +1626,4 @@ async def test_send_delta_ignores_whitespace_only_delta(monkeypatch) -> None:
     assert channel._stream_bufs["!room:matrix.org"].text == "   "
     assert client.room_send_calls == []
 
+

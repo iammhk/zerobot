@@ -237,3 +237,4 @@ class TestStreamEndReactionCleanup:
 
         ch._remove_reaction.assert_not_called()
 
+

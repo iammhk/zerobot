@@ -80,3 +80,4 @@ def test_anthropic_handle_error_marks_connection_kind() -> None:
     assert response.finish_reason == "error"
     assert response.error_kind == "connection"
 
+

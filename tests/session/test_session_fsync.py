@@ -129,3 +129,4 @@ class TestFlushAll:
         assert history[0]["content"] == "remember this"
         assert history[1]["content"] == "noted"
 
+

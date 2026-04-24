@@ -161,3 +161,4 @@ async def test_dispatch_cancellation_restores_checkpoint():
     assert loop.sessions.save.called, \
         "Session should be persisted so the restored state survives process restart"
 
+

@@ -245,3 +245,4 @@ def test_parse_chunks_sdk_reasoning_precedence() -> None:
 
     assert result.reasoning_content == "formal: "
 
+

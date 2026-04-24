@@ -305,3 +305,4 @@ class TestBuildStatusContentWithSearchUsage:
         assert "2026-05-01" in content
         assert "Search: 120" in content
 
+

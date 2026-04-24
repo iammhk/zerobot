@@ -799,3 +799,4 @@ async def test_connect_registers_resources_and_prompts(
     assert "mcp_test_resource_res_b" in registry.tool_names
     assert "mcp_test_prompt_prompt_c" in registry.tool_names
 
+

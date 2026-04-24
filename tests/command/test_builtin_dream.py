@@ -142,3 +142,4 @@ async def test_dream_restore_success_mentions_files_and_followup() -> None:
     assert "- Restored files: `SOUL.md`, `memory/MEMORY.md`" in out.content
     assert "Use `/dream-log eeee9999` to inspect the restore diff." in out.content
 
+

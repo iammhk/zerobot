@@ -354,3 +354,4 @@ def test_subagent_prompt_respects_disabled_skills(tmp_path: Path) -> None:
     assert "alpha" not in prompt
     assert "beta" in prompt
 
+

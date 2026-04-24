@@ -187,3 +187,4 @@ class TestCursorValidationInvariant:
             f"got {len(corruption_warnings)}: {[r.getMessage() for r in corruption_warnings]}"
         )
 
+

@@ -75,3 +75,4 @@ async def test_exec_allowed_env_keys_missing_var_ignored(monkeypatch):
     result = await tool.execute(command="printenv NONEXISTENT_VAR_12345")
     assert "Exit code: 1" in result
 
+

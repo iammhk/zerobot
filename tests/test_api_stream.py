@@ -279,3 +279,4 @@ async def test_streaming_backend_failure_does_not_emit_success_terminator(aiohtt
     assert '"finish_reason": "stop"' not in body
     assert "[DONE]" not in body
 
+

@@ -127,3 +127,4 @@ def test_parse_chunks_sdk_reasoning_content_none_when_absent() -> None:
 
     assert result.reasoning_content is None
 
+

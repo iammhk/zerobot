@@ -30,3 +30,4 @@ async def test_message_tool_rejects_malformed_buttons(bad) -> None:
     )
     assert result == "Error: buttons must be a list of list of strings"
 
+

@@ -627,3 +627,4 @@ async def test_process_message_empty_content_skipped() -> None:
 
     assert channel.bus.inbound.empty()
 
+

@@ -658,3 +658,4 @@ def test_subagent_followup_skips_empty_content() -> None:
     assert loop._persist_subagent_followup(session, msg) is False
     assert session.messages == []
 
+

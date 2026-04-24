@@ -42,3 +42,4 @@ def test_explicit_provider_import_still_works(monkeypatch) -> None:
     assert namespace["AnthropicProvider"].__name__ == "AnthropicProvider"
     assert "zerobot.providers.anthropic_provider" in sys.modules
 
+

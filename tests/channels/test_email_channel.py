@@ -976,3 +976,4 @@ def test_extract_attachments_sanitizes_filename(tmp_path, monkeypatch) -> None:
     # File must be inside the media dir, not escaped via path traversal
     assert saved_path.parent == tmp_path
 
+

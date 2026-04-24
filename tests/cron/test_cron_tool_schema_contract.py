@@ -98,3 +98,4 @@ class TestSchemaSelfDescribesRequirements:
         tool = CronTool(_SvcStub())
         assert tool.parameters["required"] == ["action"]
 
+

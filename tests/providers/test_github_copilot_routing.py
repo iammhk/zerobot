@@ -78,3 +78,4 @@ async def test_github_copilot_does_not_fall_back_from_responses_error():
     mock_client.responses.create.assert_awaited_once()
     mock_client.chat.completions.create.assert_not_awaited()
 
+

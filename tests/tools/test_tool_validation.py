@@ -659,3 +659,4 @@ def test_cast_nullable_param_no_crash() -> None:
     result = tool.cast_params({"name": None})
     assert result["name"] is None
 
+

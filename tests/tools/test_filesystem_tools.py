@@ -409,3 +409,4 @@ class TestWorkspaceRestriction:
         assert "outside" in result.lower()
         assert skill_file.read_text() == "# Weather\nOriginal content."
 
+

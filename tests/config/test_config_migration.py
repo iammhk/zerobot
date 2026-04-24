@@ -224,3 +224,4 @@ def test_load_config_resets_ssrf_whitelist_when_next_config_is_empty(tmp_path) -
         ok, _ = validate_url_target("http://ts.local/api")
         assert not ok
 
+

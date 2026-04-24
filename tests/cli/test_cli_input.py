@@ -203,3 +203,4 @@ def test_render_interactive_ansi_force_terminal_follows_isatty():
         commands._render_interactive_ansi(render_fn)
         assert captured["console"]._force_terminal is False
 
+

@@ -114,3 +114,4 @@ def test_non_table_elements_before_first_table_kept_in_first_group() -> None:
     assert result[0] == [head, t1]
     assert result[1] == [t2]
 
+

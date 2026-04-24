@@ -1486,3 +1486,4 @@ def test_channels_login_requires_channel_name() -> None:
 
     assert result.exit_code == 2
 
+

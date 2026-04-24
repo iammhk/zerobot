@@ -380,3 +380,4 @@ async def test_api_token_pool_purges_expired(bus: MagicMock, tmp_path: Path) -> 
 
     assert channel._check_api_token(_LiveReq()) is True
 
+
