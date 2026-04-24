@@ -973,23 +973,8 @@ class OpenAICompatProvider(LLMProvider):
     # Public API
     # ------------------------------------------------------------------
 
-    async def chat(
-        self,
-        messages: list[dict[str, Any]],
-        tools: list[dict[str, Any]] | None = None,
-        model: str | None = None,
-        max_tokens: int = 4096,
-        temperature: float = 0.7,
-        reasoning_effort: str | None = None,
-        tool_choice: str | dict[str, Any] | None = None,
-    ) -> LLMResponse:
-        # Debug: Check provider state (using ERROR level to ensure visibility)
-        try:
-            p_name = self._spec.name if self._spec else "None"
-            logger.error(f"!!! DEBUG: Chat called for provider: {p_name} !!!")
-        except Exception as e:
-            logger.error(f"!!! DEBUG: Chat log failed: {e} !!!")
-        # Auto-discover Ollama if needed
+    async def _ensure_ollama_discovered(self) -> None:
+        """Auto-discover Ollama if needed."""
         if (
             self._spec
             and self._spec.name == "ollama"
@@ -1023,6 +1008,18 @@ class OpenAICompatProvider(LLMProvider):
                     logger.warning("Ollama auto-discovery failed. No server found on local network.")
             else:
                 logger.debug("Ollama is reachable. Skipping discovery.")
+
+    async def chat(
+        self,
+        messages: list[dict[str, Any]],
+        tools: list[dict[str, Any]] | None = None,
+        model: str | None = None,
+        max_tokens: int = 4096,
+        temperature: float = 0.7,
+        reasoning_effort: str | None = None,
+        tool_choice: str | dict[str, Any] | None = None,
+    ) -> LLMResponse:
+        await self._ensure_ollama_discovered()
 
         try:
             if self._should_use_responses_api(model, reasoning_effort):
@@ -1063,6 +1060,7 @@ class OpenAICompatProvider(LLMProvider):
         tool_choice: str | dict[str, Any] | None = None,
         on_content_delta: Callable[[str], Awaitable[None]] | None = None,
     ) -> LLMResponse:
+        await self._ensure_ollama_discovered()
         idle_timeout_s = int(os.environ.get("Zerobot_STREAM_IDLE_TIMEOUT_S", "90"))
         try:
             if self._should_use_responses_api(model, reasoning_effort):
