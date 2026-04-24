@@ -560,9 +560,9 @@ def serve(
     from zerobot.session.manager import SessionManager
 
     if verbose:
-        logger.enable("Zerobot")
+        logger.enable("zerobot")
     else:
-        logger.disable("Zerobot")
+        logger.disable("zerobot")
 
     runtime_config = _load_runtime_config(config, workspace)
     api_cfg = runtime_config.api
@@ -992,9 +992,9 @@ def agent(
     cron = CronService(cron_store_path)
 
     if logs:
-        logger.enable("Zerobot")
+        logger.enable("zerobot")
     else:
-        logger.disable("Zerobot")
+        logger.disable("zerobot")
 
     agent_loop = AgentLoop(
         bus=bus,
