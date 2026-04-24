@@ -987,6 +987,7 @@ class OpenAICompatProvider(LLMProvider):
         ):
             self._ollama_discovered = True
             is_working = False
+            logger.debug(f"Checking Ollama connectivity at {self._effective_base}...")
             if self._effective_base:
                 from urllib.parse import urlparse
                 from zerobot.utils.network import scan_port
@@ -996,17 +997,22 @@ class OpenAICompatProvider(LLMProvider):
                     is_working = await scan_port(
                         parsed.hostname or "localhost", parsed.port or 11434, timeout=0.5
                     )
-                except Exception:
-                    pass
+                except Exception as e:
+                    logger.debug(f"Connectivity check failed: {e}")
 
             if not is_working:
                 from zerobot.utils.network import discover_ollama
 
+                logger.info("Ollama unreachable. Starting auto-discovery...")
                 found = await discover_ollama()
                 if found:
                     logger.info(f"Ollama auto-discovered at {found}")
                     self._effective_base = found
                     self._client.base_url = found
+                else:
+                    logger.warning("Ollama auto-discovery failed. No server found on local network.")
+            else:
+                logger.debug("Ollama is reachable. Skipping discovery.")
 
         try:
             if self._should_use_responses_api(model, reasoning_effort):
