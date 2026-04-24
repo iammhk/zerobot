@@ -1,4 +1,4 @@
-![cover-v5-optimized](./images/GitHub_README.png)
+![zerobot-banner](./images/zerobot_banner.png)
 
 <div align="center">
   <p>
