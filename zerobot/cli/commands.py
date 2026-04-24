@@ -164,7 +164,6 @@ def _print_agent_response(
     content = response or ""
     body = _response_renderable(content, render_markdown, metadata)
     console.print()
-    console.print(f"[cyan]{__logo__} Zerobot[/cyan]")
     console.print(body)
     console.print()
 
@@ -199,8 +198,6 @@ async def _print_interactive_response(
         content = response or ""
         ansi = _render_interactive_ansi(
             lambda c: (
-                c.print(),
-                c.print(f"[cyan]{__logo__} Zerobot[/cyan]"),
                 c.print(_response_renderable(content, render_markdown, metadata)),
                 c.print(),
             )
@@ -240,7 +237,7 @@ async def _read_interactive_input_async() -> str:
     try:
         with patch_stdout():
             return await _PROMPT_SESSION.prompt_async(
-                HTML("<b fg='ansiblue'>You:</b> "),
+                HTML("<b fg='ansiblue'>❯</b> "),
             )
     except EOFError as exc:
         raise KeyboardInterrupt from exc
@@ -488,7 +485,7 @@ def _load_runtime_config(config: str | None = None, workspace: str | None = None
             console.print(f"[red]Error: Config file not found: {config_path}[/red]")
             raise typer.Exit(1)
         set_config_path(config_path)
-        console.print(f"[dim]Using config: {config_path}[/dim]")
+        logger.debug(f"Using config: {config_path}")
 
     try:
         loaded = resolve_config_env_vars(load_config(config_path))
@@ -971,10 +968,14 @@ def agent(
     logs: bool = typer.Option(False, "--logs/--no-logs", help="Show Zerobot runtime logs during chat"),
 ):
     """Interact with the agent directly."""
-    from loguru import logger
+    if logs:
+        logger.enable("zerobot")
+    else:
+        logger.disable("zerobot")
 
     from zerobot.agent.loop import AgentLoop
     from zerobot.bus.queue import MessageBus
+    from zerobot.config.paths import is_default_workspace
     from zerobot.cron.service import CronService
 
     config = _load_runtime_config(config, workspace)
@@ -990,11 +991,6 @@ def agent(
     # Create cron service with workspace-scoped store
     cron_store_path = config.workspace_path / "cron" / "jobs.json"
     cron = CronService(cron_store_path)
-
-    if logs:
-        logger.enable("zerobot")
-    else:
-        logger.disable("zerobot")
 
     agent_loop = AgentLoop(
         bus=bus,
@@ -1060,7 +1056,7 @@ def agent(
         # Interactive mode — route through bus like other channels
         from zerobot.bus.events import InboundMessage
         _init_prompt_session()
-        console.print(f"{__logo__} Interactive mode [bold blue]({config.agents.defaults.model})[/bold blue] — type [bold]exit[/bold] or [bold]Ctrl+C[/bold] to quit\n")
+        console.print(f"[dim]{__logo__} {config.agents.defaults.model} | exit to quit[/dim]\n")
 
         if ":" in session_id:
             cli_channel, cli_chat_id = session_id.split(":", 1)

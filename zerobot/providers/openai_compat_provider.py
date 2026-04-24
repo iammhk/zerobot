@@ -1,8 +1,5 @@
 from __future__ import annotations
 
-print("\n" + "="*40)
-print("DEBUG: LOADING LOCAL OPENAI COMPAT PROVIDER")
-print("="*40 + "\n")
 
 import asyncio
 import json
