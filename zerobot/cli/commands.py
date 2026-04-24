@@ -271,7 +271,7 @@ def main(
 def onboard(
     workspace: str | None = typer.Option(None, "--workspace", "-w", help="Workspace directory"),
     config: str | None = typer.Option(None, "--config", "-c", help="Path to config file"),
-    wizard: bool = typer.Option(False, "--wizard", help="Use interactive wizard"),
+    wizard: bool = typer.Option(True, "--wizard/--no-wizard", help="Use interactive wizard (default)"),
 ):
     """Initialize Zerobot configuration and workspace."""
     from zerobot.config.loader import get_config_path, load_config, save_config, set_config_path

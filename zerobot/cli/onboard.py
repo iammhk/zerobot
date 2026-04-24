@@ -79,7 +79,7 @@ def _select_with_back(
     from prompt_toolkit.key_binding import KeyBindings
     from prompt_toolkit.keys import Keys
     from prompt_toolkit.layout import Layout
-    from prompt_toolkit.layout.containers import HSplit, Window
+    from prompt_toolkit.layout.containers import HSplit, Window, ScrollOffsets
     from prompt_toolkit.layout.controls import FormattedTextControl
     from prompt_toolkit.styles import Style
 
@@ -108,7 +108,8 @@ def _select_with_back(
 
     # Create layout
     menu_control = FormattedTextControl(get_menu_text)
-    menu_window = Window(content=menu_control, height=len(choices))
+    # Use a scrollable window with a max height to prevent "Window too small" errors
+    menu_window = Window(content=menu_control, height=None, scroll_offsets=ScrollOffsets(top=1, bottom=1))
 
     prompt_control = FormattedTextControl(lambda: [("class:question", f"> {prompt}")])
     prompt_window = Window(content=prompt_control, height=1)
@@ -358,7 +359,7 @@ def _show_config_panel(display_name: str, model: BaseModel, fields: list) -> Non
         formatted = _format_value(value, rich=True, field_name=fname)
         table.add_row(display, formatted)
 
-    console.print(Panel(table, title=f"[bold]{display_name}[/bold]", border_style="blue"))
+    console.print(Panel(table, title=f"[bold]{display_name}[/bold]", border_style="blue", expand=False))
 
 
 def _show_main_menu_header() -> None:
@@ -380,10 +381,10 @@ def _show_section_header(title: str, subtitle: str = "") -> None:
     console.print()
     if subtitle:
         console.print(
-            Panel(f"[dim]{subtitle}[/dim]", title=f"[bold]{title}[/bold]", border_style="blue")
+            Panel(f"[dim]{subtitle}[/dim]", title=f"[bold]{title}[/bold]", border_style="blue", expand=False)
         )
     else:
-        console.print(Panel("", title=f"[bold]{title}[/bold]", border_style="blue"))
+        console.print(Panel("", title=f"[bold]{title}[/bold]", border_style="blue", expand=False))
 
 
 # --- Input Handlers ---
@@ -759,6 +760,53 @@ def _get_provider_names() -> dict[str, str]:
     return {name: data[0] for name, data in info.items() if name}
 
 
+def _run_first_time_setup(config: Config) -> None:
+    """Prompt for provider and API key if none are configured."""
+    from zerobot.providers.registry import PROVIDERS
+
+    # Check if any provider has an API key or is local/oauth
+    has_any_setup = False
+    for spec in PROVIDERS:
+        p = getattr(config.providers, spec.name, None)
+        if p and (p.api_key or spec.is_local or spec.is_oauth):
+            has_any_setup = True
+            break
+
+    if has_any_setup:
+        return
+
+    console.clear()
+    _show_section_header(
+        "Welcome to Zerobot!", "Let's set up your primary LLM provider to get started."
+    )
+
+    provider_map = _get_provider_names()
+    # Prioritize popular providers
+    priority = ["openai", "anthropic", "deepseek", "gemini"]
+    choices = []
+    for p in priority:
+        if p in provider_map:
+            choices.append(provider_map[p])
+    for p in provider_map.values():
+        if p not in choices:
+            choices.append(p)
+
+    choices.append("[Skip for now]")
+
+    answer = _get_questionary().select(
+        "Which LLM provider would you like to use?",
+        choices=choices,
+        qmark=">",
+    ).ask()
+
+    if answer and answer != "[Skip for now]":
+        # Find provider key
+        for key, display in provider_map.items():
+            if display == answer:
+                _configure_provider(config, key)
+                break
+
+
 def _configure_provider(config: Config, provider_name: str) -> None:
     """Configure a single LLM provider."""
     provider_config = getattr(config.providers, provider_name, None)
@@ -772,6 +820,28 @@ def _configure_provider(config: Config, provider_name: str) -> None:
 
     if default_api_base and not provider_config.api_base:
         provider_config.api_base = default_api_base
+
+    # Auto-discover Ollama if not configured
+    if provider_name == "ollama" and not provider_config.api_base:
+        import asyncio
+        from zerobot.utils.network import discover_ollama
+
+        try:
+            with console.status("[bold cyan]Scanning local network for Ollama..."):
+                found_base = asyncio.run(discover_ollama())
+
+            if found_base:
+                console.print(f"[green]✓ Found Ollama at {found_base}[/green]")
+                provider_config.api_base = found_base
+            else:
+                console.print(
+                    "[yellow]! Could not find Ollama automatically. Falling back to localhost.[/yellow]"
+                )
+                provider_config.api_base = "http://localhost:11434/v1"
+        except Exception as e:
+            from loguru import logger
+            logger.debug(f"Ollama discovery failed: {e}")
+            provider_config.api_base = "http://localhost:11434/v1"
 
     updated_provider = _configure_pydantic_model(
         provider_config,
@@ -905,7 +975,7 @@ def _configure_channels(config: Config) -> None:
 # --- General Settings ---
 
 _SETTINGS_SECTIONS: dict[str, tuple[str, str, set[str] | None]] = {
-    "Agent Settings": ("Agent Defaults", "Configure default model, temperature, and behavior", None),
+    "Defaults": ("Defaults", "Configure default model, temperature, and behavior", None),
     "Channel Common": ("Channel Common", "Configure cross-channel behavior: progress, tool hints, retries", None),
     "API Server": ("API Server", "Configure OpenAI-compatible API endpoint", None),
     "Gateway": ("Gateway Settings", "Configure server host, port, and heartbeat", None),
@@ -913,7 +983,7 @@ _SETTINGS_SECTIONS: dict[str, tuple[str, str, set[str] | None]] = {
 }
 
 _SETTINGS_GETTER = {
-    "Agent Settings": lambda c: c.agents.defaults,
+    "Defaults": lambda c: c.agents.defaults,
     "Channel Common": lambda c: c.channels,
     "API Server": lambda c: c.api,
     "Gateway": lambda c: c.gateway,
@@ -921,7 +991,7 @@ _SETTINGS_GETTER = {
 }
 
 _SETTINGS_SETTER = {
-    "Agent Settings": lambda c, v: setattr(c.agents, "defaults", v),
+    "Defaults": lambda c, v: setattr(c.agents, "defaults", v),
     "Channel Common": lambda c, v: setattr(c, "channels", v),
     "API Server": lambda c, v: setattr(c, "api", v),
     "Gateway": lambda c, v: setattr(c, "gateway", v),
@@ -972,7 +1042,7 @@ def _print_summary_panel(rows: list[tuple[str, str]], title: str) -> None:
     table.add_column("Value")
     for field, value in rows:
         table.add_row(field, value)
-    console.print(Panel(table, title=f"[bold]{title}[/bold]", border_style="blue"))
+    console.print(Panel(table, title=f"[bold]{title}[/bold]", border_style="blue", expand=False))
 
 
 def _show_summary(config: Config) -> None:
@@ -1005,7 +1075,7 @@ def _show_summary(config: Config) -> None:
 
     # Settings sections
     for title, model in [
-        ("Agent Settings", config.agents.defaults),
+        ("Defaults", config.agents.defaults),
         ("Channel Common", config.channels),
         ("API Server", config.api),
         ("Gateway", config.gateway),
@@ -1073,6 +1143,9 @@ def run_onboard(initial_config: Config | None = None) -> OnboardResult:
     original_config = base_config.model_copy(deep=True)
     config = base_config.model_copy(deep=True)
 
+    # First-time setup: Ask for provider and API key if none are set
+    _run_first_time_setup(config)
+
     while True:
         console.clear()
         _show_main_menu_header()
@@ -1084,7 +1157,7 @@ def run_onboard(initial_config: Config | None = None) -> OnboardResult:
                     "[P] LLM Provider",
                     "[C] Chat Channel",
                     "[H] Channel Common",
-                    "[A] Agent Settings",
+                    "[D] Defaults",
                     "[I] API Server",
                     "[G] Gateway",
                     "[T] Tools",
@@ -1109,7 +1182,7 @@ def run_onboard(initial_config: Config | None = None) -> OnboardResult:
             "[P] LLM Provider": lambda: _configure_providers(config),
             "[C] Chat Channel": lambda: _configure_channels(config),
             "[H] Channel Common": lambda: _configure_general_settings(config, "Channel Common"),
-            "[A] Agent Settings": lambda: _configure_general_settings(config, "Agent Settings"),
+            "[D] Defaults": lambda: _configure_general_settings(config, "Defaults"),
             "[I] API Server": lambda: _configure_general_settings(config, "API Server"),
             "[G] Gateway": lambda: _configure_general_settings(config, "Gateway"),
             "[T] Tools": lambda: _configure_general_settings(config, "Tools"),
