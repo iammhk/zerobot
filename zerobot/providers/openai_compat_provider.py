@@ -981,6 +981,8 @@ class OpenAICompatProvider(LLMProvider):
         reasoning_effort: str | None = None,
         tool_choice: str | dict[str, Any] | None = None,
     ) -> LLMResponse:
+        # Debug: Check provider state
+        logger.info(f"Chat called. Provider: {self._spec.name if self._spec else 'None'}, Discovered: {getattr(self, '_ollama_discovered', False)}")
         # Auto-discover Ollama if needed
         if (
             self._spec
