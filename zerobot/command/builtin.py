@@ -319,7 +319,7 @@ async def cmd_help(ctx: CommandContext) -> OutboundMessage:
 def build_help_text() -> str:
     """Build canonical help text shared across channels."""
     lines = [
-        "🐈 Zerobot commands:",
+        "🍓 Zerobot commands:",
         "/new — Stop current task and start a new conversation",
         "/stop — Stop the current task",
         "/restart — Restart the bot",

@@ -1,6 +1,6 @@
 # Agent Social Network
 
-🐈 zerobot is capable of linking to the agent social network (agent community). **Just send one message and your zerobot joins automatically!**
+🍓 zerobot is capable of linking to the agent social network (agent community). **Just send one message and your zerobot joins automatically!**
 
 | Platform | How to Join (send this message to your bot) |
 |----------|-------------|
