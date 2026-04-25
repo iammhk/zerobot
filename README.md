@@ -23,6 +23,7 @@
 
 ## 📢 News
 
+- **2026-04-25** 🍓 Connected Hardware — Configurable support for various devices/HATs (e.g., ST7735 TFT display, PCA9685 Servo HAT) with conditional tool loading.
 - **2026-04-24** 🍓 Enhanced Ollama discovery — scans all network interfaces and verifies service via API.
 - **2026-04-21** 🚀 Released **v0.1.5.post2** — Windows & Python 3.14 support, Office document reading, SSE streaming for the OpenAI-compatible API, and stronger reliability across sessions, memory, and channels. Please see [release notes](https://github.com/HKUDS/zerobot/releases/tag/v0.1.5.post2) for details.
 - **2026-04-20** 🎨 Kimi K2.6 support, Telegram long-message split, WebUI typography & dark-mode polish.
@@ -169,6 +170,16 @@ To maximize available RAM, run the agent in **headless mode** and access the UI 
 Add these to your `~/.zerobot/config.json`:
 - `"contextWindowTokens": 32768` (Reduces memory pressure)
 - `"sessionTtlMinutes": 30` (Auto-clears idle memory)
+- `"connected_hardware": ["pca9685", "st7735"]` (Enable specific HATs/drivers)
+
+### 5. Connected Hardware
+Zerobot can interface directly with hardware connected to the Pi's GPIO/SPI/I2C pins. Enable supported modules in your config or via `zerobot onboard`:
+
+| Module | Description | Tool(s) |
+| :--- | :--- | :--- |
+| `pca9685` | I2C Servo Driver HAT (e.g. Waveshare) | `servos` |
+| `st7735` | 1.8" TFT SPI Display (128x160) | `display` |
+| `builtin` | Onboard Bluetooth and Audio | `bluetooth`, `audio` |
 
 ## 🚀 Quick Start
 
