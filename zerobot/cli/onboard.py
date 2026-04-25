@@ -806,6 +806,30 @@ def _run_first_time_setup(config: Config) -> None:
                 _configure_provider(config, key)
                 break
 
+    # Ask for hardware type if not set
+    if config.agents.defaults.hardware_type == "Generic Device":
+        hardware_answer = _get_questionary().select(
+            "What kind of hardware is Zerobot running on?",
+            choices=[
+                "Raspberry Pi Zero 2 W",
+                "Raspberry Pi 5",
+                "Raspberry Pi 4",
+                "Personal Computer (PC)",
+                "Server / Cloud",
+                "Other (Manual Entry)",
+            ],
+            qmark=">",
+        ).ask()
+
+        if hardware_answer == "Other (Manual Entry)":
+            hardware_answer = _get_questionary().text(
+                "Enter hardware description:",
+                default="Custom Hardware",
+            ).ask()
+
+        if hardware_answer:
+            config.agents.defaults.hardware_type = hardware_answer
+
 
 def _configure_provider(config: Config, provider_name: str) -> None:
     """Configure a single LLM provider."""

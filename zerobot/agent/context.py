@@ -21,9 +21,16 @@ class ContextBuilder:
     _MAX_RECENT_HISTORY = 50
     _RUNTIME_CONTEXT_END = "[/Runtime Context]"
 
-    def __init__(self, workspace: Path, timezone: str | None = None, disabled_skills: list[str] | None = None):
+    def __init__(
+        self,
+        workspace: Path,
+        timezone: str | None = None,
+        disabled_skills: list[str] | None = None,
+        hardware_type: str | None = None,
+    ):
         self.workspace = workspace
         self.timezone = timezone
+        self.hardware_type = hardware_type
         self.memory = MemoryStore(workspace)
         self.skills = SkillsLoader(workspace, disabled_skills=set(disabled_skills) if disabled_skills else None)
 
@@ -74,6 +81,7 @@ class ContextBuilder:
             runtime=runtime,
             platform_policy=render_template("agent/platform_policy.md", system=system),
             channel=channel or "",
+            hardware_type=self.hardware_type or "Generic Device",
         )
 
     @staticmethod

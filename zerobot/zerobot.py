@@ -85,6 +85,7 @@ class Zerobot:
             disabled_skills=defaults.disabled_skills,
             session_ttl_minutes=defaults.session_ttl_minutes,
             tools_config=config.tools,
+            hardware_type=defaults.hardware_type,
         )
         return cls(loop)
 
