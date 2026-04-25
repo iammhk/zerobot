@@ -261,7 +261,7 @@ bun run dev
 ## 🏗️ Architecture
 
 <p align="center">
-  <img src="images/zerobot_arch_minimal.png" alt="zerobot architecture" width="900">
+  <img src="images/zerobot_arch_expanded.png" alt="zerobot architecture" width="900">
 </p>
 
 🍓 zerobot stays lightweight by centering everything around a small agent loop: messages come in from chat apps, the LLM decides when tools are needed, and memory or skills are pulled in only as context instead of becoming a heavy orchestration layer. That keeps the core path readable and easy to extend, while still letting you add channels, tools, memory, and deployment options without turning the system into a monolith.
