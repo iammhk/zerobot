@@ -839,6 +839,7 @@ def _configure_hardware(config: Config) -> None:
     """Configure connected hardware modules/HATs."""
     supported_hardware = {
         "pca9685": "PCA9685 (Servo Driver HAT)",
+        "st7735": "SmartElex 1.8 TFT Display (ST7735S)",
     }
 
     current = set(config.agents.defaults.connected_hardware)

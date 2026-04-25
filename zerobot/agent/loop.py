@@ -32,6 +32,7 @@ from zerobot.agent.tools.spawn import SpawnTool
 from zerobot.agent.tools.audio import AudioTool
 from zerobot.agent.tools.bluetooth import BluetoothTool
 from zerobot.agent.tools.servos import ServoTool
+from zerobot.agent.tools.display import DisplayTool
 from zerobot.agent.tools.web import WebFetchTool, WebSearchTool
 from zerobot.bus.events import InboundMessage, OutboundMessage
 from zerobot.bus.queue import MessageBus
@@ -334,6 +335,8 @@ class AgentLoop:
         self.tools.register(AudioTool())
         if "pca9685" in (self.context.connected_hardware or []):
             self.tools.register(ServoTool())
+        if "st7735" in (self.context.connected_hardware or []):
+            self.tools.register(DisplayTool())
 
     async def _connect_mcp(self) -> None:
         """Connect to configured MCP servers (one-time, lazy)."""
