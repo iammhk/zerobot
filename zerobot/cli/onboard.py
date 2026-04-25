@@ -830,6 +830,37 @@ def _run_first_time_setup(config: Config) -> None:
         if hardware_answer:
             config.agents.defaults.hardware_type = hardware_answer
 
+        # Ask for connected hardware if on a Pi
+        if "Raspberry Pi" in hardware_answer:
+            _configure_hardware(config)
+
+
+def _configure_hardware(config: Config) -> None:
+    """Configure connected hardware modules/HATs."""
+    supported_hardware = {
+        "pca9685": "PCA9685 (Servo Driver HAT)",
+    }
+
+    current = set(config.agents.defaults.connected_hardware)
+
+    choices = []
+    for key, display in supported_hardware.items():
+        choices.append(
+            questionary.Choice(display, value=key, checked=key in current)
+        )
+
+    console.clear()
+    _show_section_header("Connected Hardware", "Select the hardware devices/HATs connected to your Pi")
+
+    selected = _get_questionary().checkbox(
+        "Which hardware is connected?",
+        choices=choices,
+        qmark=">",
+    ).ask()
+
+    if selected is not None:
+        config.agents.defaults.connected_hardware = selected
+
 
 def _configure_provider(config: Config, provider_name: str) -> None:
     """Configure a single LLM provider."""
@@ -1185,6 +1216,7 @@ def run_onboard(initial_config: Config | None = None) -> OnboardResult:
                     "[I] API Server",
                     "[G] Gateway",
                     "[T] Tools",
+                    "[E] Connected Hardware",
                     "[V] View Configuration Summary",
                     "[S] Save and Exit",
                     "[X] Exit Without Saving",
@@ -1210,6 +1242,7 @@ def run_onboard(initial_config: Config | None = None) -> OnboardResult:
             "[I] API Server": lambda: _configure_general_settings(config, "API Server"),
             "[G] Gateway": lambda: _configure_general_settings(config, "Gateway"),
             "[T] Tools": lambda: _configure_general_settings(config, "Tools"),
+            "[E] Connected Hardware": lambda: _configure_hardware(config),
             "[V] View Configuration Summary": lambda: _show_summary(config),
         }
 

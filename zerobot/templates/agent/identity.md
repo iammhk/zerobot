@@ -1,5 +1,6 @@
 ## Runtime
 - Hardware: {{ hardware_type }}
+- Connected Hardware: {{ connected_hardware }}
 - Environment: {{ runtime }}
 
 ## Capabilities

@@ -27,10 +27,12 @@ class ContextBuilder:
         timezone: str | None = None,
         disabled_skills: list[str] | None = None,
         hardware_type: str | None = None,
+        connected_hardware: list[str] | None = None,
     ):
         self.workspace = workspace
         self.timezone = timezone
         self.hardware_type = hardware_type
+        self.connected_hardware = connected_hardware or []
         self.memory = MemoryStore(workspace)
         self.skills = SkillsLoader(workspace, disabled_skills=set(disabled_skills) if disabled_skills else None)
 
@@ -82,6 +84,7 @@ class ContextBuilder:
             platform_policy=render_template("agent/platform_policy.md", system=system),
             channel=channel or "",
             hardware_type=self.hardware_type or "Generic Device",
+            connected_hardware=", ".join(self.connected_hardware) if self.connected_hardware else "None",
         )
 
     @staticmethod

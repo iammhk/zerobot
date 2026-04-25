@@ -191,6 +191,7 @@ class AgentLoop:
         disabled_skills: list[str] | None = None,
         tools_config: ToolsConfig | None = None,
         hardware_type: str | None = None,
+        connected_hardware: list[str] | None = None,
     ):
         from zerobot.config.schema import ExecToolConfig, ToolsConfig, WebToolsConfig
 
@@ -229,6 +230,7 @@ class AgentLoop:
             timezone=timezone,
             disabled_skills=disabled_skills,
             hardware_type=hardware_type,
+            connected_hardware=connected_hardware,
         )
         self.sessions = session_manager or SessionManager(workspace)
         self.tools = ToolRegistry()
@@ -330,7 +332,8 @@ class AgentLoop:
             )
         self.tools.register(BluetoothTool())
         self.tools.register(AudioTool())
-        self.tools.register(ServoTool())
+        if "pca9685" in (self.context.connected_hardware or []):
+            self.tools.register(ServoTool())
 
     async def _connect_mcp(self) -> None:
         """Connect to configured MCP servers (one-time, lazy)."""

@@ -84,6 +84,7 @@ class AgentDefaults(Base):
     timezone: str = "UTC"  # IANA timezone, e.g. "Asia/Shanghai", "America/New_York"
     unified_session: bool = False  # Share one session across all channels (single-user multi-device)
     hardware_type: str = "Generic Device"  # Type of hardware the agent is running on (e.g. "Raspberry Pi Zero 2 W")
+    connected_hardware: list[str] = Field(default_factory=list)  # List of connected hardware modules/HATs (e.g. ["pca9685"])
     disabled_skills: list[str] = Field(default_factory=list)  # Skill names to exclude from loading (e.g. ["summarize", "skill-creator"])
     session_ttl_minutes: int = Field(
         default=0,
