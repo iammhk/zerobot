@@ -16,6 +16,13 @@ class LLMRouter:
         r"\bsolve\b", r"\bcoding\b", r"\bscript\b"
     ]
 
+    # Keywords that suggest a tool-based task (Tier 2)
+    TASK_KEYWORDS = [
+        r"\blist\b", r"\bread\b", r"\brun\b", r"\bsearch\b", r"\bfind\b", 
+        r"\bshow\b", r"\bopen\b", r"\bservo\b", r"\bbluetooth\b", r"\baudio\b",
+        r"\bexec\b", r"\bshell\b", r"\bfile\b"
+    ]
+
     # Keywords that suggest simple movement or reactive control (Fast Path)
     REACTIVE_KEYWORDS = [
         r"\bmove\b", r"\bforward\b", r"\bbackward\b", r"\bturn\b", 
