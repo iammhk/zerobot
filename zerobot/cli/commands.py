@@ -426,7 +426,7 @@ def _make_provider(config: Config):
         needs_key = not (p and p.api_key)
         exempt = spec and (spec.is_oauth or spec.is_local or spec.is_direct)
         if needs_key and not exempt:
-            console.print("[red]Error: No API key configured.[/red]")
+            console.print(f"[red]Error: No API key configured for provider '{provider_name}' (model '{model}').[/red]")
             console.print("Set one in ~/.zerobot/config.json under providers section")
             raise typer.Exit(1)
 
