@@ -60,6 +60,37 @@ class LLMBenchmark:
             "content_length": len(full_content)
         }
 
+from zerobot.agent.hook import AgentHook, AgentHookContext
+
+class LLMBenchmarkHook(AgentHook):
+    """Hook to capture LLM performance metrics during an agent run."""
+    def __init__(self):
+        super().__init__()
+        self.start_time = None
+        self.first_token_time = None
+        self.token_count = 0
+        self.ttft = None
+        self.tps = None
+        self._last_time = None
+
+    async def on_turn_start(self, context: AgentHookContext) -> None:
+        self.start_time = time.perf_counter()
+
+    async def on_stream(self, context: AgentHookContext, delta: str) -> None:
+        if self.first_token_time is None:
+            self.first_token_time = time.perf_counter()
+            if self.start_time:
+                self.ttft = self.first_token_time - self.start_time
+            
+        self.token_count += 1
+        self._last_time = time.perf_counter()
+
+    async def on_stream_end(self, context: AgentHookContext, *, resuming: bool) -> None:
+        if self.first_token_time and self._last_time:
+            duration = self._last_time - self.first_token_time
+            if duration > 0:
+                self.tps = self.token_count / duration
+
 if __name__ == "__main__":
     # Example usage would require a provider
     pass

@@ -7,16 +7,14 @@ import time
 from typing import Any, Dict
 from pathlib import Path
 
-from .sys_bench import SystemBenchmark
-from .llm_bench import LLMBenchmark
-from .tool_bench import ToolBenchmark
+from . import sys_bench, llm_bench, tool_bench, task_bench
 
 class BenchmarkSuite:
     """The main benchmarking suite."""
 
     def __init__(self, bot=None):
         self.bot = bot
-        self.sys_bench = SystemBenchmark()
+        self.sys_bench = sys_bench.SystemBenchmark()
         self.results = {}
 
     async def run_all(self, output_path: str | Path | None = None) -> Dict[str, Any]:
@@ -30,13 +28,17 @@ class BenchmarkSuite:
         # 2. LLM Performance (if bot is provided)
         if self.bot:
             print(f"Benchmarking LLM ({self.bot._loop.model})...")
-            llm_bench = LLMBenchmark(self.bot._loop.provider, self.bot._loop.model)
-            self.results["llm"] = await llm_bench.run()
+            lb = llm_bench.LLMBenchmark(self.bot._loop.provider, self.bot._loop.model)
+            self.results["llm"] = await lb.run()
             
             # 3. Tool Performance
             print("Benchmarking tools...")
-            tool_bench = ToolBenchmark(self.bot._loop.tools)
-            self.results["tools"] = await tool_bench.run()
+            tb = tool_bench.ToolBenchmark(self.bot._loop.tools)
+            self.results["tools"] = await tb.run()
+
+            # 4. Task Performance
+            print("Benchmarking complex tasks (this may take a few minutes)...")
+            self.results["tasks"] = await task_bench.run_all(self.bot)
         else:
             print("Skipping LLM and Tool benchmarks (no Zerobot instance provided).")
 
@@ -85,5 +87,20 @@ class BenchmarkSuite:
             print("\nTool Latencies:")
             for name, data in tools.items():
                 print(f"  - {name}: {data.get('latency_sec')}s")
+
+        if "tasks" in res:
+            tasks = res["tasks"]
+            print("\nTask Performance:")
+            if "io_chain" in tasks:
+                io = tasks["io_chain"]
+                print(f"  - IO Chain: {io.get('total_latency', 0):.2f}s (Success: {io.get('success', 'N/A')})")
+            if "code_chain" in tasks:
+                code = tasks["code_chain"]
+                print(f"  - Code Chain: {code.get('total_latency', 0):.2f}s (Success: {code.get('success', 'N/A')})")
+            if "context_stress" in tasks:
+                stress = tasks["context_stress"]
+                print("  - Context Stress (TTFT): ", end="")
+                ttfts = [f"{r.get('ttft', 0):.1f}s" if r.get('ttft') else "N/A" for r in stress]
+                print(" -> ".join(ttfts))
         
         print("="*40 + "\n")
