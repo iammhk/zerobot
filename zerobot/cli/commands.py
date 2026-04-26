@@ -401,10 +401,11 @@ def _onboard_plugins(config_path: Path) -> None:
 
 
 def _make_provider(config: Config):
-    """Create the appropriate LLM provider from config.
-
-    Routing is driven by ``ProviderSpec.backend`` in the registry.
-    """
+    """Create the appropriate LLM provider from config. Supports TieredProvider if enabled."""
+    if config.agents.defaults.tiers.enable:
+        from zerobot.providers.tiered import TieredProvider
+        return TieredProvider(config)
+    
     from zerobot.providers.base import GenerationSettings
     from zerobot.providers.registry import find_by_name
 
