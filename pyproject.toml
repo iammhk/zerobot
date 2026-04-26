@@ -103,6 +103,7 @@ dev = [
 
 [project.scripts]
 zerobot = "zerobot.cli.commands:app"
+benchmark = "zerobot.benchmark.__main__:app"
 
 [build-system]
 requires = ["hatchling"]
