@@ -16,17 +16,17 @@ class LLMRouter:
         r"\bsolve\b", r"\bcoding\b", r"\bscript\b"
     ]
 
-    # Keywords that suggest a tool-based task (Tier 2)
-    TASK_KEYWORDS = [
-        r"\blist\b", r"\bread\b", r"\brun\b", r"\bsearch\b", r"\bfind\b", 
-        r"\bshow\b", r"\bopen\b", r"\bservo\b", r"\bbluetooth\b", r"\baudio\b",
-        r"\bexec\b", r"\bshell\b", r"\bfile\b"
+    # Keywords that suggest simple movement or reactive control (Fast Path)
+    REACTIVE_KEYWORDS = [
+        r"\bmove\b", r"\bforward\b", r"\bbackward\b", r"\bturn\b", 
+        r"\bleft\b", r"\bright\b", r"\bstop\b", r"\bhalt\b", r"\bcenter\b"
     ]
 
     def __init__(self, config: TiersConfig):
         self.config = config
         self._complex_pattern = re.compile("|".join(self.COMPLEX_KEYWORDS), re.IGNORECASE)
         self._task_pattern = re.compile("|".join(self.TASK_KEYWORDS), re.IGNORECASE)
+        self._reactive_pattern = re.compile("|".join(self.REACTIVE_KEYWORDS), re.IGNORECASE)
 
     def route(self, prompt: str) -> str:
         """Select the model for the given prompt."""
@@ -48,6 +48,11 @@ class LLMRouter:
             logger.debug("Routing to Task Tier based on keywords.")
             return self.config.task_model
 
-        # Rule 4: Default to Chat Tier
+        # Rule 4: Reactive keyword matching (Default to Chat Tier)
+        if self._reactive_pattern.search(prompt):
+            logger.debug("Routing to Chat Tier based on reactive keywords.")
+            return self.config.chat_model
+
+        # Rule 5: Default to Chat Tier
         logger.debug("Routing to Chat Tier.")
         return self.config.chat_model

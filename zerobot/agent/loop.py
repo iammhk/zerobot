@@ -17,6 +17,7 @@ from zerobot.agent.autocompact import AutoCompact
 from zerobot.agent.context import ContextBuilder
 from zerobot.agent.hook import AgentHook, AgentHookContext, CompositeHook
 from zerobot.agent.memory import Consolidator, Dream
+from zerobot.agent.reactive import ReactiveRouter
 from zerobot.agent.runner import _MAX_INJECTIONS_PER_TURN, AgentRunner, AgentRunSpec
 from zerobot.agent.skills import BUILTIN_SKILLS_DIR
 from zerobot.agent.subagent import SubagentManager
@@ -292,6 +293,7 @@ class AgentLoop:
         self._current_iteration: int = 0
         self.commands = CommandRouter()
         register_builtin_commands(self.commands)
+        self.reactive = ReactiveRouter(self.tools)
 
     def _register_default_tools(self) -> None:
         """Register the default set of tools."""
@@ -854,6 +856,10 @@ class AgentLoop:
         raw = msg.content.strip()
         ctx = CommandContext(msg=msg, session=session, key=key, raw=raw, loop=self)
         if result := await self.commands.dispatch(ctx):
+            return result
+
+        # Fast path for simple reactive commands (bypasses LLM)
+        if result := await self.reactive.match_and_execute(msg):
             return result
 
         await self.consolidator.maybe_consolidate_by_tokens(
