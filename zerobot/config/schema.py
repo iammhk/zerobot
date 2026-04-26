@@ -65,6 +65,15 @@ class DreamConfig(Base):
         return f"every {hours}h"
 
 
+class TiersConfig(Base):
+    """Multi-Tiered LLM routing configuration."""
+
+    enable: bool = False
+    chat_model: str = "ollama/gemma2:2b"
+    task_model: str = "ollama/gemma2:7b"
+    complex_model: str = "gemini/gemini-2.0-flash"
+
+
 class AgentDefaults(Base):
     """Default agent configuration."""
 
@@ -93,6 +102,7 @@ class AgentDefaults(Base):
         serialization_alias="idleCompactAfterMinutes",
     )  # Auto-compact idle threshold in minutes (0 = disabled)
     dream: DreamConfig = Field(default_factory=DreamConfig)
+    tiers: TiersConfig = Field(default_factory=TiersConfig)
 
 
 class AgentsConfig(Base):
