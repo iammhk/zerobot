@@ -57,50 +57,86 @@ class BenchmarkSuite:
         print(f"Results saved to {path}")
 
     def print_summary(self):
-        """Print a human-readable summary of the results."""
+        """Print a human-readable summary of the results using Rich."""
+        from rich.console import Console
+        from rich.table import Table
+        from rich.panel import Panel
+        from rich.columns import Columns
+        from rich import box
+
+        console = Console()
         res = self.results
-        print("\n" + "="*40)
-        print("       ZEROBOT PERFORMANCE SUMMARY")
-        print("="*40)
         
+        console.print("\n")
+        console.print(Panel(
+            "[bold cyan]ZEROBOT PERFORMANCE REPORT[/bold cyan]",
+            expand=False,
+            border_style="bright_blue",
+            box=box.DOUBLE
+        ))
+
+        # 1. System Info
         sys = res.get("system", {})
-        print(f"Platform: {sys.get('platform')}")
-        print(f"CPU Cores: {sys.get('cpu_count')}")
+        console.print(f"[bold blue]Platform:[/bold blue] {sys.get('platform')}")
+        console.print(f"[bold blue]CPU Cores:[/bold blue] {sys.get('cpu_count')}")
         
         mem = sys.get("memory", {})
         if "rss_kb" in mem:
-            print(f"Process Memory (RSS): {mem['rss_kb']} KB")
-        elif "rss_bytes" in mem:
-            print(f"Process Memory (RSS): {mem['rss_bytes'] // 1024} KB")
+            console.print(f"[bold blue]Process Memory:[/bold blue] [yellow]{mem['rss_kb']}[/yellow] KB")
 
+        # 2. LLM Performance
         llm = res.get("llm", {})
         if llm:
+            table = Table(title="LLM Performance", box=box.SIMPLE, header_style="bold magenta")
+            table.add_column("Metric", style="dim")
+            table.add_column("Value", style="bold yellow")
+            
             if "error" in llm:
-                print(f"LLM Error: {llm['error']}")
+                table.add_row("Error", f"[red]{llm['error']}[/red]")
             else:
-                print(f"LLM Model: {llm.get('model')}")
-                print(f"TTFT: {llm.get('ttft_sec')}s")
-                print(f"TPS: {llm.get('tps')} tokens/sec")
+                table.add_row("Model", llm.get("model", "Unknown"))
+                table.add_row("TTFT", f"{llm.get('ttft_sec', 0):.3f}s")
+                table.add_row("TPS", f"{llm.get('tps', 0):.2f} tok/s")
+            console.print(table)
         
+        # 3. Tool Performance
         tools = res.get("tools", {})
         if tools:
-            print("\nTool Latencies:")
+            table = Table(title="Tool Latencies", box=box.SIMPLE, header_style="bold green")
+            table.add_column("Tool", style="dim")
+            table.add_column("Latency", style="bold yellow")
+            table.add_column("Status")
+            
             for name, data in tools.items():
-                print(f"  - {name}: {data.get('latency_sec')}s")
+                status = data.get("status", "ok")
+                status_fmt = f"[green]{status}[/green]" if status == "ok" else f"[red]{status}[/red]"
+                table.add_row(name, f"{data.get('latency_sec', 0):.4f}s", status_fmt)
+            console.print(table)
 
-        if "tasks" in res:
-            tasks = res["tasks"]
-            print("\nTask Performance:")
+        # 4. Task Performance
+        tasks = res.get("tasks", {})
+        if tasks:
+            table = Table(title="Task Reasoning & Stress Test", box=box.ROUNDED, border_style="bright_cyan")
+            table.add_column("Task / Round", style="cyan")
+            table.add_column("Latency", style="bold yellow")
+            table.add_column("Success / TTFT", justify="center")
+
             if "io_chain" in tasks:
                 io = tasks["io_chain"]
-                print(f"  - IO Chain: {io.get('total_latency', 0):.2f}s (Success: {io.get('success', 'N/A')})")
+                success = "[green]PASS[/green]" if io.get("success") else "[red]FAIL[/red]"
+                table.add_row("IO Chain", f"{io.get('total_latency', 0):.2f}s", success)
+            
             if "code_chain" in tasks:
                 code = tasks["code_chain"]
-                print(f"  - Code Chain: {code.get('total_latency', 0):.2f}s (Success: {code.get('success', 'N/A')})")
+                success = "[green]PASS[/green]" if code.get("success") else "[red]FAIL[/red]"
+                table.add_row("Code Chain", f"{code.get('total_latency', 0):.2f}s", success)
+            
             if "context_stress" in tasks:
-                stress = tasks["context_stress"]
-                print("  - Context Stress (TTFT): ", end="")
-                ttfts = [f"{r.get('ttft', 0):.1f}s" if r.get('ttft') else "N/A" for r in stress]
-                print(" -> ".join(ttfts))
-        
-        print("="*40 + "\n")
+                table.add_section()
+                for r in tasks["context_stress"]:
+                    ttft = f"{r.get('ttft', 0):.2f}s" if r.get("ttft") else "[dim]N/A[/dim]"
+                    table.add_row(f"Stress Round {r.get('round')}", f"{r.get('total_latency', 0):.2f}s", f"TTFT: {ttft}")
+            
+            console.print(table)
+
+        console.print("\n" + "[dim]Benchmark complete. Report generated at " + res.get("timestamp", "") + "[/dim]\n")
