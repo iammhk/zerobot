@@ -51,6 +51,12 @@ class BaseChannel(ABC):
                     api_base=self.transcription_api_base or None,
                     language=self.transcription_language or None,
                 )
+            elif self.transcription_provider == "sarvam":
+                from zerobot.providers.transcription import SarvamTranscriptionProvider
+                provider = SarvamTranscriptionProvider(
+                    api_key=self.transcription_api_key,
+                    language=self.transcription_language or None,
+                )
             else:
                 from zerobot.providers.transcription import GroqTranscriptionProvider
                 provider = GroqTranscriptionProvider(

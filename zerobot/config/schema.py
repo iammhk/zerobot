@@ -28,8 +28,10 @@ class ChannelsConfig(Base):
     send_progress: bool = True  # stream agent's text progress to the channel
     send_tool_hints: bool = False  # stream tool-call hints (e.g. read_file("…"))
     send_max_retries: int = Field(default=3, ge=0, le=10)  # Max delivery attempts (initial send included)
-    transcription_provider: str = "groq"  # Voice transcription backend: "groq" or "openai"
+    transcription_provider: str = "groq"  # Voice transcription backend: "groq", "openai", or "sarvam"
     transcription_language: str | None = Field(default=None, pattern=r"^[a-z]{2,3}$")  # Optional ISO-639-1 hint for audio transcription
+    tts_provider: str = "edge"  # TTS backend: "edge", "openai", or "sarvam"
+    tts_voice: str | None = None  # Specific voice ID for TTS
 
 
 class DreamConfig(Base):
@@ -151,6 +153,7 @@ class ProvidersConfig(Base):
     openai_codex: ProviderConfig = Field(default_factory=ProviderConfig, exclude=True)  # OpenAI Codex (OAuth)
     github_copilot: ProviderConfig = Field(default_factory=ProviderConfig, exclude=True)  # Github Copilot (OAuth)
     qianfan: ProviderConfig = Field(default_factory=ProviderConfig)  # Qianfan (百度千帆)
+    sarvam: ProviderConfig = Field(default_factory=ProviderConfig)  # Sarvam AI
 
 
 class HeartbeatConfig(Base):

@@ -95,7 +95,7 @@ class ChannelManager:
                 else:
                     cls = plugins[name].load()
 
-                kwargs: dict[str, Any] = {}
+                kwargs: dict[str, Any] = {"global_config": self.config}
                 if cls.name == "websocket" and self._session_manager is not None:
                     kwargs["session_manager"] = self._session_manager
                     static_path = _default_webui_dist()
