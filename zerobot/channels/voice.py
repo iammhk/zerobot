@@ -21,13 +21,8 @@ class VoiceChannel(BaseChannel):
     Channel that uses local microphone and speakers.
     """
 
-    @property
-    def name(self) -> str:
-        return "voice"
-
-    @property
-    def display_name(self) -> str:
-        return "Voice"
+    name = "voice"
+    display_name = "Voice"
 
     def __init__(self, config: Any, bus: MessageBus, **kwargs: Any):
         super().__init__(config, bus)
@@ -44,9 +39,19 @@ class VoiceChannel(BaseChannel):
         self.tts = None
 
     def _init_stt(self) -> Any:
-        provider = self.transcription_provider
-        key = self.transcription_api_key
-        lang = self.transcription_language
+        # Read from channel-specific config
+        provider = getattr(self.config, "transcription_provider", "sarvam")
+        key = getattr(self.config, "transcription_api_key", "")
+        lang = getattr(self.config, "transcription_language", "en-IN")
+        
+        # If not in channel config, try to get from global sarvam provider config
+        if not key and self._global_config:
+            if provider == "sarvam":
+                key = self._global_config.providers.sarvam.api_key
+            elif provider == "openai":
+                key = self._global_config.providers.openai.api_key
+            elif provider == "groq":
+                key = self._global_config.providers.groq.api_key
         
         if provider == "sarvam":
             return SarvamTranscriptionProvider(api_key=key, language=lang)
@@ -58,22 +63,22 @@ class VoiceChannel(BaseChannel):
 
     async def start(self) -> None:
         """Start the voice listening loop."""
-        if self._is_running:
+        if self._running:
             return
             
-        self._is_running = True
+        self._running = True
         self._is_listening = True
         
         self.stt = self._init_stt()
         if self._global_config:
-            self.tts = get_tts_provider(self._global_config)
+            self.tts = get_tts_provider(self._global_config, channel_config=self.config)
             
         self._listen_task = asyncio.create_task(self._listen_loop())
         logger.info("Voice channel started (Always Listening mode)")
 
     async def stop(self) -> None:
         """Stop the voice listening loop."""
-        self._is_running = False
+        self._running = False
         self._is_listening = False
         if self._listen_task:
             self._listen_task.cancel()
@@ -89,28 +94,36 @@ class VoiceChannel(BaseChannel):
         In a real implementation, this would use VAD.
         For this version, we'll use a simplified 'record chunk -> transcribe' approach.
         """
+        import time
         chunk_idx = 0
         while self._is_listening:
             try:
                 chunk_file = self._temp_dir / f"chunk_{chunk_idx}.wav"
                 
-                # Record a 5-second chunk (simulating VAD or simple interval)
-                # In a better version, we'd wait for audio activity
+                # Record a 5-second chunk
                 logger.debug("Listening...")
                 success = await record_audio(chunk_file, duration=5)
                 
                 if success and chunk_file.exists():
-                    # Transcribe
-                    text = await self.stt.transcribe(chunk_file)
+                    # Transcribe with timing
+                    start_stt = time.perf_counter()
+                    if self.stt:
+                        text = await self.stt.transcribe(chunk_file)
+                    else:
+                        logger.error("STT provider not initialized")
+                        text = ""
+                    stt_duration = time.perf_counter() - start_stt
+                    
                     if text and text.strip():
-                        logger.info("Voice Input: {}", text)
+                        logger.info("Voice Input (STT: {:.2f}s): {}", stt_duration, text)
                         
-                        # Send to bus
+                        # Send to bus with timestamp for total latency tracking
                         msg = InboundMessage(
                             channel=self.name,
                             sender_id="local_user",
                             chat_id="default",
-                            content=text
+                            content=text,
+                            metadata={"_stt_time": stt_duration, "_input_timestamp": time.perf_counter()}
                         )
                         await self.bus.publish_inbound(msg)
                     
@@ -122,29 +135,38 @@ class VoiceChannel(BaseChannel):
                 
             except asyncio.CancelledError:
                 break
-            except Exception as e:
-                logger.error("Error in voice listen loop: {}", e)
+            except Exception:
+                logger.exception("Error in voice listen loop")
                 await asyncio.sleep(1)
 
     async def send(self, msg: OutboundMessage) -> None:
         """
         Handle outbound message by speaking it.
         """
+        import time
         if not self.tts:
             # Try to lazy-init if we didn't have config before
-            # This is a bit hacky but manager.py might not pass global_config
             logger.warning("TTS not initialized for voice channel")
             return
 
-        logger.info("Speaking: {}", msg.content)
+        logger.info("Synthesizing: {}", msg.content)
         
         output_file = self._temp_dir / "response.mp3"
+        start_tts = time.perf_counter()
         success = await self.tts.speak(msg.content, output_file)
+        tts_duration = time.perf_counter() - start_tts
         
         if success and output_file.exists():
             # Stop listening while playing to avoid feedback
             was_listening = self._is_listening
             self._is_listening = False
+            
+            input_ts = msg.metadata.get("_input_timestamp")
+            if input_ts:
+                total_latency = time.perf_counter() - input_ts
+                logger.info("Bot Speaking (TTS: {:.2f}s, Total V2V Latency: {:.2f}s)", tts_duration, total_latency)
+            else:
+                logger.info("Bot Speaking (TTS: {:.2f}s)", tts_duration)
             
             await play_audio(output_file)
             

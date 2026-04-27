@@ -2,6 +2,7 @@
 # This file is used to record and play audio using system commands like ffmpeg, arecord, and aplay.
 
 import asyncio
+import os
 import shutil
 import subprocess
 from pathlib import Path
@@ -21,7 +22,12 @@ async def record_audio(output_path: str | Path, duration: float | None = None, d
     
     # Try ffmpeg first
     if shutil.which("ffmpeg"):
-        cmd = ["ffmpeg", "-y", "-f", "alsa", "-i", device or "default", "-t", str(duration) if duration else "3600", str(output_path)]
+        if os.name == "nt":  # Windows
+            # On your machine, the mic is "Microphone Array (Realtek(R) Audio)"
+            mic_name = device or "Microphone Array (Realtek(R) Audio)"
+            cmd = ["ffmpeg", "-y", "-f", "dshow", "-i", f"audio={mic_name}", "-t", str(duration) if duration else "3600", str(output_path)]
+        else:  # Linux/Other
+            cmd = ["ffmpeg", "-y", "-f", "alsa", "-i", device or "default", "-t", str(duration) if duration else "3600", str(output_path)]
         logger.debug("Recording with ffmpeg: {}", " ".join(cmd))
     elif shutil.which("arecord"):
         # arecord -d <seconds> -f cd -t wav <file>
@@ -46,7 +52,8 @@ async def record_audio(output_path: str | Path, duration: float | None = None, d
         if duration:
             stdout, stderr = await process.communicate()
             if process.returncode != 0:
-                logger.error("Recording failed: {}", stderr.decode())
+                err = stderr.decode() if stderr else "Unknown error"
+                logger.error("Recording failed (code {}): {}", process.returncode, err)
                 return False
         else:
             # For indefinite recording, the caller should terminate the process

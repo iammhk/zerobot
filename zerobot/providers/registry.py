@@ -381,7 +381,21 @@ PROVIDERS: tuple[ProviderSpec, ...] = (
         env_key="QIANFAN_API_KEY",
         display_name="Qianfan",
         backend="openai_compat",
-        default_api_base="https://qianfan.baidubce.com/v2"
+        default_api_base="https://qianfan.baidubce.com/v2",
+    ),
+    # Sarvam AI: OpenAI-compatible API
+    ProviderSpec(
+        name="sarvam",
+        keywords=("sarvam",),
+        env_key="SARVAM_API_KEY",
+        display_name="Sarvam AI",
+        backend="openai_compat",
+        default_api_base="https://api.sarvam.ai/v1",
+        strip_model_prefix=True,
+        model_overrides=(
+            ("sarvam-m", {"max_tokens": 1024}),
+            ("sarvam-30b", {"max_tokens": 4096}),
+        ),
     ),
 )
 

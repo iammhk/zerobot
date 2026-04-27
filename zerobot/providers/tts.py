@@ -121,18 +121,19 @@ class OpenAITTSProvider:
             logger.error("OpenAI TTS error: {}", e)
             return False
 
-def get_tts_provider(config: Any) -> Any:
+def get_tts_provider(config: Any, channel_config: Any | None = None) -> Any:
     """
     Factory to create a TTS provider from config.
     """
-    provider_name = config.channels.tts_provider
-    voice = config.channels.tts_voice
+    # Prefer settings from channel_config, fallback to global channels config
+    provider_name = getattr(channel_config, "tts_provider", None) or config.channels.tts_provider
+    voice = getattr(channel_config, "tts_voice", None) or config.channels.tts_voice
     
     if provider_name == "sarvam":
         return SarvamTTSProvider(
             api_key=config.providers.sarvam.api_key,
             voice=voice,
-            language=config.channels.transcription_language
+            language=getattr(channel_config, "transcription_language", None) or config.channels.transcription_language
         )
     elif provider_name == "openai":
         return OpenAITTSProvider(
