@@ -102,19 +102,25 @@ class BluetoothTool(Tool):
         
         # We use a subshell to run 'scan on' and then 'scan off' after delay
         # But a better way is to run 'scan on' and then cancel the task
-        cmd = f"bluetoothctl --timeout {timeout_sec} scan on"
-        process = await asyncio.create_subprocess_shell(
-            cmd,
-            stdout=asyncio.subprocess.PIPE,
-            stderr=asyncio.subprocess.PIPE,
-        )
-        
         try:
+            # We use --timeout which is supported in newer bluez, otherwise we kill it
+            cmd = f"bluetoothctl --timeout {timeout_sec} scan on"
+            process = await asyncio.create_subprocess_shell(
+                cmd,
+                stdout=asyncio.subprocess.PIPE,
+                stderr=asyncio.subprocess.PIPE,
+            )
+            
+            # Wait for scan to finish
             stdout, stderr = await asyncio.wait_for(process.communicate(), timeout=float(timeout_sec) + 5)
-            output = stdout.decode().strip()
-            # After scan, list all discovered devices
+            
+            # Now list devices - this will include names for discovered devices
             devices = await self._run_command("devices")
-            return f"Scan completed.\n\nDiscovered Devices:\n{devices}"
+            
+            if not devices or "No devices found" in devices:
+                return "Scan completed, but no devices were found. Ensure your target device is in pairing mode."
+                
+            return f"Scan completed. Here are the discovered devices (MAC Address followed by Name):\n\n{devices}"
         except asyncio.TimeoutError:
             process.kill()
             return "Error: Scan timed out without returning results."

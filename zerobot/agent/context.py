@@ -69,6 +69,12 @@ class ContextBuilder:
                 f"- [{e['timestamp']}] {e['content']}" for e in capped
             ))
 
+        parts.append(
+            "## FINAL REMINDER\n"
+            "- You MUST use `<think>...</think>` tags for your internal reasoning.\n"
+            "- Do NOT skip the thinking step for any request."
+        )
+
         return "\n\n---\n\n".join(parts)
 
     def _get_identity(self, channel: str | None = None) -> str:
