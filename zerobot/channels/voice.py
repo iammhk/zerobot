@@ -39,10 +39,18 @@ class VoiceChannel(BaseChannel):
         self.tts = None
 
     def _init_stt(self) -> Any:
+        # Helper to get value from dict or object
+        def get_val(cfg, key, default=None):
+            if cfg is None: return default
+            if isinstance(cfg, dict): 
+                from pydantic.alias_generators import to_camel
+                return cfg.get(key, cfg.get(to_camel(key), default))
+            return getattr(cfg, key, default)
+
         # Read from channel-specific config
-        provider = getattr(self.config, "transcription_provider", "sarvam")
-        key = getattr(self.config, "transcription_api_key", "")
-        lang = getattr(self.config, "transcription_language", "en-IN")
+        provider = get_val(self.config, "transcription_provider", "sarvam")
+        key = get_val(self.config, "transcription_api_key", "")
+        lang = get_val(self.config, "transcription_language", "en-IN")
         
         # If not in channel config, try to get from global sarvam provider config
         if not key and self._global_config:

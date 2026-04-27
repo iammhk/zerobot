@@ -125,9 +125,17 @@ def get_tts_provider(config: Any, channel_config: Any | None = None) -> Any:
     """
     Factory to create a TTS provider from config.
     """
+    # Helper to get value from dict or object
+    def get_val(cfg, key, default=None):
+        if cfg is None: return default
+        if isinstance(cfg, dict): return cfg.get(key, cfg.get(to_camel(key), default))
+        return getattr(cfg, key, default)
+
+    from pydantic.alias_generators import to_camel
+    
     # Prefer settings from channel_config, fallback to global channels config
-    provider_name = getattr(channel_config, "tts_provider", None) or config.channels.tts_provider
-    voice = getattr(channel_config, "tts_voice", None) or config.channels.tts_voice
+    provider_name = get_val(channel_config, "tts_provider") or config.channels.tts_provider
+    voice = get_val(channel_config, "tts_voice") or config.channels.tts_voice
     
     if provider_name == "sarvam":
         return SarvamTTSProvider(
