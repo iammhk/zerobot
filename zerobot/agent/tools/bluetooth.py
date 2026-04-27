@@ -35,8 +35,9 @@ class BluetoothTool(Tool):
     def description(self) -> str:
         return (
             "Manage bluetooth devices on the Raspberry Pi. "
-            "Actions: scan (nearby devices), pair, trust, connect, disconnect, list (all known), paired (only paired), info (device details). "
-            "Most actions require a mac_address."
+            "Use 'scan' to find nearby devices. "
+            "Use 'info' with a mac_address to see the device name, pairing status, and signal strength. "
+            "Actions: scan, pair, trust, connect, disconnect, list (known), paired, info (details)."
         )
 
     async def execute(

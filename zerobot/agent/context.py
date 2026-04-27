@@ -72,6 +72,8 @@ class ContextBuilder:
         parts.append(
             "## FINAL REMINDER\n"
             "- You MUST use `<think>...</think>` tags for your internal reasoning.\n"
+            "- You MUST think BEFORE every tool call to explain your plan.\n"
+            "- You MUST think BEFORE your final response to summarize your findings.\n"
             "- Do NOT skip the thinking step for any request."
         )
 
