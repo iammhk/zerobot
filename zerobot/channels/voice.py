@@ -14,7 +14,7 @@ from zerobot.bus.queue import MessageBus
 from zerobot.channels.base import BaseChannel
 from zerobot.providers.transcription import SarvamTranscriptionProvider, OpenAITranscriptionProvider, GroqTranscriptionProvider
 from zerobot.providers.tts import get_tts_provider
-from zerobot.utils.audio import record_audio, play_audio
+from zerobot.utils.audio import record_audio, play_audio, play_system_sound
 
 class VoiceChannel(BaseChannel):
     """
@@ -83,6 +83,7 @@ class VoiceChannel(BaseChannel):
             
         self._listen_task = asyncio.create_task(self._listen_loop())
         logger.info("Voice channel started (Always Listening mode)")
+        await play_system_sound("hello")
 
     async def stop(self) -> None:
         """Stop the voice listening loop."""
@@ -94,6 +95,7 @@ class VoiceChannel(BaseChannel):
                 await self._listen_task
             except asyncio.CancelledError:
                 pass
+        await play_system_sound("goodbye")
         logger.info("Voice channel stopped")
 
     async def _listen_loop(self) -> None:
@@ -124,6 +126,7 @@ class VoiceChannel(BaseChannel):
                     
                     if text and text.strip():
                         logger.info("Voice Input (STT: {:.2f}s): {}", stt_duration, text)
+                        await play_system_sound("success")
                         
                         # Send to bus with timestamp for total latency tracking
                         msg = InboundMessage(
@@ -145,6 +148,7 @@ class VoiceChannel(BaseChannel):
                 break
             except Exception:
                 logger.exception("Error in voice listen loop")
+                await play_system_sound("error")
                 await asyncio.sleep(1)
 
     async def send(self, msg: OutboundMessage) -> None:
@@ -158,6 +162,7 @@ class VoiceChannel(BaseChannel):
             return
 
         logger.info("Synthesizing: {}", msg.content)
+        await play_system_sound("thinking")
         
         output_file = self._temp_dir / "response.mp3"
         start_tts = time.perf_counter()

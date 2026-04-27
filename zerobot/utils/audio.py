@@ -64,6 +64,19 @@ async def record_audio(output_path: str | Path, duration: float | None = None, d
         logger.error("Error during recording: {}", e)
         return False
 
+async def play_system_sound(sound_name: str) -> bool:
+    """
+    Play a pre-generated system sound from assets/sounds.
+    """
+    assets_dir = Path(__file__).parent.parent / "assets" / "sounds"
+    sound_path = assets_dir / f"{sound_name}.wav"
+    
+    if not sound_path.exists():
+        logger.warning("System sound not found: {}", sound_name)
+        return False
+        
+    return await play_audio(sound_path)
+
 async def play_audio(file_path: str | Path, device: str | None = None) -> bool:
     """
     Play an audio file.

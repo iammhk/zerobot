@@ -306,6 +306,77 @@ async def cmd_dream_restore(ctx: CommandContext) -> OutboundMessage:
     )
 
 
+async def cmd_voice_on(ctx: CommandContext) -> OutboundMessage:
+    """Enable voice chat by starting the VoiceChannel."""
+    msg = ctx.msg
+    loop = ctx.loop
+    channel_manager = getattr(loop, "channel_manager", None)
+
+    if channel_manager is None:
+        return OutboundMessage(
+            channel=msg.channel, chat_id=msg.chat_id,
+            content="Voice control is not available (no channel manager attached)."
+        )
+
+    voice = channel_manager.channels.get("voice")
+    if voice is None:
+        return OutboundMessage(
+            channel=msg.channel, chat_id=msg.chat_id,
+            content="Voice channel is not configured. Add \"voice\": {\"enabled\": true} to your config.json."
+        )
+
+    from zerobot.channels.voice import VoiceChannel
+    if not isinstance(voice, VoiceChannel):
+        return OutboundMessage(
+            channel=msg.channel, chat_id=msg.chat_id,
+            content="Voice channel is not a VoiceChannel instance."
+        )
+
+    if voice._running:
+        return OutboundMessage(
+            channel=msg.channel, chat_id=msg.chat_id,
+            content="Voice is already active. 🎤"
+        )
+
+    asyncio.create_task(voice.start())
+    return OutboundMessage(
+        channel=msg.channel, chat_id=msg.chat_id,
+        content="Voice chat enabled. 🎤 Listening..."
+    )
+
+
+async def cmd_voice_off(ctx: CommandContext) -> OutboundMessage:
+    """Disable voice chat by stopping the VoiceChannel."""
+    msg = ctx.msg
+    loop = ctx.loop
+    channel_manager = getattr(loop, "channel_manager", None)
+
+    if channel_manager is None:
+        return OutboundMessage(
+            channel=msg.channel, chat_id=msg.chat_id,
+            content="Voice control is not available (no channel manager attached)."
+        )
+
+    voice = channel_manager.channels.get("voice")
+    if voice is None:
+        return OutboundMessage(
+            channel=msg.channel, chat_id=msg.chat_id,
+            content="Voice channel is not configured."
+        )
+
+    if not voice._running:
+        return OutboundMessage(
+            channel=msg.channel, chat_id=msg.chat_id,
+            content="Voice is already off."
+        )
+
+    asyncio.create_task(voice.stop())
+    return OutboundMessage(
+        channel=msg.channel, chat_id=msg.chat_id,
+        content="Voice chat disabled. 🔇"
+    )
+
+
 async def cmd_help(ctx: CommandContext) -> OutboundMessage:
     """Return available slash commands."""
     return OutboundMessage(
@@ -327,6 +398,8 @@ def build_help_text() -> str:
         "/dream — Manually trigger Dream consolidation",
         "/dream-log — Show what the last Dream changed",
         "/dream-restore — Revert memory to a previous state",
+        "/voice-on — Enable voice chat (microphone listening)",
+        "/voice-off — Disable voice chat",
         "/help — Show available commands",
     ]
     return "\n".join(lines)
@@ -344,6 +417,8 @@ def register_builtin_commands(router: CommandRouter) -> None:
     router.prefix("/dream-log ", cmd_dream_log)
     router.exact("/dream-restore", cmd_dream_restore)
     router.prefix("/dream-restore ", cmd_dream_restore)
+    router.exact("/voice-on", cmd_voice_on)
+    router.exact("/voice-off", cmd_voice_off)
     router.exact("/help", cmd_help)
 
 

@@ -766,6 +766,8 @@ def _run_gateway(
     # Create channel manager (forwards SessionManager so the WebSocket channel
     # can serve the embedded webui's REST surface).
     channels = ChannelManager(config, bus, session_manager=session_manager)
+    # Expose it on the agent so slash commands (e.g. /voice-on) can reach it.
+    agent.channel_manager = channels
 
     def _pick_heartbeat_target() -> tuple[str, str]:
         """Pick a routable channel/chat target for heartbeat-triggered messages."""
