@@ -6,10 +6,12 @@ markdown rendering during streaming. Ellipsis mode handles overflow.
 
 from __future__ import annotations
 
+import re
 import sys
 import time
+from typing import Any
 
-from rich.console import Console
+from rich.console import Console, Group
 from rich.live import Live
 from rich.markdown import Markdown
 from rich.text import Text
@@ -18,16 +20,7 @@ from zerobot import __logo__
 
 
 def _make_console() -> Console:
-    """Create a Console that emits plain text when stdout is not a TTY.
-
-    Rich's spinner, Live render, and cursor-visibility escape codes all
-    key off ``Console.is_terminal``. Forcing ``force_terminal=True`` overrode
-    the ``isatty()`` check and caused control sequences (``\\x1b[?25l``,
-    braille spinner frames) to pollute programmatic consumers such as
-    ``docker exec -i`` or pipes, even with ``NO_COLOR`` or ``TERM=dumb``.
-    Deferring to ``isatty()`` keeps Rich output in interactive terminals
-    and plain text everywhere else (#3265).
-    """
+    """Create a Console that emits plain text when stdout is not a TTY."""
     return Console(file=sys.stdout, force_terminal=sys.stdout.isatty())
 
 
@@ -36,7 +29,7 @@ class ThinkingSpinner:
 
     def __init__(self, console: Console | None = None):
         c = console or _make_console()
-        self._spinner = c.status("[dim]Zerobot is thinking...[/dim]", spinner="dots")
+        self._spinner = c.status("[grey50]Zerobot is thinking...[/grey50]", spinner="dots")
         self._active = False
 
     def __enter__(self):
@@ -87,7 +80,34 @@ class StreamRenderer:
         self._start_spinner()
 
     def _render(self):
-        return Markdown(self._buf) if self._md and self._buf else Text(self._buf or "")
+        if not self._buf:
+            return Text("")
+
+        # Split the buffer into thought blocks and regular content.
+        # We handle both closed <think>...</think> and open <think>... streaming blocks.
+        parts = re.split(r"(<think>[\s\S]*?</think>|<think>[\s\S]*$)", self._buf)
+        renderables = []
+
+        for p in parts:
+            if not p:
+                continue
+            if p.startswith("<think>"):
+                content = p[7:]
+                if content.endswith("</think>"):
+                    content = content[:-8]
+                content = content.strip()
+                # Always provide at least a placeholder to avoid empty Text objects
+                renderables.append(Text(f"💭 {content or '...'}\n", style="grey50 italic"))
+            else:
+                text_content = p.strip()
+                if text_content:
+                    renderables.append(Markdown(text_content) if self._md else Text(text_content))
+
+        if not renderables:
+            return Text("...", style="dim")
+        if len(renderables) == 1:
+            return renderables[0]
+        return Group(*renderables)
 
     def _start_spinner(self) -> None:
         if self._show_spinner:
@@ -108,11 +128,11 @@ class StreamRenderer:
             self._stop_spinner()
             c = _make_console()
             c.print()
-            c.print(f"[cyan]{__logo__} Zerobot[/cyan]")
+            c.print(f"[grey50]{__logo__} Zerobot[/grey50]")
             self._live = Live(self._render(), console=c, auto_refresh=False)
             self._live.start()
         now = time.monotonic()
-        if (now - self._t) > 0.15:
+        if (now - self._t) > 0.1:
             self._live.update(self._render())
             self._live.refresh()
             self._t = now
@@ -140,6 +160,3 @@ class StreamRenderer:
             self._live.stop()
             self._live = None
         self._stop_spinner()
-
-
-

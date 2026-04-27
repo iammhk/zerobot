@@ -181,7 +181,7 @@ async def _print_interactive_line(text: str) -> None:
     """Print async interactive updates with prompt_toolkit-safe Rich styling."""
     def _write() -> None:
         ansi = _render_interactive_ansi(
-            lambda c: c.print(f"  [dim]↳ {text}[/dim]")
+            lambda c: c.print(f"  [grey50]↳ {text}[/grey50]")
         )
         print_formatted_text(ANSI(ansi), end="")
 
@@ -210,7 +210,7 @@ async def _print_interactive_response(
 def _print_cli_progress_line(text: str, thinking: ThinkingSpinner | None) -> None:
     """Print a CLI progress line, pausing the spinner if needed."""
     with thinking.pause() if thinking else nullcontext():
-        console.print(f"  [dim]↳ {text}[/dim]")
+        console.print(f"  [grey50]↳ {text}[/grey50]")
 
 
 async def _print_interactive_progress_line(text: str, thinking: ThinkingSpinner | None) -> None:
@@ -1049,6 +1049,7 @@ def agent(
                 on_progress=_cli_progress,
                 on_stream=renderer.on_delta,
                 on_stream_end=renderer.on_end,
+                show_thoughts=True,
             )
             if not renderer.streamed:
                 await renderer.close()

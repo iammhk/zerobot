@@ -73,6 +73,7 @@ class _LoopHook(AgentHook):
         channel: str = "cli",
         chat_id: str = "direct",
         message_id: str | None = None,
+        **kwargs: Any,
     ) -> None:
         super().__init__(reraise=True)
         self._loop = agent_loop
@@ -83,11 +84,17 @@ class _LoopHook(AgentHook):
         self._chat_id = chat_id
         self._message_id = message_id
         self._stream_buf = ""
+        self._show_thoughts = kwargs.get("show_thoughts", False)
 
     def wants_streaming(self) -> bool:
         return self._on_stream is not None
 
     async def on_stream(self, context: AgentHookContext, delta: str) -> None:
+        if self._show_thoughts:
+            if self._on_stream:
+                await self._on_stream(delta)
+            return
+
         from zerobot.utils.helpers import strip_think
 
         prev_clean = strip_think(self._stream_buf)
@@ -439,8 +446,9 @@ class AgentLoop:
         channel: str = "cli",
         chat_id: str = "direct",
         message_id: str | None = None,
-        pending_queue: asyncio.Queue | None = None,
-    ) -> tuple[str | None, list[str], list[dict], str, bool]:
+        pending_queue: asyncio.Queue[InboundMessage] | None = None,
+        show_thoughts: bool = False,
+    ) -> tuple[str | None, list[str], list[dict[str, Any]], str, bool]:
         """Run the agent iteration loop.
 
         *on_stream*: called with each content delta during streaming.
@@ -458,6 +466,7 @@ class AgentLoop:
             channel=channel,
             chat_id=chat_id,
             message_id=message_id,
+            show_thoughts=show_thoughts,
         )
         hook: AgentHook = (
             CompositeHook([loop_hook] + self._extra_hooks) if self._extra_hooks else loop_hook
@@ -776,6 +785,7 @@ class AgentLoop:
         on_stream: Callable[[str], Awaitable[None]] | None = None,
         on_stream_end: Callable[..., Awaitable[None]] | None = None,
         pending_queue: asyncio.Queue | None = None,
+        show_thoughts: bool | None = None,
     ) -> OutboundMessage | None:
         """Process a single inbound message and return the response."""
         # System messages: parse origin from chat_id ("channel:chat_id")
@@ -823,6 +833,7 @@ class AgentLoop:
                 messages, session=session, channel=channel, chat_id=chat_id,
                 message_id=msg.metadata.get("message_id"),
                 pending_queue=pending_queue,
+                show_thoughts=show_thoughts if show_thoughts is not None else (channel == "cli"),
             )
             self._save_turn(session, all_msgs, 1 + len(history))
             self._clear_runtime_checkpoint(session)
@@ -941,6 +952,7 @@ class AgentLoop:
             chat_id=msg.chat_id,
             message_id=msg.metadata.get("message_id"),
             pending_queue=pending_queue,
+            show_thoughts=show_thoughts if show_thoughts is not None else (msg.channel == "cli"),
         )
 
         if final_content is None or not final_content.strip():
@@ -1197,6 +1209,7 @@ class AgentLoop:
         on_progress: Callable[..., Awaitable[None]] | None = None,
         on_stream: Callable[[str], Awaitable[None]] | None = None,
         on_stream_end: Callable[..., Awaitable[None]] | None = None,
+        show_thoughts: bool | None = None,
     ) -> OutboundMessage | None:
         """Process a message directly and return the outbound payload."""
         await self._connect_mcp()
@@ -1210,6 +1223,7 @@ class AgentLoop:
             on_progress=on_progress,
             on_stream=on_stream,
             on_stream_end=on_stream_end,
+            show_thoughts=show_thoughts,
         )
 
 
