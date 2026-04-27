@@ -143,6 +143,13 @@ class StreamRenderer:
             self._live.refresh()
             self._live.stop()
             self._live = None
+        
+        # If we are resuming (e.g. for a tool call), we must preserve the 
+        # current buffer (thoughts/text) on the screen before clearing it.
+        if resuming and self._buf:
+            c = _make_console()
+            c.print(self._render())
+            
         self._stop_spinner()
         if resuming:
             self._buf = ""
