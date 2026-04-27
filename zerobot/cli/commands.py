@@ -1020,6 +1020,8 @@ def agent(
         tools_config=config.tools,
         hardware_type=config.agents.defaults.hardware_type,
     )
+    # Expose config so /voice-on can initialise TTS with the right API key.
+    agent_loop._config = config
     restart_notice = consume_restart_notice_from_env()
     if restart_notice and should_show_cli_restart_notice(restart_notice, session_id):
         _print_agent_response(
@@ -1127,11 +1129,16 @@ def agent(
                                 turn_response.append((msg.content, dict(msg.metadata or {})))
                             turn_done.set()
                         elif msg.content:
-                            await _print_interactive_response(
-                                msg.content,
-                                render_markdown=markdown,
-                                metadata=msg.metadata,
-                            )
+                            # Route voice responses back to VoiceChannel.send() if active
+                            voice_ch = getattr(agent_loop, "_standalone_voice_channel", None)
+                            if voice_ch and voice_ch._running and msg.channel == "voice":
+                                asyncio.create_task(voice_ch.send(msg))
+                            else:
+                                await _print_interactive_response(
+                                    msg.content,
+                                    render_markdown=markdown,
+                                    metadata=msg.metadata,
+                                )
 
                     except asyncio.TimeoutError:
                         continue

@@ -5,6 +5,7 @@ from __future__ import annotations
 import asyncio
 import os
 import sys
+from typing import Any
 
 from zerobot import __version__
 from zerobot.bus.events import OutboundMessage
@@ -306,58 +307,73 @@ async def cmd_dream_restore(ctx: CommandContext) -> OutboundMessage:
     )
 
 
+async def _get_voice_channel(loop) -> "Any | None":
+    """
+    Returns the VoiceChannel instance, regardless of whether we are in
+    gateway mode (has channel_manager) or standalone 'agent' CLI mode.
+    Returns None if voice is not configured.
+    """
+    from zerobot.channels.voice import VoiceChannel
+
+    # Gateway mode: channel_manager is attached to the loop
+    channel_manager = getattr(loop, "channel_manager", None)
+    if channel_manager is not None:
+        return channel_manager.channels.get("voice")
+
+    # Agent CLI mode: manage a standalone VoiceChannel on the loop itself
+    voice = getattr(loop, "_standalone_voice_channel", None)
+    if voice is not None:
+        return voice
+
+    # Try to create one from the channels_config if voice block exists
+    channels_cfg = getattr(loop, "channels_config", None)
+    if channels_cfg is None:
+        return None
+    voice_cfg = getattr(channels_cfg, "voice", None)
+    if voice_cfg is None:
+        return None
+
+    # Retrieve global config from loop's provider or bus (best-effort)
+    global_config = getattr(loop, "_config", None)
+    voice = VoiceChannel(voice_cfg, loop.bus, global_config=global_config)
+    loop._standalone_voice_channel = voice
+    return voice
+
+
 async def cmd_voice_on(ctx: CommandContext) -> OutboundMessage:
     """Enable voice chat by starting the VoiceChannel."""
     msg = ctx.msg
-    loop = ctx.loop
-    channel_manager = getattr(loop, "channel_manager", None)
+    voice = await _get_voice_channel(ctx.loop)
 
-    if channel_manager is None:
-        return OutboundMessage(
-            channel=msg.channel, chat_id=msg.chat_id,
-            content="Voice control is not available (no channel manager attached)."
-        )
-
-    voice = channel_manager.channels.get("voice")
     if voice is None:
         return OutboundMessage(
             channel=msg.channel, chat_id=msg.chat_id,
-            content="Voice channel is not configured. Add \"voice\": {\"enabled\": true} to your config.json."
-        )
-
-    from zerobot.channels.voice import VoiceChannel
-    if not isinstance(voice, VoiceChannel):
-        return OutboundMessage(
-            channel=msg.channel, chat_id=msg.chat_id,
-            content="Voice channel is not a VoiceChannel instance."
+            content=(
+                'Voice channel is not configured. '
+                'Add "voice": {"enabled": true, "transcriptionProvider": "sarvam", '
+                '"ttsProvider": "sarvam", "ttsVoice": "shubh", "allowFrom": ["*"]} '
+                'to your config.json channels section.'
+            )
         )
 
     if voice._running:
         return OutboundMessage(
             channel=msg.channel, chat_id=msg.chat_id,
-            content="Voice is already active. 🎤"
+            content="Voice is already active. \U0001f3a4"
         )
 
     asyncio.create_task(voice.start())
     return OutboundMessage(
         channel=msg.channel, chat_id=msg.chat_id,
-        content="Voice chat enabled. 🎤 Listening..."
+        content="Voice chat enabled. \U0001f3a4 Listening..."
     )
 
 
 async def cmd_voice_off(ctx: CommandContext) -> OutboundMessage:
     """Disable voice chat by stopping the VoiceChannel."""
     msg = ctx.msg
-    loop = ctx.loop
-    channel_manager = getattr(loop, "channel_manager", None)
+    voice = await _get_voice_channel(ctx.loop)
 
-    if channel_manager is None:
-        return OutboundMessage(
-            channel=msg.channel, chat_id=msg.chat_id,
-            content="Voice control is not available (no channel manager attached)."
-        )
-
-    voice = channel_manager.channels.get("voice")
     if voice is None:
         return OutboundMessage(
             channel=msg.channel, chat_id=msg.chat_id,
@@ -373,7 +389,7 @@ async def cmd_voice_off(ctx: CommandContext) -> OutboundMessage:
     asyncio.create_task(voice.stop())
     return OutboundMessage(
         channel=msg.channel, chat_id=msg.chat_id,
-        content="Voice chat disabled. 🔇"
+        content="Voice chat disabled. \U0001f507"
     )
 
 
