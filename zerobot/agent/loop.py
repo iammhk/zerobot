@@ -740,11 +740,12 @@ class AgentLoop:
                             exc_info=True,
                         )
                     raise
-                except Exception:
+                except Exception as e:
                     logger.exception("Error processing message for session {}", session_key)
+                    error_msg = f"Sorry, I encountered an error: {str(e)}"
                     await self.bus.publish_outbound(OutboundMessage(
                         channel=msg.channel, chat_id=msg.chat_id,
-                        content="Sorry, I encountered an error.",
+                        content=error_msg,
                     ))
         finally:
             # Drain any messages still in the pending queue and re-publish

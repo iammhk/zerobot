@@ -154,6 +154,12 @@ Running **zerobot** on devices with 512MB RAM requires specific optimizations to
   ```
 
 ### 2. Streamlined Installation
+Install required system dependencies for audio and compilation:
+```bash
+sudo apt update
+sudo apt install python3-dev portaudio19-dev libasound2-dev
+```
+
 Inside the `zerobot` folder on your Pi:
 ```bash
 # Force reinstall to ensure the latest local changes are applied

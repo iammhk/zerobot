@@ -970,7 +970,7 @@ def agent(
     workspace: str | None = typer.Option(None, "--workspace", "-w", help="Workspace directory"),
     config: str | None = typer.Option(None, "--config", "-c", help="Config file path"),
     markdown: bool = typer.Option(True, "--markdown/--no-markdown", help="Render assistant output as Markdown"),
-    logs: bool = typer.Option(False, "--logs/--no-logs", help="Show Zerobot runtime logs during chat"),
+    logs: bool = typer.Option(False, "--logs", "--log", help="Show Zerobot runtime logs during chat"),
 ):
     """Interact with the agent directly."""
     _run_agent_interactive(
@@ -986,7 +986,7 @@ def agent(
 def chat(
     workspace: str | None = typer.Option(None, "--workspace", "-w", help="Workspace directory"),
     config: str | None = typer.Option(None, "--config", "-c", help="Config file path"),
-    logs: bool = typer.Option(False, "--logs/--no-logs", help="Show Zerobot runtime logs"),
+    logs: bool = typer.Option(False, "--logs", "--log", help="Show Zerobot runtime logs"),
 ):
     """Start an interactive chat session."""
     _run_agent_interactive(
@@ -999,7 +999,7 @@ def chat(
 def voice(
     workspace: str | None = typer.Option(None, "--workspace", "-w", help="Workspace directory"),
     config: str | None = typer.Option(None, "--config", "-c", help="Config file path"),
-    logs: bool = typer.Option(False, "--logs/--no-logs", help="Show Zerobot runtime logs"),
+    logs: bool = typer.Option(False, "--logs", "--log", help="Show Zerobot runtime logs"),
 ):
     """Start the agent with voice channel automatically enabled."""
     _run_agent_interactive(
@@ -1019,8 +1019,15 @@ def _run_agent_interactive(
     auto_voice: bool = False,
 ):
     """Core logic for starting the agent in interactive or single-message mode."""
+    log_handler_id = None
     if logs:
         logger.enable("zerobot")
+        # Add a handler that writes to __stderr__ to bypass prompt_toolkit interception
+        log_handler_id = logger.add(
+            sys.__stderr__, 
+            format="<green>{time:HH:mm:ss}</green> | <level>{level: <8}</level> | <cyan>{name}</cyan>:<cyan>{function}</cyan>:<cyan>{line}</cyan> - <level>{message}</level>",
+            level="DEBUG"
+        )
     else:
         logger.disable("zerobot")
 
@@ -1252,6 +1259,8 @@ def _run_agent_interactive(
 
                 agent_loop.stop()
                 await agent_loop.close_mcp()
+                if log_handler_id is not None:
+                    logger.remove(log_handler_id)
 
         asyncio.run(run_interactive())
 
