@@ -27,7 +27,22 @@ async def record_audio(output_path: str | Path, duration: float | None = None, d
             mic_name = device or "Microphone Array (Realtek(R) Audio)"
             cmd = ["ffmpeg", "-y", "-f", "dshow", "-i", f"audio={mic_name}", "-t", str(duration) if duration else "3600", str(output_path)]
         else:  # Linux/Other
-            cmd = ["ffmpeg", "-y", "-f", "alsa", "-i", device or "default", "-t", str(duration) if duration else "3600", str(output_path)]
+            # Prefer PulseAudio if available (needed for Bluetooth mics)
+            import shlex
+            if shutil.which("pactl") and not device:
+                try:
+                    result = subprocess.run(["pactl", "info"], capture_output=True, timeout=2)
+                    if result.returncode == 0:
+                        cmd = ["ffmpeg", "-y", "-f", "pulse", "-i", "default", "-t", str(duration) if duration else "3600", str(output_path)]
+                        logger.debug("Recording with ffmpeg (PulseAudio): {}", " ".join(cmd))
+                    else:
+                        cmd = ["ffmpeg", "-y", "-f", "alsa", "-i", device or "default", "-t", str(duration) if duration else "3600", str(output_path)]
+                        logger.debug("Recording with ffmpeg (ALSA): {}", " ".join(cmd))
+                except Exception:
+                    cmd = ["ffmpeg", "-y", "-f", "alsa", "-i", device or "default", "-t", str(duration) if duration else "3600", str(output_path)]
+                    logger.debug("Recording with ffmpeg (ALSA fallback): {}", " ".join(cmd))
+            else:
+                cmd = ["ffmpeg", "-y", "-f", "alsa", "-i", device or "default", "-t", str(duration) if duration else "3600", str(output_path)]
         logger.debug("Recording with ffmpeg: {}", " ".join(cmd))
     elif shutil.which("arecord"):
         # arecord -d <seconds> -f cd -t wav <file>
