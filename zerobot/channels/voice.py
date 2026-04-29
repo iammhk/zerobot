@@ -18,6 +18,13 @@ from zerobot.providers.tts import get_tts_provider
 from zerobot.utils.audio import record_audio, play_audio, play_system_sound
 from zerobot.utils.voice_animator import VoiceAnimator, VoiceState
 
+try:
+    import pyaudio
+    from vosk import Model, KaldiRecognizer
+    VOSK_AVAILABLE = True
+except ImportError:
+    VOSK_AVAILABLE = False
+
 
 class VoiceChannel(BaseChannel):
     """
@@ -86,7 +93,11 @@ class VoiceChannel(BaseChannel):
         self._animator.set_state(VoiceState.LISTENING)
 
         self._listen_task = asyncio.create_task(self._listen_loop())
-        logger.info("Voice channel started (Always Listening mode)")
+        wake_word = self.config.get("wake_word")
+        if wake_word:
+            logger.info(f"Voice channel started (Wake Word: '{wake_word}')")
+        else:
+            logger.info("Voice channel started (Always Listening mode)")
 
     async def stop(self) -> None:
         """Stop the voice listening loop."""
@@ -104,10 +115,34 @@ class VoiceChannel(BaseChannel):
 
     async def _listen_loop(self) -> None:
         """
-        Continuous listening loop.
-        Records 5-second audio chunks, transcribes them, then routes to the agent.
+        Voice listening loop with local wake-word detection (Vosk).
+        1. Monitors mic locally for the wake word.
+        2. Once detected, records a command and sends it to the cloud STT.
         """
         import time
+        import json
+        import re
+
+        wake_word = self.config.get("wake_word")
+        if wake_word:
+            wake_word = wake_word.lower().strip()
+
+        # Check if local wake word detection is possible
+        use_local_wake = VOSK_AVAILABLE and wake_word
+        model = None
+        if use_local_wake:
+            model_path = Path("zerobot/assets/models/vosk-model-small-en-us-0.15")
+            if not model_path.exists():
+                logger.warning("Vosk model not found at {}. Falling back to Always Listening mode.", model_path)
+                use_local_wake = False
+            else:
+                try:
+                    model = Model(str(model_path))
+                    logger.info("Local wake-word detection enabled (Vosk)")
+                except Exception as e:
+                    logger.error("Failed to load Vosk model: {}. Falling back.", e)
+                    use_local_wake = False
+
         chunk_idx = 0
         while self._running:
             try:
@@ -115,37 +150,63 @@ class VoiceChannel(BaseChannel):
                     await asyncio.sleep(0.5)
                     continue
 
+                if use_local_wake:
+                    # --- STAGE 1: LOCAL WAKE WORD DETECTION ---
+                    self._animator.set_state(VoiceState.LISTENING)
+                    logger.debug("Waiting for wake word: '{}'...", wake_word)
+                    
+                    p = pyaudio.PyAudio()
+                    stream = p.open(format=pyaudio.paInt16, channels=1, rate=16000, input=True, frames_per_buffer=8000)
+                    rec = KaldiRecognizer(model, 16000, f'["{wake_word}", "[unk]"]')
+                    
+                    found_wake = False
+                    while self._running and self._is_listening:
+                        # Non-blocking read (asyncio friendly)
+                        data = await asyncio.get_event_loop().run_in_executor(None, stream.read, 4000, False)
+                        if len(data) == 0:
+                            break
+                        if rec.AcceptWaveform(data):
+                            res = json.loads(rec.Result())
+                            if res.get("text") == wake_word:
+                                found_wake = True
+                                break
+                        else:
+                            # Check partial results for faster feedback if needed
+                            pass
+                        await asyncio.sleep(0.01)
+
+                    stream.stop_stream()
+                    stream.close()
+                    p.terminate()
+
+                    if not found_wake:
+                        continue
+                    
+                    logger.info("Wake word detected locally!")
+                    await play_system_sound("success")
+
+                # --- STAGE 2: COMMAND RECORDING (CLOUD STT) ---
                 chunk_file = self._temp_dir / f"chunk_{chunk_idx}.wav"
 
-                # Record a 5-second chunk
-                logger.debug("Listening...")
+                # Record a 5-second command chunk
                 self._animator.set_state(VoiceState.LISTENING)
+                logger.debug("Listening for command...")
                 success = await record_audio(chunk_file, duration=5)
 
-                # Check again if we were paused during recording to avoid processing echoes
                 if not self._is_listening:
                     if chunk_file.exists(): os.remove(chunk_file)
                     continue
 
                 if success and chunk_file.exists():
-                    # Transcribing — show thinking state briefly
                     self._animator.set_state(VoiceState.THINKING)
-
                     start_stt = time.perf_counter()
-                    if self.stt:
-                        text = await self.stt.transcribe(chunk_file)
-                    else:
-                        logger.error("STT provider not initialized")
-                        text = ""
+                    text = await self.stt.transcribe(chunk_file) if self.stt else ""
                     stt_duration = time.perf_counter() - start_stt
 
                     if text and text.strip():
-                        logger.info("Voice Input (STT: {:.2f}s): {}", stt_duration, text)
+                        logger.info("Voice Command (STT: {:.2f}s): {}", stt_duration, text)
                         await play_system_sound("success")
-
-                        # Keep thinking state while LLM processes
-                        self._animator.set_state(VoiceState.THINKING)
-
+                        
                         msg = InboundMessage(
                             channel=self.name,
                             sender_id="local_user",
@@ -158,7 +219,7 @@ class VoiceChannel(BaseChannel):
                         )
                         await self.bus.publish_inbound(msg)
                     else:
-                        # Back to listening if nothing heard
+                        logger.debug("No command heard after wake word.")
                         self._animator.set_state(VoiceState.LISTENING)
 
                     os.remove(chunk_file)

@@ -33,6 +33,7 @@ from zerobot.agent.tools.spawn import SpawnTool
 from zerobot.agent.tools.audio import AudioTool
 from zerobot.agent.tools.bluetooth import BluetoothTool
 from zerobot.agent.tools.servos import ServoTool
+from zerobot.agent.tools.music import MusicTool
 from zerobot.agent.tools.display import DisplayTool
 from zerobot.agent.tools.web import WebFetchTool, WebSearchTool
 from zerobot.bus.events import InboundMessage, OutboundMessage
@@ -342,6 +343,7 @@ class AgentLoop:
             )
         self.tools.register(BluetoothTool())
         self.tools.register(AudioTool())
+        self.tools.register(MusicTool())
         if "pca9685" in (self.context.connected_hardware or []):
             self.tools.register(ServoTool())
         if "st7735" in (self.context.connected_hardware or []):

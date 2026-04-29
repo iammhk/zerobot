@@ -5,6 +5,7 @@ from zerobot.agent.tools.registry import ToolRegistry
 from zerobot.agent.tools.audio import AudioTool
 from zerobot.agent.tools.bluetooth import BluetoothTool
 from zerobot.agent.tools.servos import ServoTool
+from zerobot.agent.tools.music import MusicTool
 from zerobot.agent.tools.schema import (
     ArraySchema,
     BooleanSchema,
@@ -30,6 +31,7 @@ __all__ = [
     "BluetoothTool",
     "AudioTool",
     "ServoTool",
+    "MusicTool",
 ]
 
 
