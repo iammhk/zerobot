@@ -7,6 +7,9 @@ import sys
 import time
 from enum import Enum
 
+_BLUE = "\033[94m"
+_RESET = "\033[0m"
+
 class VoiceState(Enum):
     IDLE = "idle"
     LISTENING = "listening"
@@ -18,10 +21,12 @@ class VoiceState(Enum):
 
 _BARS = " ▁▂▃▄▅▆▇█"
 
-def _listening_frame(t: float) -> str:
+def _listening_frame(t: float, external: bool = False) -> str:
     bars = 13
     center = bars // 2
     out = "🎤  "
+    color = _BLUE if external else ""
+    reset = _RESET if external else ""
     for i in range(bars):
         dist = abs(i - center)
         phase = (t * 4) - dist * 0.5
@@ -29,17 +34,19 @@ def _listening_frame(t: float) -> str:
         amplitude = max(0.0, 1.0 - dist / (center + 1)) ** 1.2
         idx = int(raw * amplitude * (len(_BARS) - 1))
         out += _BARS[idx]
-    out += "  Listening..."
+    out += f"  {color}Listening...{reset}"
     return out
 
 
-def _thinking_frame(t: float) -> str:
+def _thinking_frame(t: float, external: bool = False) -> str:
     out = "🧠  "
+    color = _BLUE if external else ""
+    reset = _RESET if external else ""
     for i in range(5):
         phase = (t * 3) + i * (math.pi / 2.5)
         val = (math.sin(phase) + 1) / 2
         out += "● " if val > 0.5 else "○ "
-    out += " Thinking..."
+    out += f" {color}Thinking...{reset}"
     return out
 
 
@@ -69,11 +76,28 @@ class VoiceAnimator:
 
     def __init__(self) -> None:
         self._state = VoiceState.IDLE
+        self._external = False
         self._task: asyncio.Task | None = None
         self._last_len = 0
+        
+        # Enable ANSI escape codes on Windows (VT100 support)
+        if sys.platform == "win32":
+            try:
+                import os
+                import ctypes
+                # Attempt to enable VT100 processing on Windows 10+
+                kernel32 = ctypes.windll.kernel32
+                # -11 is STD_OUTPUT_HANDLE, 7 is ENABLE_PROCESSED_OUTPUT | ENABLE_VIRTUAL_TERMINAL_PROCESSING
+                kernel32.SetConsoleMode(kernel32.GetStdHandle(-11), 7)
+                # Also try -12 (STD_ERROR_HANDLE) since we write to stderr
+                kernel32.SetConsoleMode(kernel32.GetStdHandle(-12), 7)
+            except Exception:
+                # Fallback to os.system trick
+                os.system('color')
 
-    def set_state(self, state: VoiceState) -> None:
+    def set_state(self, state: VoiceState, external: bool = False) -> None:
         self._state = state
+        self._external = external
 
     async def start(self) -> None:
         if self._task and not self._task.done():
@@ -103,9 +127,9 @@ class VoiceAnimator:
 
     def _render(self, t: float) -> str:
         if self._state == VoiceState.LISTENING:
-            return _listening_frame(t)
+            return _listening_frame(t, self._external)
         elif self._state == VoiceState.THINKING:
-            return _thinking_frame(t)
+            return _thinking_frame(t, self._external)
         elif self._state == VoiceState.SPEAKING:
             return _speaking_frame(t)
         return "💤  Voice idle"

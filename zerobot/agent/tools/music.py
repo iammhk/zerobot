@@ -5,6 +5,7 @@ import asyncio
 import shutil
 import sys
 from typing import Any
+from loguru import logger
 
 try:
     from ytmusicapi import YTMusic
@@ -19,7 +20,7 @@ from zerobot.agent.tools.schema import StringSchema, tool_parameters_schema
     tool_parameters_schema(
         action=StringSchema(
             "The music action to perform",
-            enum=["search", "play", "stop"],
+            enum=["search", "play", "stop", "pause", "resume"],
         ),
         query=StringSchema("The search query for 'search' action"),
         video_id=StringSchema("The video ID or URL to play for 'play' action"),
@@ -66,6 +67,14 @@ class MusicTool(Tool):
         elif action == "stop":
             return await self._stop()
         
+        elif action == "pause":
+            success = await self.set_pause(True)
+            return "Music paused." if success else "Error: Could not pause music (is it playing?)"
+        
+        elif action == "resume":
+            success = await self.set_pause(False)
+            return "Music resumed." if success else "Error: Could not resume music (is it playing?)"
+        
         return f"Error: Unknown action '{action}'"
 
     async def _search(self, query: str) -> str:
@@ -105,10 +114,8 @@ class MusicTool(Tool):
         # Stop existing playback first
         await self._stop()
 
-        url = f"https://music.youtube.com/watch?v={video_id}"
-        # We use --no-video to stream only audio. 
-        # --ytdl-format=bestaudio ensures we get the best audio stream via yt-dlp.
-        args = ["mpv", url, "--no-video", "--ytdl-format=bestaudio", "--no-terminal"]
+        ipc_path = r"\\.\pipe\zerobot-mpv" if sys.platform == "win32" else "/tmp/zerobot-mpv"
+        args = ["mpv", url, "--no-video", "--ytdl-format=bestaudio", "--no-terminal", f"--input-ipc-server={ipc_path}"]
         
         # On Windows, CREATE_NO_WINDOW prevents the process from interfering with the console
         kwargs = {}
@@ -126,6 +133,62 @@ class MusicTool(Tool):
             return f"Started playing music from YouTube: {url}"
         except Exception as e:
             return f"Error starting playback: {str(e)}"
+
+    async def set_ducking(self, active: bool) -> bool:
+        """Lower the volume (ducking) when the agent is listening."""
+        if not self._current_process or self._current_process.returncode is not None:
+            return False
+
+        volume = 20 if active else 100
+        ipc_path = r"\\.\pipe\zerobot-mpv" if sys.platform == "win32" else "/tmp/zerobot-mpv"
+        
+        import json
+        cmd = {"command": ["set_property", "volume", volume]}
+        
+        try:
+            if sys.platform == "win32":
+                # Use powershell to write to the named pipe safely
+                import subprocess as sp
+                payload = json.dumps(cmd).replace('"', '\"')
+                ps_cmd = f"echo '{payload}' | Out-File -FilePath {ipc_path} -Encoding ascii"
+                # Actually, a simpler way in Python:
+                with open(ipc_path, 'w', encoding='ascii') as f:
+                    f.write(json.dumps(cmd) + "\n")
+            else:
+                # Unix socket
+                reader, writer = await asyncio.open_unix_connection(ipc_path)
+                writer.write((json.dumps(cmd) + "\n").encode())
+                await writer.drain()
+                writer.close()
+                await writer.wait_closed()
+            return True
+        except Exception as e:
+            logger.debug(f"Failed to set mpv volume via IPC: {e}")
+            return False
+
+    async def set_pause(self, pause: bool) -> bool:
+        """Pause or resume the current mpv process via IPC."""
+        if not self._current_process or self._current_process.returncode is not None:
+            return False
+
+        ipc_path = r"\\.\pipe\zerobot-mpv" if sys.platform == "win32" else "/tmp/zerobot-mpv"
+        import json
+        cmd = {"command": ["set_property", "pause", pause]}
+        
+        try:
+            if sys.platform == "win32":
+                with open(ipc_path, 'w', encoding='ascii') as f:
+                    f.write(json.dumps(cmd) + "\n")
+            else:
+                reader, writer = await asyncio.open_unix_connection(ipc_path)
+                writer.write((json.dumps(cmd) + "\n").encode())
+                await writer.drain()
+                writer.close()
+                await writer.wait_closed()
+            return True
+        except Exception as e:
+            logger.debug(f"Failed to set mpv pause state via IPC: {e}")
+            return False
 
     async def _stop(self) -> str:
         if self._current_process and self._current_process.returncode is None:

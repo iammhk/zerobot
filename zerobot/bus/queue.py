@@ -2,7 +2,7 @@
 
 import asyncio
 
-from zerobot.bus.events import InboundMessage, OutboundMessage
+from zerobot.bus.events import InboundMessage, OutboundMessage, SystemEvent
 
 
 class MessageBus:
@@ -16,6 +16,7 @@ class MessageBus:
     def __init__(self):
         self.inbound: asyncio.Queue[InboundMessage] = asyncio.Queue()
         self.outbound: asyncio.Queue[OutboundMessage] = asyncio.Queue()
+        self.system: asyncio.Queue[SystemEvent] = asyncio.Queue()
 
     async def publish_inbound(self, msg: InboundMessage) -> None:
         """Publish a message from a channel to the agent."""
@@ -32,6 +33,14 @@ class MessageBus:
     async def consume_outbound(self) -> OutboundMessage:
         """Consume the next outbound message (blocks until available)."""
         return await self.outbound.get()
+
+    async def publish_system(self, event: SystemEvent) -> None:
+        """Publish an internal system event."""
+        await self.system.put(event)
+
+    async def consume_system(self) -> SystemEvent:
+        """Consume the next system event (blocks until available)."""
+        return await self.system.get()
 
     @property
     def inbound_size(self) -> int:

@@ -10,7 +10,7 @@ from typing import Any
 
 from loguru import logger
 
-from zerobot.bus.events import InboundMessage, OutboundMessage
+from zerobot.bus.events import InboundMessage, OutboundMessage, SystemEvent
 from zerobot.bus.queue import MessageBus
 from zerobot.channels.base import BaseChannel
 from zerobot.providers.transcription import SarvamTranscriptionProvider, OpenAITranscriptionProvider, GroqTranscriptionProvider
@@ -157,22 +157,42 @@ class VoiceChannel(BaseChannel):
                     
                     p = pyaudio.PyAudio()
                     stream = p.open(format=pyaudio.paInt16, channels=1, rate=16000, input=True, frames_per_buffer=8000)
-                    rec = KaldiRecognizer(model, 16000, f'["{wake_word}", "[unk]"]')
+                    
+                    # Include fast-path keywords in grammar
+                    fast_path_words = ["stop", "pause", "resume", "play", "status", "time"]
+                    grammar = [wake_word] + fast_path_words + ["[unk]"]
+                    rec = KaldiRecognizer(model, 16000, json.dumps(grammar))
                     
                     found_wake = False
                     while self._running and self._is_listening:
-                        # Non-blocking read (asyncio friendly)
                         data = await asyncio.get_event_loop().run_in_executor(None, stream.read, 4000, False)
                         if len(data) == 0:
                             break
                         if rec.AcceptWaveform(data):
                             res = json.loads(rec.Result())
-                            if res.get("text") == wake_word:
+                            detected_text = res.get("text", "").strip()
+                            
+                            if not detected_text:
+                                continue
+                                
+                            if detected_text == wake_word:
                                 found_wake = True
                                 break
-                        else:
-                            # Check partial results for faster feedback if needed
-                            pass
+                            
+                            # Check for fast-path phrases: "wake_word [action]"
+                            for action in fast_path_words:
+                                if detected_text == f"{wake_word} {action}":
+                                    logger.info("Local command detected: {}", detected_text)
+                                    if action in ["stop", "pause", "resume", "play"]:
+                                        await self.bus.publish_system(SystemEvent(kind="music_command", payload={"action": action}))
+                                    else:
+                                        await self.bus.publish_system(SystemEvent(kind="local_command", payload={"name": action}))
+                                    
+                                    await play_system_sound("success")
+                                    # After a fast-path command, we stay in monitoring mode
+                                    detected_text = "" # Reset for next loop
+                                    rec.Reset()
+                                    break
                         await asyncio.sleep(0.01)
 
                     stream.stop_stream()
@@ -183,13 +203,16 @@ class VoiceChannel(BaseChannel):
                         continue
                     
                     logger.info("Wake word detected locally!")
+                    # Duck music volume when agent starts listening
+                    await self.bus.publish_system(SystemEvent(kind="ducking", payload={"active": True}))
                     await play_system_sound("success")
 
                 # --- STAGE 2: COMMAND RECORDING (CLOUD STT) ---
                 chunk_file = self._temp_dir / f"chunk_{chunk_idx}.wav"
 
                 # Record a 5-second command chunk
-                self._animator.set_state(VoiceState.LISTENING)
+                # Set external=True because we are preparing to call cloud STT
+                self._animator.set_state(VoiceState.LISTENING, external=True)
                 logger.debug("Listening for command...")
                 success = await record_audio(chunk_file, duration=5)
 
@@ -198,7 +221,7 @@ class VoiceChannel(BaseChannel):
                     continue
 
                 if success and chunk_file.exists():
-                    self._animator.set_state(VoiceState.THINKING)
+                    self._animator.set_state(VoiceState.THINKING, external=True)
                     start_stt = time.perf_counter()
                     text = await self.stt.transcribe(chunk_file) if self.stt else ""
                     stt_duration = time.perf_counter() - start_stt
@@ -220,6 +243,8 @@ class VoiceChannel(BaseChannel):
                         await self.bus.publish_inbound(msg)
                     else:
                         logger.debug("No command heard after wake word.")
+                        # Restore music volume if no command heard
+                        await self.bus.publish_system(SystemEvent(kind="ducking", payload={"active": False}))
                         self._animator.set_state(VoiceState.LISTENING)
 
                     os.remove(chunk_file)
@@ -268,6 +293,9 @@ class VoiceChannel(BaseChannel):
                 logger.info("Bot Speaking (TTS: {:.2f}s)", tts_duration)
 
             await play_audio(output_file)
+
+            # Restore music volume after agent finishes speaking
+            await self.bus.publish_system(SystemEvent(kind="ducking", payload={"active": False}))
 
             self._is_listening = was_listening
             self._animator.set_state(VoiceState.LISTENING)

@@ -37,5 +37,9 @@ class OutboundMessage:
     buttons: list[list[str]] = field(default_factory=list)
 
 
+@dataclass
+class SystemEvent:
+    """Internal system event for coordination (e.g. ducking audio)."""
 
-
+    kind: str  # e.g. "ducking"
+    payload: dict[str, Any] = field(default_factory=dict)

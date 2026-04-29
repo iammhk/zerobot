@@ -1,0 +1,19 @@
+    async def _handle_system_events(self) -> None:
+        """Handle internal system events like audio ducking."""
+        while self._running:
+            try:
+                event = await self.bus.consume_system()
+                if event.kind == "ducking":
+                    active = event.payload.get("active", False)
+                    # Use the tool registry to find the music tool
+                    from zerobot.agent.tools.music import MusicTool
+                    music_tool = self.tools.get("music")
+                    if isinstance(music_tool, MusicTool):
+                        await music_tool.set_ducking(active)
+            except asyncio.get_event_loop().get_exception_handler():
+                break
+            except asyncio.CancelledError:
+                break
+            except Exception as e:
+                logger.error("Error handling system event: {}", e)
+                await asyncio.sleep(1)

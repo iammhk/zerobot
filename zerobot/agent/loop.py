@@ -576,6 +576,9 @@ class AgentLoop:
         await self._connect_mcp()
         logger.info("Agent loop started")
 
+        # Start system event handler task
+        self._background_tasks.append(asyncio.create_task(self._handle_system_events()))
+
         while self._running:
             try:
                 msg = await asyncio.wait_for(self.bus.consume_inbound(), timeout=1.0)
@@ -1227,6 +1230,45 @@ class AgentLoop:
             on_stream_end=on_stream_end,
             show_thoughts=show_thoughts,
         )
+
+    async def _handle_system_events(self) -> None:
+        """Handle internal system events like audio ducking."""
+        while self._running:
+            try:
+                event = await self.bus.consume_system()
+                if event.kind == "ducking":
+                    active = event.payload.get("active", False)
+                    # Use the tool registry to find the music tool
+                    from zerobot.agent.tools.music import MusicTool
+                    music_tool = self.tools.get("music")
+                    if isinstance(music_tool, MusicTool):
+                        await music_tool.set_ducking(active)
+                elif event.kind == "music_command":
+                    action = event.payload.get("action")
+                    from zerobot.agent.tools.music import MusicTool
+                    music_tool = self.tools.get("music")
+                    if isinstance(music_tool, MusicTool):
+                        if action == "stop":
+                            await music_tool.execute(action="stop")
+                        elif action == "pause":
+                            await music_tool.execute(action="pause")
+                        elif action == "resume" or action == "play":
+                            await music_tool.execute(action="resume")
+                elif event.kind == "local_command":
+                    name = event.payload.get("name")
+                    import time
+                    if name == "status":
+                         uptime = time.time() - self._start_time
+                         content = f"I am active and running on your {self.context.hardware_type}. I have been awake for {int(uptime // 60)} minutes."
+                         await self.bus.publish_outbound(OutboundMessage(channel="voice", chat_id="default", content=content))
+                    elif name == "time":
+                         t = time.strftime("%I:%M %p")
+                         await self.bus.publish_outbound(OutboundMessage(channel="voice", chat_id="default", content=f"The time is {t}."))
+            except asyncio.CancelledError:
+                break
+            except Exception as e:
+                logger.error("Error handling system event: {}", e)
+                await asyncio.sleep(1)
 
 
 
