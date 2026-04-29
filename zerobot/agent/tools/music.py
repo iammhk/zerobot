@@ -22,8 +22,8 @@ from zerobot.agent.tools.schema import StringSchema, tool_parameters_schema
             "The music action to perform",
             enum=["search", "play", "stop", "pause", "resume"],
         ),
-        query=StringSchema("The search query for 'search' action"),
-        video_id=StringSchema("The video ID or URL to play for 'play' action"),
+        query=StringSchema("The search query for 'search' or 'play' action"),
+        video_id=StringSchema("The video ID or URL to play for 'play' action (optional if query is provided)"),
         required=["action"],
     )
 )
@@ -61,7 +61,20 @@ class MusicTool(Tool):
         
         elif action == "play":
             if not video_id:
-                return "Error: 'video_id' is required for play action."
+                if not query:
+                    return "Error: 'video_id' or 'query' is required for play action."
+                
+                # Auto-search and play first result
+                try:
+                    search_results = self._yt_music.search(query, filter="songs")
+                    if not search_results:
+                        return f"No songs found for '{query}'"
+                    video_id = search_results[0].get("videoId")
+                    if not video_id:
+                         return f"Could not find a valid video ID for '{query}'"
+                except Exception as e:
+                    return f"Error searching for '{query}': {str(e)}"
+            
             return await self._play(video_id)
         
         elif action == "stop":
@@ -111,9 +124,10 @@ class MusicTool(Tool):
         if not shutil.which("mpv"):
             return "Error: 'mpv' is not installed. Please install it (sudo apt install mpv)."
 
-        # Stop existing playback first
-        await self._stop()
+        # Kill any existing mpv processes (orphans or current)
+        await self._cleanup_orphans()
 
+        url = f"https://music.youtube.com/watch?v={video_id}"
         ipc_path = r"\\.\pipe\zerobot-mpv" if sys.platform == "win32" else "/tmp/zerobot-mpv"
         args = ["mpv", url, "--no-video", "--ytdl-format=bestaudio", "--no-terminal", f"--input-ipc-server={ipc_path}"]
         
@@ -130,28 +144,31 @@ class MusicTool(Tool):
                 stderr=asyncio.subprocess.DEVNULL,
                 **kwargs
             )
-            return f"Started playing music from YouTube: {url}"
+            return f"Started playing music: {url}\n(Note: Buffering may take a few seconds)"
         except Exception as e:
             return f"Error starting playback: {str(e)}"
 
     async def set_ducking(self, active: bool) -> bool:
         """Lower the volume (ducking) when the agent is listening."""
+        volume = 20 if active else 100
+        return await self._send_ipc_command({"command": ["set_property", "volume", volume]})
+
+    async def set_pause(self, pause: bool) -> bool:
+        """Pause or resume the current mpv process via IPC."""
+        return await self._send_ipc_command({"command": ["set_property", "pause", pause]})
+
+    async def _send_ipc_command(self, cmd: dict) -> bool:
+        """Send a command to the mpv process via IPC."""
         if not self._current_process or self._current_process.returncode is not None:
             return False
 
-        volume = 20 if active else 100
         ipc_path = r"\\.\pipe\zerobot-mpv" if sys.platform == "win32" else "/tmp/zerobot-mpv"
-        
         import json
-        cmd = {"command": ["set_property", "volume", volume]}
         
         try:
             if sys.platform == "win32":
-                # Use powershell to write to the named pipe safely
-                import subprocess as sp
-                payload = json.dumps(cmd).replace('"', '\"')
-                ps_cmd = f"echo '{payload}' | Out-File -FilePath {ipc_path} -Encoding ascii"
-                # Actually, a simpler way in Python:
+                # Writing to named pipes on Windows can be tricky with simple open()
+                # especially if mpv is still starting up.
                 with open(ipc_path, 'w', encoding='ascii') as f:
                     f.write(json.dumps(cmd) + "\n")
             else:
@@ -163,56 +180,34 @@ class MusicTool(Tool):
                 await writer.wait_closed()
             return True
         except Exception as e:
-            logger.debug(f"Failed to set mpv volume via IPC: {e}")
-            return False
-
-    async def set_pause(self, pause: bool) -> bool:
-        """Pause or resume the current mpv process via IPC."""
-        if not self._current_process or self._current_process.returncode is not None:
-            return False
-
-        ipc_path = r"\\.\pipe\zerobot-mpv" if sys.platform == "win32" else "/tmp/zerobot-mpv"
-        import json
-        cmd = {"command": ["set_property", "pause", pause]}
-        
-        try:
-            if sys.platform == "win32":
-                with open(ipc_path, 'w', encoding='ascii') as f:
-                    f.write(json.dumps(cmd) + "\n")
-            else:
-                reader, writer = await asyncio.open_unix_connection(ipc_path)
-                writer.write((json.dumps(cmd) + "\n").encode())
-                await writer.drain()
-                writer.close()
-                await writer.wait_closed()
-            return True
-        except Exception as e:
-            logger.debug(f"Failed to set mpv pause state via IPC: {e}")
+            logger.debug("Failed to send mpv IPC command: {}", e)
             return False
 
     async def _stop(self) -> str:
         if self._current_process and self._current_process.returncode is None:
             try:
-                if sys.platform == "win32":
-                    # On Windows, we use taskkill to ensure the process and its children (like yt-dlp) are stopped
-                    import subprocess as sp
-                    sp.run(["taskkill", "/F", "/T", "/PID", str(self._current_process.pid)], 
-                           stdout=sp.DEVNULL, stderr=sp.DEVNULL)
-                else:
-                    self._current_process.terminate()
-                
-                # Wait for the process to actually exit
-                try:
-                    await asyncio.wait_for(self._current_process.wait(), timeout=2.0)
-                except asyncio.TimeoutError:
-                    if self._current_process.returncode is None:
-                        self._current_process.kill()
-                        await self._current_process.wait()
-                
+                await self._cleanup_orphans()
                 self._current_process = None
                 return "Playback stopped."
             except Exception as e:
                 return f"Error stopping playback: {str(e)}"
         
+        # Even if we don't have a tracked process, try to cleanup any orphans
+        await self._cleanup_orphans()
         self._current_process = None
         return "No music is currently playing."
+
+    async def _cleanup_orphans(self) -> None:
+        """Forcefully kill any running mpv processes and their children."""
+        try:
+            if sys.platform == "win32":
+                import subprocess as sp
+                # Kill mpv.exe and mpv.com (and all children like yt-dlp)
+                for img in ["mpv.exe", "mpv.com"]:
+                    sp.run(["taskkill", "/F", "/IM", img, "/T"], 
+                           stdout=sp.DEVNULL, stderr=sp.DEVNULL)
+            else:
+                import subprocess as sp
+                sp.run(["pkill", "-9", "mpv"], stdout=sp.DEVNULL, stderr=sp.DEVNULL)
+        except Exception as e:
+            logger.debug("Orphan cleanup failed: {}", e)

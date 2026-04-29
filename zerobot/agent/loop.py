@@ -132,6 +132,13 @@ class _LoopHook(AgentHook):
         for tc in context.tool_calls:
             args_str = json.dumps(tc.arguments, ensure_ascii=False)
             logger.info("Tool call: {}({})", tc.name, args_str[:200])
+            # Notify user about tool access
+            await self._loop.bus.publish_outbound(OutboundMessage(
+                channel=self._channel,
+                chat_id=self._chat_id,
+                content=f"Accessing {tc.name}...",
+                metadata={"is_status": True}
+            ))
         self._loop._set_tool_context(self._channel, self._chat_id, self._message_id)
 
     async def after_iteration(self, context: AgentHookContext) -> None:

@@ -5,6 +5,7 @@
 import asyncio
 import os
 import tempfile
+import time
 from pathlib import Path
 from typing import Any
 
@@ -46,6 +47,8 @@ class VoiceChannel(BaseChannel):
         self._global_config = kwargs.get("global_config")
         self.tts = None
         self._animator = VoiceAnimator()
+        self._last_interaction_at = 0.0
+        self._continuity_window = 3.0
 
     def _init_stt(self) -> Any:
         # Helper to get value from dict or object
@@ -87,7 +90,7 @@ class VoiceChannel(BaseChannel):
         self.stt = self._init_stt()
         if self._global_config:
             self.tts = get_tts_provider(self._global_config, channel_config=self.config)
-
+        
         await play_system_sound("hello")
         await self._animator.start()
         self._animator.set_state(VoiceState.LISTENING)
@@ -123,13 +126,22 @@ class VoiceChannel(BaseChannel):
         import json
         import re
 
-        wake_word = self.config.get("wake_word")
+        # Stage 0: Configuration and Model Setup
+        def get_cfg_val(cfg, key, default=None):
+            if cfg is None: return default
+            if isinstance(cfg, dict):
+                from pydantic.alias_generators import to_camel
+                return cfg.get(key, cfg.get(to_camel(key), default))
+            return getattr(cfg, key, default)
+
+        wake_word = get_cfg_val(self.config, "wake_word")
         if wake_word:
             wake_word = wake_word.lower().strip()
 
         # Check if local wake word detection is possible
-        use_local_wake = VOSK_AVAILABLE and wake_word
+        use_local_wake = VOSK_AVAILABLE and bool(wake_word)
         model = None
+        rec = None
         if use_local_wake:
             model_path = Path("zerobot/assets/models/vosk-model-small-en-us-0.15")
             if not model_path.exists():
@@ -139,9 +151,15 @@ class VoiceChannel(BaseChannel):
                 try:
                     model = Model(str(model_path))
                     logger.info("Local wake-word detection enabled (Vosk)")
+                    
+                    # Initialize recognizer once to avoid GC errors on Windows
+                    fast_path_words = ["stop", "pause", "resume", "play", "status", "time"]
+                    grammar = [wake_word] + fast_path_words + ["[unk]"]
+                    rec = KaldiRecognizer(model, 16000, json.dumps(grammar))
                 except Exception as e:
-                    logger.error("Failed to load Vosk model: {}. Falling back.", e)
+                    logger.error("Failed to load Vosk model or recognizer: {}. Falling back.", e)
                     use_local_wake = False
+                    rec = None
 
         chunk_idx = 0
         while self._running:
@@ -150,18 +168,33 @@ class VoiceChannel(BaseChannel):
                     await asyncio.sleep(0.5)
                     continue
 
-                if use_local_wake:
-                    # --- STAGE 1: LOCAL WAKE WORD DETECTION ---
+                # --- STAGE 0: REFRESH DYNAMIC STATE ---
+                now = time.perf_counter()
+                is_follow_up = (now - self._last_interaction_at) < self._continuity_window
+                
+                # Refresh wake word in case it changed in config
+                wake_word = get_cfg_val(self.config, "wake_word")
+                if wake_word: wake_word = wake_word.lower().strip()
+                use_local_wake = VOSK_AVAILABLE and bool(wake_word) and model is not None
+                
+                found_wake = False
+                if is_follow_up:
+                    logger.info("Follow-up window active: Listening for command...")
+                    found_wake = True
+                elif use_local_wake:
+                    # If we are already thinking or speaking, don't listen for wake word yet
+                    while self._running and self._is_listening and self._animator._state in [VoiceState.THINKING, VoiceState.SPEAKING]:
+                        await asyncio.sleep(0.5)
+                    
                     self._animator.set_state(VoiceState.LISTENING)
-                    logger.debug("Waiting for wake word: '{}'...", wake_word)
+                    logger.info("Waiting for wake word: '{}'...", wake_word)
                     
                     p = pyaudio.PyAudio()
                     stream = p.open(format=pyaudio.paInt16, channels=1, rate=16000, input=True, frames_per_buffer=8000)
                     
-                    # Include fast-path keywords in grammar
-                    fast_path_words = ["stop", "pause", "resume", "play", "status", "time"]
-                    grammar = [wake_word] + fast_path_words + ["[unk]"]
-                    rec = KaldiRecognizer(model, 16000, json.dumps(grammar))
+                    # Reset the recognizer for a fresh start
+                    if rec:
+                        rec.Reset()
                     
                     found_wake = False
                     while self._running and self._is_listening:
@@ -202,10 +235,15 @@ class VoiceChannel(BaseChannel):
                     if not found_wake:
                         continue
                     
-                    logger.info("Wake word detected locally!")
                     # Duck music volume when agent starts listening
                     await self.bus.publish_system(SystemEvent(kind="ducking", payload={"active": True}))
-                    await play_system_sound("success")
+                    if not is_follow_up:
+                        logger.info("Wake word detected locally!")
+                        await play_system_sound("success")
+                else:
+                    # No wake word configured, always listening
+                    found_wake = True
+                    await self.bus.publish_system(SystemEvent(kind="ducking", payload={"active": True}))
 
                 # --- STAGE 2: COMMAND RECORDING (CLOUD STT) ---
                 chunk_file = self._temp_dir / f"chunk_{chunk_idx}.wav"
@@ -230,6 +268,9 @@ class VoiceChannel(BaseChannel):
                         logger.info("Voice Command (STT: {:.2f}s): {}", stt_duration, text)
                         await play_system_sound("success")
                         
+                        # Reset continuity window if we heard something
+                        self._last_interaction_at = time.perf_counter()
+                        
                         msg = InboundMessage(
                             channel=self.name,
                             sender_id="local_user",
@@ -243,8 +284,11 @@ class VoiceChannel(BaseChannel):
                         await self.bus.publish_inbound(msg)
                     else:
                         logger.debug("No command heard after wake word.")
+                        # Expire continuity window if silence detected
+                        self._last_interaction_at = 0
                         # Restore music volume if no command heard
                         await self.bus.publish_system(SystemEvent(kind="ducking", payload={"active": False}))
+                        self._animator.set_state(VoiceState.LISTENING)
                         self._animator.set_state(VoiceState.LISTENING)
 
                     os.remove(chunk_file)
@@ -262,7 +306,9 @@ class VoiceChannel(BaseChannel):
 
     async def send(self, msg: OutboundMessage) -> None:
         """Handle outbound message by speaking it with TTS."""
-        import time
+        if not msg.content or msg.metadata.get("is_status"):
+            return
+
         if not self.tts:
             logger.warning("TTS not initialized for voice channel")
             return
@@ -296,8 +342,11 @@ class VoiceChannel(BaseChannel):
 
             # Restore music volume after agent finishes speaking
             await self.bus.publish_system(SystemEvent(kind="ducking", payload={"active": False}))
-
+            
             self._is_listening = was_listening
+            
+            # Start continuity window after speaking finishes
+            self._last_interaction_at = time.perf_counter()
             self._animator.set_state(VoiceState.LISTENING)
             os.remove(output_file)
         else:

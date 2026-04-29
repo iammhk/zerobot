@@ -973,6 +973,52 @@ def agent(
     logs: bool = typer.Option(False, "--logs/--no-logs", help="Show Zerobot runtime logs during chat"),
 ):
     """Interact with the agent directly."""
+    _run_agent_interactive(
+        message=message,
+        session_id=session_id,
+        workspace_dir=workspace,
+        config_file=config,
+        markdown=markdown,
+        logs=logs
+    )
+
+@app.command("chat")
+def chat(
+    workspace: str | None = typer.Option(None, "--workspace", "-w", help="Workspace directory"),
+    config: str | None = typer.Option(None, "--config", "-c", help="Config file path"),
+    logs: bool = typer.Option(False, "--logs/--no-logs", help="Show Zerobot runtime logs"),
+):
+    """Start an interactive chat session."""
+    _run_agent_interactive(
+        workspace_dir=workspace,
+        config_file=config,
+        logs=logs
+    )
+
+@app.command("voice")
+def voice(
+    workspace: str | None = typer.Option(None, "--workspace", "-w", help="Workspace directory"),
+    config: str | None = typer.Option(None, "--config", "-c", help="Config file path"),
+    logs: bool = typer.Option(False, "--logs/--no-logs", help="Show Zerobot runtime logs"),
+):
+    """Start the agent with voice channel automatically enabled."""
+    _run_agent_interactive(
+        workspace_dir=workspace,
+        config_file=config,
+        logs=logs,
+        auto_voice=True
+    )
+
+def _run_agent_interactive(
+    message: str | None = None,
+    session_id: str = "cli:direct",
+    workspace_dir: str | None = None,
+    config_file: str | None = None,
+    markdown: bool = True,
+    logs: bool = False,
+    auto_voice: bool = False,
+):
+    """Core logic for starting the agent in interactive or single-message mode."""
     if logs:
         logger.enable("zerobot")
     else:
@@ -983,7 +1029,7 @@ def agent(
     from zerobot.config.paths import is_default_workspace
     from zerobot.cron.service import CronService
 
-    config = _load_runtime_config(config, workspace)
+    config = _load_runtime_config(config_file, workspace_dir)
     sync_workspace_templates(config.workspace_path)
 
     bus = MessageBus()
@@ -1072,24 +1118,26 @@ def agent(
         else:
             cli_channel, cli_chat_id = "cli", session_id
 
+        # Handle graceful shutdown on signals
         def _handle_signal(signum, frame):
-            sig_name = signal.Signals(signum).name
-            _restore_terminal()
-            console.print(f"\nReceived {sig_name}, goodbye!")
-            sys.exit(0)
+            # Raise KeyboardInterrupt so the 'except' blocks below can handle cleanup
+            raise KeyboardInterrupt
 
         signal.signal(signal.SIGINT, _handle_signal)
         signal.signal(signal.SIGTERM, _handle_signal)
-        # SIGHUP is not available on Windows
-        if hasattr(signal, 'SIGHUP'):
-            signal.signal(signal.SIGHUP, _handle_signal)
-        # Ignore SIGPIPE to prevent silent process termination when writing to closed pipes
-        # SIGPIPE is not available on Windows
-        if hasattr(signal, 'SIGPIPE'):
-            signal.signal(signal.SIGPIPE, signal.SIG_IGN)
 
         async def run_interactive():
             bus_task = asyncio.create_task(agent_loop.run())
+            
+            # If auto_voice is requested, publish /voice-on immediately
+            if auto_voice:
+                await bus.publish_inbound(InboundMessage(
+                    channel=cli_channel,
+                    sender_id="user",
+                    chat_id=cli_chat_id,
+                    content="/voice-on",
+                ))
+
             turn_done = asyncio.Event()
             turn_done.set()
             turn_response: list[tuple[str, dict]] = []
@@ -1189,18 +1237,20 @@ def agent(
                                 )
                         elif renderer and not renderer.streamed:
                             await renderer.close()
-                    except KeyboardInterrupt:
-                        _restore_terminal()
-                        console.print("\nGoodbye!")
-                        break
-                    except EOFError:
+                    except (KeyboardInterrupt, EOFError):
                         _restore_terminal()
                         console.print("\nGoodbye!")
                         break
             finally:
                 agent_loop.stop()
                 outbound_task.cancel()
-                await asyncio.gather(bus_task, outbound_task, return_exceptions=True)
+                bus_task.cancel()
+                try:
+                    await asyncio.gather(outbound_task, bus_task, return_exceptions=True)
+                except Exception:
+                    pass
+
+                agent_loop.stop()
                 await agent_loop.close_mcp()
 
         asyncio.run(run_interactive())

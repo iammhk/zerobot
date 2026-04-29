@@ -34,7 +34,9 @@ def _listening_frame(t: float, external: bool = False) -> str:
         amplitude = max(0.0, 1.0 - dist / (center + 1)) ** 1.2
         idx = int(raw * amplitude * (len(_BARS) - 1))
         out += _BARS[idx]
-    out += f"  {color}Listening...{reset}"
+    
+    label = "Listening..." if external else "Sleeping..."
+    out += f"  {color}{label}{reset}"
     return out
 
 
@@ -68,8 +70,8 @@ def _speaking_frame(t: float) -> str:
 
 class VoiceAnimator:
     """
-    Monochrome pulsating animation that works in any terminal.
-    Uses only \r and spaces to overwrite lines — zero ANSI escape codes.
+    Pulsating animation that uses ANSI colors for external states (like Cloud STT/LLM).
+    Works across Windows (VT100) and Linux/macOS.
     """
 
     FPS = 15
@@ -79,21 +81,34 @@ class VoiceAnimator:
         self._external = False
         self._task: asyncio.Task | None = None
         self._last_len = 0
+        self._win32_vt100_last_check = 0
         
-        # Enable ANSI escape codes on Windows (VT100 support)
-        if sys.platform == "win32":
-            try:
-                import os
-                import ctypes
-                # Attempt to enable VT100 processing on Windows 10+
-                kernel32 = ctypes.windll.kernel32
-                # -11 is STD_OUTPUT_HANDLE, 7 is ENABLE_PROCESSED_OUTPUT | ENABLE_VIRTUAL_TERMINAL_PROCESSING
-                kernel32.SetConsoleMode(kernel32.GetStdHandle(-11), 7)
-                # Also try -12 (STD_ERROR_HANDLE) since we write to stderr
-                kernel32.SetConsoleMode(kernel32.GetStdHandle(-12), 7)
-            except Exception:
-                # Fallback to os.system trick
-                os.system('color')
+    def _ensure_win32_vt100(self) -> None:
+        """Forcefully enable VT100/ANSI support on Windows 10+ raw handles."""
+        if sys.platform != "win32":
+            return
+            
+        # Only check/re-enable every 2 seconds to avoid overhead
+        now = time.monotonic()
+        if now - self._win32_vt100_last_check < 2.0:
+            return
+        self._win32_vt100_last_check = now
+
+        try:
+            import ctypes
+            kernel32 = ctypes.windll.kernel32
+            # Handles: -11 (stdout), -12 (stderr)
+            for handle_id in [-11, -12]:
+                h = kernel32.GetStdHandle(handle_id)
+                if h and h != -1:
+                    mode = ctypes.c_ulong()
+                    if kernel32.GetConsoleMode(h, ctypes.byref(mode)):
+                        # ENABLE_VIRTUAL_TERMINAL_PROCESSING = 0x0004
+                        # ENABLE_PROCESSED_OUTPUT = 0x0001
+                        new_mode = mode.value | 0x0004 | 0x0001
+                        kernel32.SetConsoleMode(h, new_mode)
+        except Exception:
+            pass
 
     def set_state(self, state: VoiceState, external: bool = False) -> None:
         self._state = state
@@ -118,6 +133,7 @@ class VoiceAnimator:
     async def _run(self) -> None:
         while True:
             try:
+                self._ensure_win32_vt100()
                 t = time.perf_counter()
                 frame = self._render(t)
                 self._write(frame)
@@ -135,10 +151,12 @@ class VoiceAnimator:
         return "💤  Voice idle"
 
     def _write(self, s: str) -> None:
-        # 1. Start with \r to return to line beginning
-        # 2. Pad with enough spaces to overwrite the previous line
-        # 3. Write the new string
-        # We use stderr to bypass prompt_toolkit's stdout interception
-        sys.stderr.write("\r" + s + " " * max(0, self._last_len - len(s)))
-        sys.stderr.flush()
+        # Use sys.__stderr__ to bypass any stdout/stderr patching (e.g. from prompt_toolkit)
+        # and write directly to the original terminal stream.
+        target = sys.__stderr__ or sys.stderr
+        try:
+            target.write("\r" + s + " " * max(0, self._last_len - len(s)))
+            target.flush()
+        except Exception:
+            pass
         self._last_len = len(s)
