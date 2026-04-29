@@ -118,6 +118,8 @@ class VoiceChannel(BaseChannel):
 
     async def _listen_loop(self) -> None:
         """
+        Voice listening loop with local wake-word detection (Vosk).
+        """
         import time
         import json
         import re
