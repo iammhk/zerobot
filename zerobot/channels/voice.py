@@ -118,13 +118,13 @@ class VoiceChannel(BaseChannel):
 
     async def _listen_loop(self) -> None:
         """
-        Voice listening loop with local wake-word detection (Vosk).
-        1. Monitors mic locally for the wake word.
-        2. Once detected, records a command and sends it to the cloud STT.
-        """
         import time
         import json
         import re
+        import vosk
+
+        # Silence Vosk internal logs
+        vosk.SetLogLevel(-1)
 
         # Stage 0: Configuration and Model Setup
         def get_cfg_val(cfg, key, default=None):
@@ -179,7 +179,7 @@ class VoiceChannel(BaseChannel):
                 
                 found_wake = False
                 if is_follow_up:
-                    logger.info("Follow-up window active: Listening for command...")
+                    logger.debug("Follow-up window active: Listening for command...")
                     found_wake = True
                 elif use_local_wake:
                     # If we are already thinking or speaking, don't listen for wake word yet
@@ -187,7 +187,7 @@ class VoiceChannel(BaseChannel):
                         await asyncio.sleep(0.5)
                     
                     self._animator.set_state(VoiceState.LISTENING)
-                    logger.info("Waiting for wake word: '{}'...", wake_word)
+                    logger.debug("Waiting for wake word: '{}'...", wake_word)
                     
                     p = pyaudio.PyAudio()
                     stream = p.open(format=pyaudio.paInt16, channels=1, rate=16000, input=True, frames_per_buffer=8000)
