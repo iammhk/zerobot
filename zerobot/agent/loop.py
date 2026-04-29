@@ -1257,15 +1257,19 @@ class AgentLoop:
                     music_tool = self.tools.get("music")
                     if isinstance(music_tool, MusicTool):
                         if action == "stop":
-                            await music_tool.execute(action="stop")
+                            result = await music_tool.execute(action="stop")
+                            logger.info(f"Music stop result: {result}")
                         elif action == "pause":
-                            await music_tool.execute(action="pause")
+                            result = await music_tool.execute(action="pause")
+                            logger.info(f"Music pause result: {result}")
                         elif action == "resume":
-                            await music_tool.execute(action="resume")
+                            result = await music_tool.execute(action="resume")
+                            logger.info(f"Music resume result: {result}")
                         elif action == "play":
                             query = event.payload.get("query")
                             if query:
-                                await music_tool.execute(action="play", query=query)
+                                result = await music_tool.execute(action="play", query=query)
+                                logger.info(f"Music play result: {result}")
                             else:
                                 await music_tool.execute(action="resume")
                 elif event.kind == "local_command":
