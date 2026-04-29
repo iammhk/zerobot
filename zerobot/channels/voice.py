@@ -179,6 +179,8 @@ class VoiceChannel(BaseChannel):
                 if wake_word: wake_word = wake_word.lower().strip()
                 use_local_wake = VOSK_AVAILABLE and bool(wake_word) and model is not None
                 
+                logger.debug(f"DEBUG: is_follow_up={is_follow_up}, use_local_wake={use_local_wake}, wake_word='{wake_word}', VOSK_AVAILABLE={VOSK_AVAILABLE}, model_is_none={model is None}")
+                
                 found_wake = False
                 if is_follow_up:
                     logger.debug("Follow-up window active: Listening for command...")
