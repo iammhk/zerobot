@@ -145,9 +145,12 @@ class VoiceChannel(BaseChannel):
         model = None
         rec = None
         if use_local_wake:
-            model_path = Path("zerobot/assets/models/vosk-model-small-en-us-0.15")
+            # Use absolute path relative to this file to find models
+            base_dir = Path(__file__).parent.parent
+            model_path = base_dir / "assets" / "models" / "vosk-model-small-en-us-0.15"
+            
             if not model_path.exists():
-                logger.warning("Vosk model not found at {}. Falling back to Always Listening mode.", model_path)
+                logger.warning(f"Vosk model not found at {model_path}. Falling back to Always Listening mode.")
                 use_local_wake = False
             else:
                 try:
@@ -176,10 +179,11 @@ class VoiceChannel(BaseChannel):
                 
                 # Refresh wake word in case it changed in config
                 wake_word = get_cfg_val(self.config, "wake_word")
+                if not wake_word:
+                    wake_word = get_cfg_val(self.config, "wakeWord")
+                
                 if wake_word: wake_word = wake_word.lower().strip()
                 use_local_wake = VOSK_AVAILABLE and bool(wake_word) and model is not None
-                
-                logger.debug(f"DEBUG: is_follow_up={is_follow_up}, use_local_wake={use_local_wake}, wake_word='{wake_word}', VOSK_AVAILABLE={VOSK_AVAILABLE}, model_is_none={model is None}")
                 
                 found_wake = False
                 if is_follow_up:
