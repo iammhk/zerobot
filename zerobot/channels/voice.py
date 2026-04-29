@@ -169,7 +169,8 @@ class VoiceChannel(BaseChannel):
                     logger.info("Local wake-word detection enabled (Vosk)")
                     
                     # Initialize recognizer once to avoid GC errors on Windows
-                    fast_path_words = ["stop", "pause", "resume", "play", "status", "time"]
+                    # We add common words to the grammar to enable fully offline fast-path
+                    fast_path_words = ["stop", "pause", "resume", "play", "status", "time", "music", "continue", "what", "is", "it", "how", "are", "you"]
                     grammar = [wake_word] + fast_path_words + ["[unk]"]
                     rec = KaldiRecognizer(model, 16000, json.dumps(grammar))
                 except Exception as e:
@@ -230,22 +231,40 @@ class VoiceChannel(BaseChannel):
                             logger.debug("Vosk heard: '{}'", detected_text)
                                 
                             if wake_word in detected_text:
+                                # Check for fast-path phrases: "wake_word [action]"
+                                is_fast = False
+                                
+                                if any(w in detected_text for w in ["stop", "pause"]) and "music" in detected_text:
+                                    action = "stop" if "stop" in detected_text else "pause"
+                                    logger.info(f"Offline fast-path: {action} music")
+                                    await self.bus.publish_system(SystemEvent(kind="music_command", payload={"action": action}))
+                                    is_fast = True
+                                elif "time" in detected_text:
+                                    logger.info("Offline fast-path: time")
+                                    await self.bus.publish_system(SystemEvent(kind="local_command", payload={"name": "time"}))
+                                    is_fast = True
+                                elif "status" in detected_text or ("how" in detected_text and "you" in detected_text):
+                                    logger.info("Offline fast-path: status")
+                                    await self.bus.publish_system(SystemEvent(kind="local_command", payload={"name": "status"}))
+                                    is_fast = True
+                                elif "stop" in detected_text:
+                                    await self.bus.publish_system(SystemEvent(kind="music_command", payload={"action": "stop"}))
+                                    is_fast = True
+                                elif "pause" in detected_text:
+                                    await self.bus.publish_system(SystemEvent(kind="music_command", payload={"action": "pause"}))
+                                    is_fast = True
+                                elif "resume" in detected_text or "continue" in detected_text:
+                                    await self.bus.publish_system(SystemEvent(kind="music_command", payload={"action": "resume"}))
+                                    is_fast = True
+                                
+                                if is_fast:
+                                    await play_system_sound("success")
+                                    rec.Reset()
+                                    continue # Go back to waiting for next wake word
+                                
+                                # If no fast-path, then it's a standard wake word -> listen for full command
                                 found_wake = True
                                 break
-                            
-                            # Check for fast-path phrases: "wake_word [action]"
-                            for action in fast_path_words:
-                                if detected_text == f"{wake_word} {action}" or (wake_word in detected_text and action in detected_text):
-                                    logger.info("Local command detected: {}", detected_text)
-                                    if action in ["stop", "pause", "resume", "play"]:
-                                        await self.bus.publish_system(SystemEvent(kind="music_command", payload={"action": action}))
-                                    else:
-                                        await self.bus.publish_system(SystemEvent(kind="local_command", payload={"name": action}))
-                                    
-                                    await play_system_sound("success")
-                                    detected_text = ""
-                                    rec.Reset()
-                                    break
                         else:
                             # Check partial results too for faster wake word response
                             partial = json.loads(rec.PartialResult()).get("partial", "")
@@ -293,6 +312,50 @@ class VoiceChannel(BaseChannel):
 
                     if text and text.strip():
                         logger.info("Voice Command (STT: {:.2f}s): {}", stt_duration, text)
+                        
+                        # --- LOCAL FAST PATH (REGEX) ---
+                        # Intercept common commands to bypass LLM and avoid retry loops
+                        clean_text = text.lower().strip().rstrip(".")
+                        
+                        # 1. Play command: "play [song name]"
+                        play_match = re.match(r"^play\s+(.+)$", clean_text)
+                        if play_match:
+                            query = play_match.group(1)
+                            logger.info(f"Fast-path detected: play '{query}'")
+                            await play_system_sound("success")
+                            await self.bus.publish_system(SystemEvent(kind="music_command", payload={"action": "play", "query": query}))
+                            self._last_interaction_at = time.perf_counter()
+                            continue
+                            
+                        # 2. Stop/Pause/Resume commands
+                        if clean_text in ["stop", "stop music", "stop playing"]:
+                            await self.bus.publish_system(SystemEvent(kind="music_command", payload={"action": "stop"}))
+                            await play_system_sound("success")
+                            self._last_interaction_at = time.perf_counter()
+                            continue
+                        elif clean_text in ["pause", "pause music"]:
+                            await self.bus.publish_system(SystemEvent(kind="music_command", payload={"action": "pause"}))
+                            await play_system_sound("success")
+                            self._last_interaction_at = time.perf_counter()
+                            continue
+                        elif clean_text in ["resume", "resume music", "continue"]:
+                            await self.bus.publish_system(SystemEvent(kind="music_command", payload={"action": "resume"}))
+                            await play_system_sound("success")
+                            self._last_interaction_at = time.perf_counter()
+                            continue
+                            
+                        # 3. Simple info commands
+                        if clean_text in ["what time is it", "the time", "time"]:
+                            await self.bus.publish_system(SystemEvent(kind="local_command", payload={"name": "time"}))
+                            await play_system_sound("success")
+                            self._last_interaction_at = time.perf_counter()
+                            continue
+                        elif clean_text in ["status", "how are you", "system status"]:
+                            await self.bus.publish_system(SystemEvent(kind="local_command", payload={"name": "status"}))
+                            await play_system_sound("success")
+                            self._last_interaction_at = time.perf_counter()
+                            continue
+
                         await play_system_sound("success")
                         
                         # Reset continuity window if we heard something

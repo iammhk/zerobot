@@ -1260,8 +1260,14 @@ class AgentLoop:
                             await music_tool.execute(action="stop")
                         elif action == "pause":
                             await music_tool.execute(action="pause")
-                        elif action == "resume" or action == "play":
+                        elif action == "resume":
                             await music_tool.execute(action="resume")
+                        elif action == "play":
+                            query = event.payload.get("query")
+                            if query:
+                                await music_tool.execute(action="play", query=query)
+                            else:
+                                await music_tool.execute(action="resume")
                 elif event.kind == "local_command":
                     name = event.payload.get("name")
                     import time
