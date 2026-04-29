@@ -91,6 +91,17 @@ class VoiceChannel(BaseChannel):
         if self._global_config:
             self.tts = get_tts_provider(self._global_config, channel_config=self.config)
         
+        # Try to run bluetooth connection script if it exists (Linux only)
+        if os.name != "nt":
+            script_path = Path(__file__).parent.parent.parent / "scripts" / "bt_connect.sh"
+            if script_path.exists():
+                logger.info("Running Bluetooth connection script...")
+                try:
+                    import subprocess
+                    subprocess.run(["bash", str(script_path)], capture_output=True)
+                except Exception as e:
+                    logger.warning(f"Failed to run bluetooth script: {e}")
+        
         await play_system_sound("hello")
         await self._animator.start()
         self._animator.set_state(VoiceState.LISTENING)
