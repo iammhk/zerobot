@@ -65,8 +65,19 @@ class MusicTool(Tool):
                     return "Error: 'video_id' or 'query' is required for play action."
                 
                 # Auto-search and play first result
+                if self._yt is None:
+                    if YTMusic is None:
+                        return "Error: 'ytmusicapi' is not installed."
+                    try:
+                        self._yt = YTMusic()
+                    except Exception as e:
+                        return f"Error initializing YouTube Music API: {str(e)}"
+                
                 try:
-                    search_results = self._yt_music.search(query, filter="songs")
+                    # Using the same logic as _search to ensure it's robust
+                    loop = asyncio.get_event_loop()
+                    search_results = await loop.run_in_executor(None, lambda: self._yt.search(query, filter="songs"))
+                    
                     if not search_results:
                         return f"No songs found for '{query}'"
                     video_id = search_results[0].get("videoId")
