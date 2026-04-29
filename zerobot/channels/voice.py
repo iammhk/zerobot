@@ -215,14 +215,16 @@ class VoiceChannel(BaseChannel):
                             
                             if not detected_text:
                                 continue
+
+                            logger.debug("Vosk heard: '{}'", detected_text)
                                 
-                            if detected_text == wake_word:
+                            if wake_word in detected_text:
                                 found_wake = True
                                 break
                             
                             # Check for fast-path phrases: "wake_word [action]"
                             for action in fast_path_words:
-                                if detected_text == f"{wake_word} {action}":
+                                if detected_text == f"{wake_word} {action}" or (wake_word in detected_text and action in detected_text):
                                     logger.info("Local command detected: {}", detected_text)
                                     if action in ["stop", "pause", "resume", "play"]:
                                         await self.bus.publish_system(SystemEvent(kind="music_command", payload={"action": action}))
@@ -230,10 +232,16 @@ class VoiceChannel(BaseChannel):
                                         await self.bus.publish_system(SystemEvent(kind="local_command", payload={"name": action}))
                                     
                                     await play_system_sound("success")
-                                    # After a fast-path command, we stay in monitoring mode
-                                    detected_text = "" # Reset for next loop
+                                    detected_text = ""
                                     rec.Reset()
                                     break
+                        else:
+                            # Check partial results too for faster wake word response
+                            partial = json.loads(rec.PartialResult()).get("partial", "")
+                            if partial and wake_word in partial:
+                                logger.debug("Wake word detected in partial: '{}'", partial)
+                                found_wake = True
+                                break
                         await asyncio.sleep(0.01)
 
                     stream.stop_stream()
