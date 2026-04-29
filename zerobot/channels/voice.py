@@ -270,6 +270,8 @@ class VoiceChannel(BaseChannel):
                             partial = json.loads(rec.PartialResult()).get("partial", "")
                             if partial and wake_word in partial:
                                 logger.debug("Wake word detected in partial: '{}'", partial)
+                                # Duck music IMMEDIATELY on partial detection so we can hear the command
+                                await self.bus.publish_system(SystemEvent(kind="ducking", payload={"active": True}))
                                 found_wake = True
                                 break
                         await asyncio.sleep(0.01)

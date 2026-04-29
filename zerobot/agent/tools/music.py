@@ -161,7 +161,8 @@ class MusicTool(Tool):
 
     async def set_ducking(self, active: bool) -> bool:
         """Lower the volume (ducking) when the agent is listening."""
-        volume = 20 if active else 100
+        volume = 10 if active else 100
+        logger.debug("Setting music volume to {}% (ducking={})", volume, active)
         return await self._send_ipc_command({"command": ["set_property", "volume", volume]})
 
     async def set_pause(self, pause: bool) -> bool:
