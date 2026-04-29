@@ -47,7 +47,7 @@ class VoiceChannel(BaseChannel):
         self._global_config = kwargs.get("global_config")
         self.tts = None
         self._animator = VoiceAnimator()
-        self._last_interaction_at = 0.0
+        self._last_interaction_at = -9999.0
         self._continuity_window = 3.0
 
     def _init_stt(self) -> Any:
