@@ -1,4 +1,4 @@
-# crab_backward.py - Stable Spider-like Crawl for Crab-Bot
+# crab_backward.py - Steady Crawl with CoG Compensation
 import smbus2
 import time
 
@@ -11,14 +11,7 @@ L1, R1, L2, R2 = 0, 1, 2, 3
 L3, R3, L4, R4 = 4, 5, 6, 7
 
 # --- HARD LIMITS ---
-LIMITS = {
-    0: (0, 90),   1: (90, 180),
-    2: (90, 180), 3: (0, 90),
-    4: (0, 180),  5: (0, 180),
-    6: (0, 180),  7: (0, 180)
-}
-
-# Neutral Home Position
+LIMITS = { 0: (0, 90), 1: (90, 180), 2: (90, 180), 3: (0, 90), 4: (0, 180), 5: (0, 180), 6: (0, 180), 7: (0, 180) }
 HOME = { 0: 45, 1: 135, 2: 135, 3: 45, 4: 45, 5: 135, 6: 135, 7: 45 }
 
 def set_pwm(channel, on, off):
@@ -43,45 +36,46 @@ def set_angle(channel, angle):
     off = int(pulse_us * 4096 * 50 / 1000000)
     set_pwm(channel, 0, off)
 
-def leg_step(s_ch, k_ch, dir=1):
-    # Lift
-    lift_val = 50 if k_ch in [4, 7] else -50
-    set_angle(k_ch, HOME[k_ch] + lift_val)
-    time.sleep(0.15)
+def move_body(x_offset, y_offset):
+    set_angle(0, HOME[0] - x_offset - y_offset)
+    set_angle(1, HOME[1] + x_offset - y_offset)
+    set_angle(2, HOME[2] + x_offset + y_offset)
+    set_angle(3, HOME[3] - x_offset + y_offset)
+
+def balanced_step(s_ch, k_ch, swing_dir):
+    # Shift body AWAY from the lifting leg
+    if s_ch == 0: move_body(-15, 15)  # FL
+    elif s_ch == 1: move_body(-15, -15) # FR
+    elif s_ch == 2: move_body(15, 15)  # HL
+    elif s_ch == 3: move_body(15, -15) # HR
+    time.sleep(0.2)
     
-    # Reach
-    offset = 40 * dir
-    if s_ch in [0, 3]: set_angle(s_ch, HOME[s_ch] - offset)
-    else: set_angle(s_ch, HOME[s_ch] + offset)
-    time.sleep(0.15)
-    
-    # Lower
+    # Lift & Swing (Small increments)
+    lift, swing = 25, 20 * swing_dir
+    set_angle(k_ch, HOME[k_ch] + (lift if k_ch in [4, 7] else -lift))
+    time.sleep(0.1)
+    if s_ch in [0, 3]: set_angle(s_ch, HOME[s_ch] - swing)
+    else: set_angle(s_ch, HOME[s_ch] + swing)
+    time.sleep(0.1)
     set_angle(k_ch, HOME[k_ch])
-    time.sleep(0.15)
+    time.sleep(0.1)
 
 # Initialize
 try:
     set_freq(50)
-    print("Assuming Spider Stance...")
     for ch, val in HOME.items(): set_angle(ch, val)
     time.sleep(1.0)
 
-    print("Spider Crawling Backward...")
+    print("Steady Backward Walk with CoG Balancing...")
     for _ in range(8):
-        # 1. Ripple Sequence (inverse direction)
-        leg_step(L2, L4, -1) # HL
-        leg_step(R2, R4, -1) # HR
-        leg_step(L1, L3, -1) # FL
-        leg_step(R1, R3, -1) # FR
+        balanced_step(2, 6, -1) # HL
+        balanced_step(3, 7, -1) # HR
+        balanced_step(0, 4, -1) # FL
+        balanced_step(1, 5, -1) # FR
         
-        # 2. Shift Body (Pull everything backward)
-        print("Pushing...")
-        for ch in [0, 1, 2, 3]: set_angle(ch, HOME[ch])
-        time.sleep(0.4)
+        move_body(0, 0)
+        time.sleep(0.3)
 
-    print("Resting at Home.")
-    for ch, val in HOME.items(): set_angle(ch, val)
-    time.sleep(1)
-    for ch in range(8): set_pwm(ch, 0, 0)
+    for i in range(8): set_pwm(i, 0, 0)
 except KeyboardInterrupt:
-    for ch in range(8): set_pwm(ch, 0, 0)
+    for i in range(8): set_pwm(i, 0, 0)
