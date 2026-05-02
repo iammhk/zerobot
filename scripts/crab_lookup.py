@@ -61,17 +61,24 @@ except Exception as e:
 try:
     print("Standing up...")
     for ch, val in HOME.items(): set_angle(ch, val)
-    time.sleep(1.5)
+    time.sleep(1.0)
 
-    print("Looking UP!")
-    # Front Knees push body UP
-    set_angle(4, 10)   # L3 Front Left Extend
-    set_angle(5, 170)  # R3 Front Right Extend
+    print("Tilting UP (Pitching back)...")
+    # Smooth transition for a dramatic tilt
+    for i in range(40):
+        # Front Left (4) goes 45 -> 5
+        # Front Right (5) goes 135 -> 175
+        # Hind Left (6) goes 135 -> 175
+        # Hind Right (7) goes 45 -> 5
+        
+        offset = i  # 0 to 40 degrees of offset
+        set_angle(4, 45 - offset)
+        set_angle(5, 135 + offset)
+        set_angle(6, 135 + offset)
+        set_angle(7, 45 - offset)
+        time.sleep(0.02)
     
-    # Hind Knees crouch DOWN
-    set_angle(6, 170)  # L4 Hind Left Flex
-    set_angle(7, 10)   # R4 Hind Right Flex
-    time.sleep(3) # Hold the look for 3 seconds
+    time.sleep(2.0) # Hold the tilt
 
     print("Returning to Home...")
     for ch, val in HOME.items(): set_angle(ch, val)
