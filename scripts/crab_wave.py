@@ -65,15 +65,21 @@ try:
     for ch, val in HOME.items(): set_angle(ch, val)
     time.sleep(1.5)
 
-    print("Shifting weight to the back/right for stability...")
-    # 1. Lean back and right (Hind legs and Front Right knee push down)
-    set_angle(5, 170) # R3 (Front Right) pushes down
-    set_angle(6, 10)  # L4 (Hind Left) pushes down
-    set_angle(7, 170) # R4 (Hind Right) pushes down
-    time.sleep(0.8)
+    print("Shifting body mass back and right for maximum stability...")
+    # 1. Shift shoulders to move body frame AWAY from the Front Left leg
+    set_angle(0, 90)  # L1 (Front Left) Move back
+    set_angle(1, 90)  # R1 (Front Right) Move back
+    set_angle(2, 90)  # L2 (Hind Left) Move forward
+    set_angle(3, 90)  # R2 (Hind Right) Move forward
+    
+    # 2. Brace remaining knees (crouch slightly to lower Center of Gravity)
+    set_angle(5, 120) # R3 (Front Right)
+    set_angle(6, 100) # L4 (Hind Left)
+    set_angle(7, 80)  # R4 (Hind Right)
+    time.sleep(1.0)
 
     print("Waving hello! (Lifting Front Left Leg)...")
-    # 2. Lift Knee (L3) high into the air
+    # 3. Lift Knee (L3) high into the air
     set_angle(4, 170)
     time.sleep(0.5)
     
