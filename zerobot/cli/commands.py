@@ -1489,6 +1489,79 @@ def status():
 
 
 # ============================================================================
+# Servo Commands
+# ============================================================================
+
+servo_app = typer.Typer(help="Control servos via Waveshare HAT")
+app.add_typer(servo_app, name="servo")
+
+
+def _get_servo_helper():
+    """Helper to initialize the PCA9685 and ServoHelper with error handling."""
+    if sys.platform != "linux":
+        console.print("[red]Error: Servo control is only supported on Linux (Raspberry Pi)[/red]")
+        raise typer.Exit(1)
+
+    try:
+        from zerobot.utils.pca9685 import PCA9685, ServoHelper
+
+        pca = PCA9685()
+        if pca._bus is None:
+            console.print("[red]Error: Could not initialize I2C bus. Is I2C enabled?[/red]")
+            console.print("Run: [cyan]sudo raspi-config nonint do_i2c 0[/cyan]")
+            raise typer.Exit(1)
+        return ServoHelper(pca)
+    except ImportError:
+        console.print("[red]Error: smbus2 not installed. Run: pip install smbus2[/red]")
+        raise typer.Exit(1)
+    except Exception as e:
+        console.print(f"[red]Error initializing Servo HAT: {e}[/red]")
+        raise typer.Exit(1)
+
+
+@servo_app.command("move")
+def servo_move(
+    channel: int = typer.Argument(..., help="Servo channel (0-15)", min=0, max=15),
+    angle: float = typer.Argument(..., help="Angle (0-180)", min=0, max=180),
+):
+    """Move a servo to a specific angle."""
+    helper = _get_servo_helper()
+    helper.set_angle(channel, angle)
+    console.print(f"[green]✓[/green] Moved servo {channel} to {angle}°")
+
+
+@servo_app.command("center")
+def servo_center(
+    channel: int = typer.Option(None, "--channel", "-c", help="Servo channel (0-15)"),
+    all_channels: bool = typer.Option(False, "--all", help="Center all servos"),
+):
+    """Center one or all servos (90 degrees)."""
+    helper = _get_servo_helper()
+    if all_channels:
+        for i in range(16):
+            helper.set_angle(i, 90)
+        console.print("[green]✓[/green] Centered all servos (0-15)")
+    elif channel is not None:
+        if not (0 <= channel <= 15):
+            console.print(f"[red]Error: Invalid channel {channel}. Must be 0-15.[/red]")
+            raise typer.Exit(1)
+        helper.set_angle(channel, 90)
+        console.print(f"[green]✓[/green] Centered servo {channel}")
+    else:
+        console.print("[red]Error: Specify --channel or --all[/red]")
+
+
+@servo_app.command("release")
+def servo_release(
+    channel: int = typer.Argument(..., help="Servo channel (0-15)", min=0, max=15),
+):
+    """Release a servo (stop sending pulses, saves power)."""
+    helper = _get_servo_helper()
+    helper.release(channel)
+    console.print(f"[green]✓[/green] Released servo {channel}")
+
+
+# ============================================================================
 # OAuth Login
 # ============================================================================
 

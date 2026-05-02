@@ -4,6 +4,7 @@ import os
 from pathlib import Path
 
 import httpx
+import asyncio
 from loguru import logger
 
 
@@ -173,4 +174,54 @@ class SarvamTranscriptionProvider:
 
         except Exception as e:
             logger.error("Sarvam transcription error: {}", e)
+            return ""
+
+
+class LocalWhisperProvider:
+    """
+    Voice transcription provider using local Whisper model.
+    
+    Optimized for running on local hardware (PC or Pi Zero 2 W with whisper.cpp).
+    By default, it uses the 'tiny' model which is ~75MB and fits in Pi RAM.
+    """
+
+    def __init__(
+        self,
+        model: str = "tiny",
+        device: str | None = None,
+    ):
+        self.model_name = model
+        self.device = device
+        self._model = None
+
+    def _get_model(self):
+        if self._model is None:
+            import whisper
+            import torch
+            
+            # Auto-detect device if not specified
+            if not self.device:
+                self.device = "cuda" if torch.cuda.is_available() else "cpu"
+                
+            logger.info("Loading local Whisper model: {} on {}", self.model_name, self.device)
+            self._model = whisper.load_model(self.model_name, device=self.device)
+        return self._model
+
+    async def transcribe(self, file_path: str | Path) -> str:
+        """
+        Transcribe an audio file using local Whisper.
+        """
+        path = Path(file_path)
+        if not path.exists():
+            logger.error("Audio file not found: {}", file_path)
+            return ""
+
+        try:
+            model = await asyncio.to_thread(self._get_model)
+            # Run transcription in a thread to avoid blocking the event loop
+            result = await asyncio.to_thread(model.transcribe, str(path))
+            return result.get("text", "").strip()
+
+        except Exception as e:
+            logger.error("Local Whisper transcription error: {}", e)
             return ""

@@ -14,7 +14,7 @@ from loguru import logger
 from zerobot.bus.events import InboundMessage, OutboundMessage, SystemEvent
 from zerobot.bus.queue import MessageBus
 from zerobot.channels.base import BaseChannel
-from zerobot.providers.transcription import SarvamTranscriptionProvider, OpenAITranscriptionProvider, GroqTranscriptionProvider
+from zerobot.providers.transcription import SarvamTranscriptionProvider, OpenAITranscriptionProvider, GroqTranscriptionProvider, LocalWhisperProvider
 from zerobot.providers.tts import get_tts_provider
 from zerobot.utils.audio import record_audio, play_audio, play_system_sound
 from zerobot.utils.voice_animator import VoiceAnimator, VoiceState
@@ -77,6 +77,9 @@ class VoiceChannel(BaseChannel):
             return OpenAITranscriptionProvider(api_key=key, language=lang)
         elif provider == "groq":
             return GroqTranscriptionProvider(api_key=key, language=lang)
+        elif provider == "local-whisper":
+            model_name = get_val(self.config, "whisper_model", "tiny")
+            return LocalWhisperProvider(model=model_name)
         return None
 
     async def start(self) -> None:
