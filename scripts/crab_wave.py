@@ -65,22 +65,29 @@ try:
     for ch, val in HOME.items(): set_angle(ch, val)
     time.sleep(1.5)
 
+    print("Shifting weight to the back/right for stability...")
+    # 1. Lean back and right (Hind legs and Front Right knee push down)
+    set_angle(5, 170) # R3 (Front Right) pushes down
+    set_angle(6, 10)  # L4 (Hind Left) pushes down
+    set_angle(7, 170) # R4 (Hind Right) pushes down
+    time.sleep(0.8)
+
     print("Waving hello! (Lifting Front Left Leg)...")
-    # 1. Lift Knee (L3) high into the air
-    set_angle(L3, 170)
+    # 2. Lift Knee (L3) high into the air
+    set_angle(4, 170)
     time.sleep(0.5)
     
-    # 2. Wave Shoulder (L1) back and forth
+    # 3. Wave Shoulder (L1) back and forth
     for i in range(5):
         print(f"Wave {i+1}")
-        set_angle(L1, 10)
+        set_angle(0, 10)
         time.sleep(0.2)
-        set_angle(L1, 80)
+        set_angle(0, 80)
         time.sleep(0.2)
 
     print("\nReturning to Home.")
-    set_angle(L1, HOME[L1])
-    set_angle(L3, HOME[L3])
+    for ch, val in HOME.items():
+        set_angle(ch, val)
     time.sleep(1)
     
     # Release
