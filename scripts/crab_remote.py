@@ -124,29 +124,52 @@ set_freq(50)
 move_home()
 
 try:
+    cmd_map = {
+        'w': "Forward", 's': "Backward", 'a': "Turn Left", 'd': "Turn Right",
+        'q': "Scuttle Left", 'e': "Scuttle Right", 'u': "Look Up", 'j': "Look Down",
+        'p': "Pushups", 'l': "Wave", 'h': "Home", ' ': "Stop/Release"
+    }
+    last_cmd = "Standing"
+    
     while True:
-        print_ui()
+        print_ui(last_cmd)
         char = getch().lower()
         
         if char == 'x': break
-        elif char == 'w': step_trot(1)
+        
+        last_cmd = cmd_map.get(char, f"Unknown ({char})")
+        
+        if char == 'w': step_trot(1)
         elif char == 's': step_trot(-1)
         elif char == 'a': turn_inplace(1)
         elif char == 'd': turn_inplace(-1)
-        elif char == 'h': move_home()
-        elif char == ' ': 
-            for i in range(8): set_pwm(i, 0, 0)
+        elif char == 'q':
+            # Scuttle Left
+            set_angle(4, 160); set_angle(6, 20); time.sleep(0.15)
+            set_angle(0, 5); set_angle(2, 175); time.sleep(0.15)
+            set_angle(4, HOME[4]); set_angle(6, HOME[6]); time.sleep(0.15)
+            set_angle(0, HOME[0]); set_angle(2, HOME[2]); time.sleep(0.2)
+        elif char == 'e':
+            # Scuttle Right
+            set_angle(5, 20); set_angle(7, 160); time.sleep(0.15)
+            set_angle(1, 175); set_angle(3, 5); time.sleep(0.15)
+            set_angle(5, HOME[5]); set_angle(7, HOME[7]); time.sleep(0.15)
+            set_angle(1, HOME[1]); set_angle(3, HOME[3]); time.sleep(0.2)
         elif char == 'p':
             for _ in range(3):
-                set_angle(L3, 10); set_angle(R3, 170); time.sleep(0.4)
-                set_angle(L3, 80); set_angle(R3, 100); time.sleep(0.4)
+                set_angle(4, 10); set_angle(5, 170); time.sleep(0.4)
+                set_angle(4, 80); set_angle(5, 100); time.sleep(0.4)
             move_home()
         elif char == 'l':
+            # Wave sequence
             set_angle(5, 170); set_angle(6, 10); set_angle(7, 170); time.sleep(0.5)
             set_angle(4, 170); time.sleep(0.3)
             for _ in range(4):
                 set_angle(0, 10); time.sleep(0.2); set_angle(0, 80); time.sleep(0.2)
             move_home()
+        elif char == ' ' or char == 'k':
+            last_cmd = "STOP/RELEASE"
+            for i in range(8): set_pwm(i, 0, 0)
         elif char == 'u':
             for i in range(20):
                 o = i * 2
@@ -157,8 +180,12 @@ try:
                 o = i * 2
                 set_angle(4, 45+o); set_angle(5, 135-o); time.sleep(0.02)
 
+except KeyboardInterrupt:
+    pass
 except Exception as e:
-    print(f"Error: {e}")
+    print(f"\nError: {e}")
 finally:
-    for i in range(8): set_pwm(i, 0, 0)
-    print("\nRemote Closed.")
+    # Release all 16 possible channels on the HAT for safety
+    for i in range(16):
+        set_pwm(i, 0, 0)
+    print("\nRemote Closed. All motors released.")
