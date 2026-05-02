@@ -40,9 +40,20 @@ def set_freq(freq):
     time.sleep(0.005)
     BUS.write_byte_data(ADDR, 0x00, old_mode | 0x80)
 
+# --- Global State for UI ---
+SERVO_STATE = {i: 90 for i in range(8)}
+HISTORY = ["...", "...", "..."]
+
+def update_history(cmd):
+    global HISTORY
+    HISTORY.append(cmd)
+    if len(HISTORY) > 3:
+        HISTORY.pop(0)
+
 def set_angle(channel, angle):
     min_a, max_a = LIMITS.get(channel, (0, 180))
     safe_angle = max(min_a, min(max_a, angle))
+    SERVO_STATE[channel] = int(safe_angle) # Cache for UI
     pulse_us = 500 + (safe_angle / 180.0) * 2000
     off = int(pulse_us * 4096 * 50 / 1000000)
     set_pwm(channel, 0, off)
@@ -102,23 +113,87 @@ def turn_inplace(dir=1):
         time.sleep(0.08)
     for ch in [L1, R1, L2, R2]: set_angle(ch, HOME[ch])
 
+def move_home():
+    for ch, val in HOME.items(): set_angle(ch, val)
+
+def getch():
+    """Read a single character from stdin without waiting for Enter."""
+    fd = sys.stdin.fileno()
+    old_settings = termios.tcgetattr(fd)
+    try:
+        tty.setraw(sys.stdin.fileno())
+        ch = sys.stdin.read(1)
+    finally:
+        termios.tcsetattr(fd, termios.TCSADRAIN, old_settings)
+    return ch
+
+# --- Gait Functions ---
+def step_trot(direction=1):
+    swing, lift = 35, 45
+    # Phase 1
+    set_angle(4, HOME[4] + lift)
+    set_angle(7, HOME[7] - lift)
+    time.sleep(0.1)
+    set_angle(0, HOME[0] - (swing * direction))
+    set_angle(3, HOME[3] - (swing * direction))
+    set_angle(1, HOME[1] - (swing * direction))
+    set_angle(2, HOME[2] - (swing * direction))
+    time.sleep(0.1)
+    set_angle(4, HOME[4])
+    set_angle(7, HOME[7])
+    time.sleep(0.1)
+    # Phase 2
+    set_angle(5, HOME[5] + lift)
+    set_angle(6, HOME[6] - lift)
+    time.sleep(0.1)
+    set_angle(1, HOME[1] + (swing * direction))
+    set_angle(2, HOME[2] + (swing * direction))
+    set_angle(0, HOME[0] + (swing * direction))
+    set_angle(3, HOME[3] + (swing * direction))
+    time.sleep(0.1)
+    set_angle(5, HOME[5])
+    set_angle(6, HOME[6])
+    time.sleep(0.1)
+
+def turn_inplace(dir=1):
+    for ch in [L1, R1, L2, R2]:
+        mid_k = HOME[ch+4]
+        lift = 40 if ch in [L1, R2] else -40
+        set_angle(ch+4, mid_k + lift)
+        time.sleep(0.08)
+        set_angle(ch, HOME[ch] + (30 * dir))
+        time.sleep(0.08)
+        set_angle(ch+4, mid_k)
+        time.sleep(0.08)
+    for ch in [L1, R1, L2, R2]: set_angle(ch, HOME[ch])
+
 # --- Main Interface ---
 def print_ui(last_cmd="None"):
     print("\033c", end="") # Clear terminal
-    print("==========================================")
-    print("        CRAB-BOT REMOTE CONTROL           ")
-    print("==========================================")
-    print("  [W] Forward    [S] Backward             ")
-    print("  [A] Turn Left  [D] Turn Right           ")
-    print("  [Q] Scuttle L  [E] Scuttle R            ")
-    print("  [U] Look Up    [J] Look Down            ")
-    print("  [P] Pushups    [L] Wave                 ")
-    print("  [T] Stomp      [F] Lay Flat             ")
-    print("  [H] Home       [Space/K] Stop/Release   ")
-    print("  [X] EXIT                                ")
-    print("==========================================")
-    print(f"  LAST COMMAND: {last_cmd}")
-    print("==========================================")
+    print("====================================================")
+    print("      🦀 ZEROBOT - CRAB COCKPIT v2.0 🦀           ")
+    print("====================================================")
+    print("      /\\  /\\          STATUS: Connected     ")
+    print("     (  oo  )         MODE: Remote Control  ")
+    print("     / vvvv \\                               ")
+    print("====================================================")
+    print("  [W] Forward    [S] Backward    [P] Pushups        ")
+    print("  [A] Turn L     [D] Turn R      [L] Wave           ")
+    print("  [Q] Scuttle L  [E] Scuttle R   [T] Stomp          ")
+    print("  [U] Look Up    [J] Look Down   [F] Lay Flat       ")
+    print("  [H] Home       [K/Space] Stop  [X] EXIT           ")
+    print("====================================================")
+    print("  SERVO DASHBOARD (Angles):                         ")
+    
+    # Dashboard Layout
+    s = SERVO_STATE
+    print(f"   L-Front: Sh[{s[0]:03}] Kn[{s[4]:03}] | R-Front: Sh[{s[1]:03}] Kn[{s[5]:03}]")
+    print(f"   L-Hind:  Sh[{s[2]:03}] Kn[{s[6]:03}] | R-Hind:  Sh[{s[3]:03}] Kn[{s[7]:03}]")
+    print("====================================================")
+    print("  COMMAND LOG:")
+    for h in HISTORY:
+        print(f"   > {h}")
+    print("====================================================")
 
 # Init
 set_freq(50)
@@ -139,6 +214,7 @@ try:
         if char == 'x': break
         
         last_cmd = cmd_map.get(char, f"Unknown ({char})")
+        update_history(last_cmd)
         
         if char == 'w': step_trot(1)
         elif char == 's': step_trot(-1)
