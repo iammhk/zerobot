@@ -128,6 +128,36 @@ def run_crab():
         time.sleep(0.3)
     run_stand()
 
+# --- Sesame Gaits ---
+def run_walk(dir=1):
+    # Sesame ripple gait translated
+    # Initial Step
+    set_angle(R3, 135); set_angle(L3, 45)
+    set_angle(R2, 100); set_angle(L1, 25)
+    time.sleep(0.1)
+
+    # Core Loop (1 cycle)
+    set_angle(R3, 135); set_angle(L3, 0); time.sleep(0.1)
+    set_angle(L4, 135); set_angle(L2, 90); set_angle(R4, 0); set_angle(R1, 180); time.sleep(0.1)
+    set_angle(R2, 45); set_angle(L1, 90); time.sleep(0.1)
+    set_angle(R4, 45); set_angle(L4, 180); time.sleep(0.1)
+    set_angle(R3, 180); set_angle(L3, 45); set_angle(R2, 90); set_angle(L1, 0); time.sleep(0.1)
+    set_angle(L2, 135); set_angle(R1, 90); time.sleep(0.1)
+
+def run_turn(dir=1):
+    # Simplified Sesame turn
+    for _ in range(2):
+        if dir > 0: # Left
+            set_angle(R3, 135); set_angle(L4, 135); time.sleep(0.1)
+            set_angle(R1, 180); set_angle(L2, 180); time.sleep(0.1)
+            set_angle(R3, 180); set_angle(L4, 180); time.sleep(0.1)
+            set_angle(R1, 135); set_angle(L2, 135); time.sleep(0.1)
+        else: # Right
+            set_angle(R4, 45); set_angle(L3, 45); time.sleep(0.1)
+            set_angle(R2, 0); set_angle(L1, 0); time.sleep(0.1)
+            set_angle(R4, 0); set_angle(L3, 0); time.sleep(0.1)
+            set_angle(R2, 45); set_angle(L1, 45); time.sleep(0.1)
+
 # --- Main UI ---
 HISTORY = ["Sesame Remote Booted..."]
 def print_ui():
@@ -155,6 +185,10 @@ try:
         print_ui()
         char = getch().lower()
         if char == 'x': break
+        elif char == 'w': run_walk(1); HISTORY.append("Walk Forward")
+        elif char == 's': run_walk(-1); HISTORY.append("Walk Backward")
+        elif char == 'a': run_turn(1); HISTORY.append("Turn Left")
+        elif char == 'd': run_turn(-1); HISTORY.append("Turn Right")
         elif char == '1': run_stand(); HISTORY.append("Stand")
         elif char == '2': 
             for i in range(8): set_angle(i, 90)
