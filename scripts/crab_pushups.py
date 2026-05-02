@@ -6,15 +6,28 @@ import time
 BUS = smbus2.SMBus(1)
 ADDR = 0x40
 
-# --- Channel Mapping (Knees only for push-ups) ---
-L3, R3 = 4, 5 
-L4, R4 = 6, 7 
-KNEES = [L3, R3, L4, R4]
+# --- Channel Mapping ---
+L1, R1 = 0, 1 # Shoulders (Front)
+L2, R2 = 2, 3 # Shoulders (Hind)
+L3, R3 = 4, 5 # Knees (Front)
+L4, R4 = 6, 7 # Knees (Hind)
+
+ALL_SERVOS = [0, 1, 2, 3, 4, 5, 6, 7]
 
 # --- HARD LIMITS ---
 LIMITS = {
-    L3: (0, 180), R3: (0, 180),
-    L4: (0, 180), R4: (0, 180)
+    L1: (0, 90),   R1: (90, 180),
+    L2: (90, 180), R2: (0, 90),
+    L3: (0, 180),  R3: (0, 180),
+    L4: (0, 180),  R4: (0, 180)
+}
+
+# Standing Home Position
+HOME = {
+    L1: 45, R1: 135,
+    L2: 135, R2: 45,
+    L3: 45, R3: 135,
+    L4: 135, R4: 45
 }
 
 def set_pwm(channel, on, off):
@@ -50,24 +63,36 @@ except Exception as e:
     exit(1)
 
 try:
-    print("Preparing for workout (10 reps)...")
-    for ch in KNEES: set_angle(ch, 90)
+    print("Preparing for front-leg pushups (10 reps)...")
+    # Move all to HOME first
+    for ch, val in HOME.items():
+        set_angle(ch, val)
     time.sleep(1.5)
 
     for i in range(10):
         print(f"Rep {i+1} / 10")
-        # Go Low
-        for ch in KNEES: set_angle(ch, 20)
+        # PUSH UP (L3 and R3 move to lift front body)
+        # Assuming lower angles lift the knee
+        set_angle(L3, 10)
+        set_angle(R3, 170)
         time.sleep(0.5)
-        # Go High
-        for ch in KNEES: set_angle(ch, 130)
+        
+        # PUSH DOWN (L3 and R3 return or go lower)
+        set_angle(L3, 80)
+        set_angle(R3, 100)
         time.sleep(0.5)
 
-    print("\nWorkout complete. Resting at 90°.")
-    for ch in KNEES: set_angle(ch, 90)
+    print("\nWorkout complete. Returning to Home.")
+    for ch, val in HOME.items():
+        set_angle(ch, val)
     time.sleep(1)
     
-    for ch in KNEES: set_pwm(ch, 0, 0)
+    for ch in ALL_SERVOS:
+        set_pwm(ch, 0, 0)
+
+except KeyboardInterrupt:
+    for ch in ALL_SERVOS:
+        set_pwm(ch, 0, 0)
 
 except KeyboardInterrupt:
     for ch in KNEES: set_pwm(ch, 0, 0)
