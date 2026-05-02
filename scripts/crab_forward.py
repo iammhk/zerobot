@@ -1,4 +1,4 @@
-# crab_forward.py - Optimized Forward Crawl for Crab-Bot
+# crab_forward.py - Fast Trot Gait for Crab-Bot
 import smbus2
 import time
 
@@ -7,26 +7,19 @@ BUS = smbus2.SMBus(1)
 ADDR = 0x40
 
 # --- Channel Mapping ---
-# 0:L1, 1:R1, 2:L2, 3:R2 (Shoulders)
-# 4:L3, 5:R3, 6:L4, 7:R4 (Knees)
 L1, R1, L2, R2 = 0, 1, 2, 3
 L3, R3, L4, R4 = 4, 5, 6, 7
 
 # --- HARD LIMITS ---
 LIMITS = {
-    0: (0, 90),   1: (90, 180), # L1, R1
-    2: (90, 180), 3: (0, 90),   # L2, R2
-    4: (0, 180),  5: (0, 180),  # L3, R3
-    6: (0, 180),  7: (0, 180)   # L4, R4
+    0: (0, 90),   1: (90, 180),
+    2: (90, 180), 3: (0, 90),
+    4: (0, 180),  5: (0, 180),
+    6: (0, 180),  7: (0, 180)
 }
 
 # Neutral Home Position
-HOME = {
-    0: 45, 1: 135,
-    2: 135, 3: 45,
-    4: 45, 5: 135,
-    6: 135, 7: 45
-}
+HOME = { 0: 45, 1: 135, 2: 135, 3: 45, 4: 45, 5: 135, 6: 135, 7: 45 }
 
 def set_pwm(channel, on, off):
     BUS.write_byte_data(ADDR, 0x06 + 4*channel, on & 0xFF)
@@ -50,27 +43,44 @@ def set_angle(channel, angle):
     off = int(pulse_us * 4096 * 50 / 1000000)
     set_pwm(channel, 0, off)
 
-def step_leg(s_ch, k_ch, swing_dir):
-    # 1. Lift
-    mid_k = HOME[k_ch]
-    lift_val = 40 if k_ch in [L3, R4] else -40
-    set_angle(k_ch, mid_k + lift_val)
-    time.sleep(0.1)
+def move_forward(cycles=10):
+    swing = 35
+    lift = 45
     
-    # 2. Swing Shoulder Forward
-    mid_s = HOME[s_ch]
-    # Swing_dir: 1 for forward, -1 for backward
-    # L1, R2: lower is forward. R1, L2: higher is forward.
-    offset = 30
-    if s_ch in [L1, R2]:
-        set_angle(s_ch, mid_s - (offset * swing_dir))
-    else:
-        set_angle(s_ch, mid_s + (offset * swing_dir))
-    time.sleep(0.1)
-    
-    # 3. Lower
-    set_angle(k_ch, mid_k)
-    time.sleep(0.1)
+    for _ in range(cycles):
+        # --- PHASE 1: Move FL and HR ---
+        # Lift
+        set_angle(4, HOME[4] + lift)
+        set_angle(7, HOME[7] - lift)
+        time.sleep(0.12)
+        # Swing Forward
+        set_angle(0, HOME[0] - swing)
+        set_angle(3, HOME[3] - swing)
+        # Push back legs
+        set_angle(1, HOME[1] - swing)
+        set_angle(2, HOME[2] - swing)
+        time.sleep(0.12)
+        # Lower
+        set_angle(4, HOME[4])
+        set_angle(7, HOME[7])
+        time.sleep(0.12)
+
+        # --- PHASE 2: Move FR and HL ---
+        # Lift
+        set_angle(5, HOME[5] + lift)
+        set_angle(6, HOME[6] - lift)
+        time.sleep(0.12)
+        # Swing Forward
+        set_angle(1, HOME[1] + swing)
+        set_angle(2, HOME[2] + swing)
+        # Push back legs
+        set_angle(0, HOME[0] + swing)
+        set_angle(3, HOME[3] + swing)
+        time.sleep(0.12)
+        # Lower
+        set_angle(5, HOME[5])
+        set_angle(6, HOME[6])
+        time.sleep(0.12)
 
 # Initialize
 try:
@@ -78,33 +88,17 @@ try:
     BUS.write_byte_data(ADDR, 0x00, 0x01)
     time.sleep(0.005)
     set_freq(50)
-except Exception as e:
-    print(f"Error: {e}")
-    exit(1)
-
-try:
+    
     print("Moving to Home...")
     for ch, val in HOME.items(): set_angle(ch, val)
     time.sleep(1.5)
 
-    print("Walking Forward...")
-    for _ in range(10): # 10 full cycles
-        # Sequence: FL -> HR -> FR -> HL
-        step_leg(L1, L3, 1) # Corrected L4 to L3
-        step_leg(R2, R4, 1)
-        step_leg(R1, R3, 1)
-        step_leg(L2, L4, 1)
-        
-        # PUSH Body Forward
-        print("Pushing...")
-        for ch in [L1, R1, L2, R2]:
-            set_angle(ch, HOME[ch])
-        time.sleep(0.3)
+    print("Trot Walk Forward...")
+    move_forward(10)
 
     print("Resting at Home.")
     for ch, val in HOME.items(): set_angle(ch, val)
     time.sleep(1)
     for ch in range(8): set_pwm(ch, 0, 0)
-
 except KeyboardInterrupt:
     for ch in range(8): set_pwm(ch, 0, 0)

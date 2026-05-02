@@ -1,4 +1,4 @@
-# crab_backward.py - Reverse Crawl for Crab-Bot
+# crab_backward.py - Fast Trot Gait for Crab-Bot
 import smbus2
 import time
 
@@ -43,18 +43,44 @@ def set_angle(channel, angle):
     off = int(pulse_us * 4096 * 50 / 1000000)
     set_pwm(channel, 0, off)
 
-def step_leg(s_ch, k_ch, swing_dir):
-    mid_k = HOME[k_ch]
-    lift_val = 40 if k_ch in [4, 7] else -40
-    set_angle(k_ch, mid_k + lift_val)
-    time.sleep(0.12)
-    mid_s = HOME[s_ch]
-    offset = 30
-    if s_ch in [0, 3]: set_angle(s_ch, mid_s - (offset * swing_dir))
-    else: set_angle(s_ch, mid_s + (offset * swing_dir))
-    time.sleep(0.12)
-    set_angle(k_ch, mid_k)
-    time.sleep(0.12)
+def move_backward(cycles=10):
+    swing = 35
+    lift = 45
+    
+    for _ in range(cycles):
+        # --- PHASE 1: Move FL and HR ---
+        # Lift
+        set_angle(4, HOME[4] + lift)
+        set_angle(7, HOME[7] - lift)
+        time.sleep(0.12)
+        # Swing Backward
+        set_angle(0, HOME[0] + swing)
+        set_angle(3, HOME[3] + swing)
+        # Push forward legs
+        set_angle(1, HOME[1] + swing)
+        set_angle(2, HOME[2] + swing)
+        time.sleep(0.12)
+        # Lower
+        set_angle(4, HOME[4])
+        set_angle(7, HOME[7])
+        time.sleep(0.12)
+
+        # --- PHASE 2: Move FR and HL ---
+        # Lift
+        set_angle(5, HOME[5] + lift)
+        set_angle(6, HOME[6] - lift)
+        time.sleep(0.12)
+        # Swing Backward
+        set_angle(1, HOME[1] - swing)
+        set_angle(2, HOME[2] - swing)
+        # Push forward legs
+        set_angle(0, HOME[0] - swing)
+        set_angle(3, HOME[3] - swing)
+        time.sleep(0.12)
+        # Lower
+        set_angle(5, HOME[5])
+        set_angle(6, HOME[6])
+        time.sleep(0.12)
 
 # Initialize
 try:
@@ -62,26 +88,13 @@ try:
     BUS.write_byte_data(ADDR, 0x00, 0x01)
     time.sleep(0.005)
     set_freq(50)
-except Exception as e:
-    print(f"Error: {e}")
-    exit(1)
-
-try:
+    
     print("Moving to Home...")
     for ch, val in HOME.items(): set_angle(ch, val)
     time.sleep(1.5)
 
-    print("Walking Backward...")
-    for _ in range(8):
-        # Sequence: HL -> FR -> HR -> FL (Moving backward)
-        step_leg(L2, L4, -1)
-        step_leg(R1, R3, -1)
-        step_leg(R2, R4, -1)
-        step_leg(L1, L3, -1)
-        
-        print("Pushing...")
-        for ch in [0, 1, 2, 3]: set_angle(ch, HOME[ch])
-        time.sleep(0.4)
+    print("Trot Walk Backward...")
+    move_backward(10)
 
     print("Resting at Home.")
     for ch, val in HOME.items(): set_angle(ch, val)
