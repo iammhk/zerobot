@@ -91,16 +91,13 @@ try:
         set_angle(ch, angle)
     time.sleep(2)
 
-    print("Starting Creep Gait (Forward)... Ctrl+C to stop.")
-    while True:
+    # Run for exactly 6 cycles
+    for cycle in range(6):
+        print(f"--- Cycle {cycle + 1} / 6 ---")
         # Step sequence: Front Left -> Hind Right -> Front Right -> Hind Left
-        print("Step: FL")
         leg_step(L1, L3)
-        print("Step: HR")
         leg_step(R2, R4)
-        print("Step: FR")
         leg_step(R1, R3)
-        print("Step: HL")
         leg_step(L2, L4)
         
         # Shift body forward (Reset all shoulders while feet are down)
@@ -108,6 +105,15 @@ try:
         for ch in [L1, R1, L2, R2]:
             set_angle(ch, HOME[ch])
         time.sleep(0.4)
+
+    print("\nWalk complete. Returning to resting position (0 degrees)...")
+    for ch in range(8):
+        set_angle(ch, 0)  # Clipped by safety limits
+    time.sleep(1)
+    
+    print("Releasing all servos.")
+    for i in range(8):
+        set_pwm(i, 0, 0)
 
 except KeyboardInterrupt:
     print("\nStopping... Releasing servos.")
