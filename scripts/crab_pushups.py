@@ -1,4 +1,4 @@
-# crab_pushups.py - Dedicated workout for the Crab-Bot
+# crab_pushups.py - Front-Leg Only Pushups
 import smbus2
 import time
 
@@ -6,28 +6,27 @@ import time
 BUS = smbus2.SMBus(1)
 ADDR = 0x40
 
-# --- Channel Mapping ---
-L1, R1 = 0, 1 # Shoulders (Front)
-L2, R2 = 2, 3 # Shoulders (Hind)
-L3, R3 = 4, 5 # Knees (Front)
-L4, R4 = 6, 7 # Knees (Hind)
+# --- HARD CHANNEL MAPPING ---
+# Shoulders: 0=L1, 1=R1, 2=L2, 3=R2
+# Knees:     4=L3 (Front Left), 5=R3 (Front Right)
+#            6=L4 (Hind Left), 7=R4 (Hind Right)
 
-ALL_SERVOS = [0, 1, 2, 3, 4, 5, 6, 7]
+ALL_CHANNELS = [0, 1, 2, 3, 4, 5, 6, 7]
 
 # --- HARD LIMITS ---
 LIMITS = {
-    L1: (0, 90),   R1: (90, 180),
-    L2: (90, 180), R2: (0, 90),
-    L3: (0, 180),  R3: (0, 180),
-    L4: (0, 180),  R4: (0, 180)
+    0: (0, 90),   1: (90, 180), # L1, R1
+    2: (90, 180), 3: (0, 90),   # L2, R2
+    4: (0, 180),  5: (0, 180),  # L3, R3 (Front Knees)
+    6: (0, 180),  7: (0, 180)   # L4, R4 (Hind Knees)
 }
 
 # Standing Home Position
 HOME = {
-    L1: 45, R1: 135,
-    L2: 135, R2: 45,
-    L3: 45, R3: 135,
-    L4: 135, R4: 45
+    0: 45, 1: 135,
+    2: 135, 3: 45,
+    4: 45, 5: 135,
+    6: 135, 7: 45
 }
 
 def set_pwm(channel, on, off):
@@ -63,23 +62,23 @@ except Exception as e:
     exit(1)
 
 try:
-    print("Preparing for front-leg pushups (10 reps)...")
-    # Move all to HOME first
+    print("Moving all legs to HOME (Standing)...")
     for ch, val in HOME.items():
         set_angle(ch, val)
     time.sleep(1.5)
 
+    print("Starting Front-Leg Pushups (Channels 4 & 5)...")
     for i in range(10):
         print(f"Rep {i+1} / 10")
-        # PUSH UP (L3 and R3 move to lift front body)
-        # Assuming lower angles lift the knee
-        set_angle(L3, 10)
-        set_angle(R3, 170)
+        
+        # PUSH UP (Lift body using Front Knees)
+        set_angle(4, 10)  # Front Left Knee
+        set_angle(5, 170) # Front Right Knee
         time.sleep(0.5)
         
-        # PUSH DOWN (L3 and R3 return or go lower)
-        set_angle(L3, 80)
-        set_angle(R3, 100)
+        # PUSH DOWN
+        set_angle(4, 80)  # Return towards home
+        set_angle(5, 100) # Return towards home
         time.sleep(0.5)
 
     print("\nWorkout complete. Returning to Home.")
@@ -87,12 +86,10 @@ try:
         set_angle(ch, val)
     time.sleep(1)
     
-    for ch in ALL_SERVOS:
+    # Release all
+    for ch in ALL_CHANNELS:
         set_pwm(ch, 0, 0)
 
 except KeyboardInterrupt:
-    for ch in ALL_SERVOS:
+    for ch in ALL_CHANNELS:
         set_pwm(ch, 0, 0)
-
-except KeyboardInterrupt:
-    for ch in KNEES: set_pwm(ch, 0, 0)
