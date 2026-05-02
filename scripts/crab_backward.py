@@ -1,4 +1,4 @@
-# crab_backward.py - Steady Crawl with CoG Compensation
+# crab_backward.py - High-Impact Power Stomp Gait
 import smbus2
 import time
 
@@ -36,45 +36,42 @@ def set_angle(channel, angle):
     off = int(pulse_us * 4096 * 50 / 1000000)
     set_pwm(channel, 0, off)
 
-def move_body(x_offset, y_offset):
-    set_angle(0, HOME[0] - x_offset - y_offset)
-    set_angle(1, HOME[1] + x_offset - y_offset)
-    set_angle(2, HOME[2] + x_offset + y_offset)
-    set_angle(3, HOME[3] - x_offset + y_offset)
-
-def balanced_step(s_ch, k_ch, swing_dir):
-    # Shift body AWAY from the lifting leg
-    if s_ch == 0: move_body(-15, 15)  # FL
-    elif s_ch == 1: move_body(-15, -15) # FR
-    elif s_ch == 2: move_body(15, 15)  # HL
-    elif s_ch == 3: move_body(15, -15) # HR
-    time.sleep(0.2)
-    
-    # Lift & Swing (Small increments)
-    lift, swing = 25, 20 * swing_dir
-    set_angle(k_ch, HOME[k_ch] + (lift if k_ch in [4, 7] else -lift))
-    time.sleep(0.1)
-    if s_ch in [0, 3]: set_angle(s_ch, HOME[s_ch] - swing)
-    else: set_angle(s_ch, HOME[s_ch] + swing)
-    time.sleep(0.1)
-    set_angle(k_ch, HOME[k_ch])
-    time.sleep(0.1)
-
 # Initialize
 try:
     set_freq(50)
     for ch, val in HOME.items(): set_angle(ch, val)
     time.sleep(1.0)
 
-    print("Steady Backward Walk with CoG Balancing...")
-    for _ in range(8):
-        balanced_step(2, 6, -1) # HL
-        balanced_step(3, 7, -1) # HR
-        balanced_step(0, 4, -1) # FL
-        balanced_step(1, 5, -1) # FR
+    print("Executing Power Stomp Backward...")
+    for _ in range(10):
+        # 1. LIFT HIND
+        print("Lifting Hind...")
+        set_angle(6, 20)  # L4 lift
+        set_angle(7, 160) # R4 lift
+        time.sleep(0.15)
         
-        move_body(0, 0)
-        time.sleep(0.3)
+        # 2. REACH HIND
+        set_angle(2, 175) # L2 backward
+        set_angle(3, 5)   # R2 backward
+        time.sleep(0.15)
+        
+        # 3. SLAM HIND (Impact!)
+        print("SLAM!")
+        set_angle(6, 170) # L4 stomp
+        set_angle(7, 10)  # R4 stomp
+        time.sleep(0.1)
+        
+        # 4. LIFT & MOVE FRONT
+        print("Pushing...")
+        set_angle(4, 160) # L3 lift
+        set_angle(5, 20)  # R3 lift
+        time.sleep(0.1)
+        # Reset all shoulders to pull body backward
+        for ch in [0, 1, 2, 3]: set_angle(ch, HOME[ch])
+        time.sleep(0.15)
+        set_angle(4, HOME[4])
+        set_angle(5, HOME[5])
+        time.sleep(0.15)
 
     for i in range(8): set_pwm(i, 0, 0)
 except KeyboardInterrupt:
