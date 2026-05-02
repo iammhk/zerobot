@@ -158,6 +158,49 @@ def run_turn(dir=1):
             set_angle(R4, 0); set_angle(L3, 0); time.sleep(0.1)
             set_angle(R2, 45); set_angle(L1, 45); time.sleep(0.1)
 
+def run_swim():
+    for _ in range(4):
+        set_angle(R1, 135); set_angle(R2, 45); set_angle(L1, 45); set_angle(L2, 135); time.sleep(0.4)
+        set_angle(R1, 90); set_angle(R2, 90); set_angle(L1, 90); set_angle(L2, 90); time.sleep(0.4)
+    run_stand()
+
+def run_point():
+    set_angle(L2, 180); set_angle(R1, 135); set_angle(R2, 45); set_angle(L4, 180)
+    set_angle(L1, 0); set_angle(L3, 180); set_angle(R4, 0); set_angle(R3, 180)
+    time.sleep(2.0)
+    run_stand()
+
+def run_worm():
+    set_angle(R1, 180); set_angle(R2, 0); set_angle(L1, 0); set_angle(L2, 180)
+    set_angle(R4, 90); set_angle(R3, 90); set_angle(L3, 90); set_angle(L4, 90)
+    time.sleep(0.2)
+    for _ in range(5):
+        set_angle(R3, 45); set_angle(L3, 135); set_angle(R4, 45); set_angle(L4, 135); time.sleep(0.3)
+        set_angle(R3, 135); set_angle(L3, 45); set_angle(R4, 135); set_angle(L4, 45); time.sleep(0.3)
+    run_stand()
+
+def run_shake():
+    run_stand()
+    time.sleep(0.2)
+    set_angle(R1, 135); set_angle(L1, 45); set_angle(L3, 90); set_angle(R3, 90)
+    set_angle(L2, 90); set_angle(R2, 90)
+    time.sleep(0.2)
+    for _ in range(5):
+        set_angle(R4, 45); set_angle(L4, 135); time.sleep(0.15)
+        set_angle(R4, 0); set_angle(L4, 180); time.sleep(0.15)
+    run_stand()
+
+def run_freaky():
+    run_stand()
+    time.sleep(0.2)
+    set_angle(L1, 0); set_angle(R1, 180); set_angle(L2, 180); set_angle(R2, 0)
+    set_angle(R4, 90); set_angle(R3, 0)
+    time.sleep(0.2)
+    for _ in range(6):
+        set_angle(R3, 25); time.sleep(0.2)
+        set_angle(R3, 0); time.sleep(0.2)
+    run_stand()
+
 # --- Main UI ---
 HISTORY = ["Sesame Remote Booted..."]
 def print_ui():
@@ -196,10 +239,15 @@ try:
         elif char == '3': run_bow(); HISTORY.append("Bow")
         elif char == '4': run_wave(); HISTORY.append("Wave")
         elif char == '5': run_dance(); HISTORY.append("Dance")
+        elif char == '6': run_swim(); HISTORY.append("Swim")
+        elif char == '7': run_point(); HISTORY.append("Point")
         elif char == '8': run_pushup(); HISTORY.append("Pushup")
         elif char == '9': run_cute(); HISTORY.append("Cute")
         elif char == '0': run_shrug(); HISTORY.append("Shrug")
         elif char == 'c': run_crab(); HISTORY.append("Crab Display")
+        elif char == 'v': run_worm(); HISTORY.append("Worm")
+        elif char == 'k': run_shake(); HISTORY.append("Shake")
+        elif char == 'z': run_freaky(); HISTORY.append("Freaky")
         elif char == ' ': 
             for i in range(16): set_pwm(i, 0, 0)
             HISTORY.append("RELEASE")
