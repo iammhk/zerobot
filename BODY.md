@@ -40,7 +40,17 @@ Each leg has two segments:
 - **Channel 6**: L4 (Hind Left Joint/Knee)
 - **Channel 7**: R4 (Hind Right Joint/Knee)
 
+## Hard Limits (Safe Operating Ranges)
+- **L1 (Ch 0)**: 0° to 90°
+- **R1 (Ch 1)**: 90° to 180°
+- **L2 (Ch 2)**: 90° to 180°
+- **R2 (Ch 3)**: 0° to 90°
+- **L3 (Ch 4)**: 0° to 90°
+- **R3 (Ch 5)**: 90° to 180°
+- **L4 (Ch 6)**: 90° to 180°
+- **R4 (Ch 7)**: 0° to 90°
+
 ## Safety & Constraints
-- **Range**: 0-180 degrees.
-- **Default Position**: 90 degrees (Center) for all joints.
+- **Hardware Limits**: You MUST stay within the Hard Limits defined above to avoid mechanical damage.
+- **Default Position**: Midpoint of the safe range for each joint.
 - **Coordination**: Leg movements often require moving both the Shoulder and Joint servos together to maintain balance or step.

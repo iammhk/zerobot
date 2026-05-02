@@ -18,8 +18,17 @@ R3 = 5 # Front Right Joint (Knee)
 L4 = 6 # Hind Left Joint (Knee)
 R4 = 7 # Hind Right Joint (Knee)
 
-ALL_SERVOS = [L1, R1, L2, R2, L3, R3, L4, R4]
-NAMES = {0: "L1", 1: "R1", 2: "L2", 3: "R2", 4: "L3", 5: "R3", 6: "L4", 7: "R4"}
+# --- HARD LIMITS (Safe Ranges) ---
+LIMITS = {
+    L1: (0, 90),
+    R1: (90, 180),
+    L2: (90, 180),
+    R2: (0, 90),
+    L3: (0, 90),
+    R3: (90, 180),
+    L4: (90, 180),
+    R4: (0, 90)
+}
 
 def set_pwm(channel, on, off):
     BUS.write_byte_data(ADDR, 0x06 + 4*channel, on & 0xFF)
@@ -37,7 +46,11 @@ def set_freq(freq):
     BUS.write_byte_data(ADDR, 0x00, old_mode | 0x80)
 
 def set_angle(channel, angle):
-    pulse_us = 500 + (angle / 180.0) * 2000
+    """Set angle with Hard Limit clipping."""
+    min_a, max_a = LIMITS.get(channel, (0, 180))
+    safe_angle = max(min_a, min(max_a, angle))
+    
+    pulse_us = 500 + (safe_angle / 180.0) * 2000
     off = int(pulse_us * 4096 * 50 / 1000000)
     set_pwm(channel, 0, off)
 
@@ -52,28 +65,26 @@ except Exception as e:
     exit(1)
 
 try:
-    print("Centering all joints (90°)...")
+    print("Moving all joints to safe mid-points...")
     for ch in ALL_SERVOS:
-        set_angle(ch, 90)
+        min_a, max_a = LIMITS[ch]
+        set_angle(ch, (min_a + max_a) / 2)
     time.sleep(1)
 
-    # Test Shoulders (L1, R1, L2, R2)
-    for ch in [L1, R1, L2, R2]:
-        print(f"Testing Shoulder {NAMES[ch]} (Ch {ch})...")
-        set_angle(ch, 100)
-        time.sleep(0.5)
-        set_angle(ch, 90)
-        time.sleep(0.5)
+    # Test each joint with a small nudge within its safe range
+    for ch in ALL_SERVOS:
+        min_a, max_a = LIMITS[ch]
+        mid = (min_a + max_a) / 2
+        print(f"Testing {NAMES[ch]} (Range {min_a}-{max_a}°, Center {mid}°)...")
+        
+        set_angle(ch, mid + 10)
+        time.sleep(0.4)
+        set_angle(ch, mid - 10)
+        time.sleep(0.4)
+        set_angle(ch, mid)
+        time.sleep(0.2)
 
-    # Test Joints/Knees (L3, R3, L4, R4)
-    for ch in [L3, R3, L4, R4]:
-        print(f"Testing Knee {NAMES[ch]} (Ch {ch})...")
-        set_angle(ch, 100)
-        time.sleep(0.5)
-        set_angle(ch, 90)
-        time.sleep(0.5)
-
-    print("Test Complete.")
+    print("Safety Test Complete.")
 except KeyboardInterrupt:
     print("\nAborting... Releasing all servos.")
     for ch in ALL_SERVOS:
