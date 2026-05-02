@@ -23,8 +23,13 @@ LIMITS = {
 def get_mid(ch):
     return (LIMITS[ch][0] + LIMITS[ch][1]) / 2
 
-# Home position (Standing)
-HOME = {ch: get_mid(ch) for ch in range(8)}
+# Home position (Standing) - Restoring previous "sweet spots"
+HOME = {
+    L1: 45, R1: 135,
+    L2: 135, R2: 45,
+    L3: 45, R3: 135,
+    L4: 135, R4: 45
+}
 
 def set_pwm(channel, on, off):
     BUS.write_byte_data(ADDR, 0x06 + 4*channel, on & 0xFF)
