@@ -18,6 +18,9 @@ R3 = 5 # Front Right Joint (Knee)
 L4 = 6 # Hind Left Joint (Knee)
 R4 = 7 # Hind Right Joint (Knee)
 
+ALL_SERVOS = [L1, R1, L2, R2, L3, R3, L4, R4]
+NAMES = {L1: "L1", R1: "R1", L2: "L2", R2: "R2", L3: "L3", R3: "R3", L4: "L4", R4: "R4"}
+
 # --- HARD LIMITS (Safe Ranges) ---
 LIMITS = {
     L1: (0, 90),
