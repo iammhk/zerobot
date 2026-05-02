@@ -106,9 +106,9 @@ try:
             set_angle(ch, HOME[ch])
         time.sleep(0.4)
 
-    print("\nWalk complete. Returning to resting position (0 degrees)...")
+    print("\nWalk complete. Returning to resting position (90 degrees)...")
     for ch in range(8):
-        set_angle(ch, 0)  # Clipped by safety limits
+        set_angle(ch, 90)  # Clipped by safety limits (will stay at 90)
     time.sleep(1)
     
     print("Releasing all servos.")
