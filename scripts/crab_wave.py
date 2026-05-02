@@ -66,8 +66,8 @@ try:
     time.sleep(1.5)
 
     print("Waving hello! (Lifting Front Left Leg)...")
-    # 1. Lift Knee (L3) high
-    set_angle(L3, 10)
+    # 1. Lift Knee (L3) high into the air
+    set_angle(L3, 170)
     time.sleep(0.5)
     
     # 2. Wave Shoulder (L1) back and forth
