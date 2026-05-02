@@ -113,7 +113,8 @@ def print_ui(last_cmd="None"):
     print("  [Q] Scuttle L  [E] Scuttle R            ")
     print("  [U] Look Up    [J] Look Down            ")
     print("  [P] Pushups    [L] Wave                 ")
-    print("  [H] Home       [Space] Stop/Release     ")
+    print("  [T] Stomp      [F] Lay Flat             ")
+    print("  [H] Home       [Space/K] Stop/Release   ")
     print("  [X] EXIT                                ")
     print("==========================================")
     print(f"  LAST COMMAND: {last_cmd}")
@@ -127,7 +128,7 @@ try:
     cmd_map = {
         'w': "Forward", 's': "Backward", 'a': "Turn Left", 'd': "Turn Right",
         'q': "Scuttle Left", 'e': "Scuttle Right", 'u': "Look Up", 'j': "Look Down",
-        'p': "Pushups", 'l': "Wave", 'h': "Home", ' ': "Stop/Release"
+        'p': "Pushups", 'l': "Wave", 'h': "Home", 'f': "Lay Flat", 't': "Stomp", ' ': "Stop/Release"
     }
     last_cmd = "Standing"
     
@@ -141,6 +142,20 @@ try:
         
         if char == 'w': step_trot(1)
         elif char == 's': step_trot(-1)
+        elif char == 'h': move_home()
+        elif char == 't':
+            # Stomp
+            for _ in range(3):
+                set_angle(4, 160); time.sleep(0.12); set_angle(4, 10); time.sleep(0.1); set_angle(4, 45); time.sleep(0.1)
+                set_angle(5, 20); time.sleep(0.12); set_angle(5, 170); time.sleep(0.1); set_angle(5, 135); time.sleep(0.1)
+            move_home()
+        elif char == 'f':
+            # Lay Flat
+            for i in range(30):
+                o = i * 4
+                set_angle(4, 45+o); set_angle(5, 135-o); set_angle(6, 135-o); set_angle(7, 45+o)
+                time.sleep(0.02)
+            for i in range(16): set_pwm(i, 0, 0)
         elif char == 'a': turn_inplace(1)
         elif char == 'd': turn_inplace(-1)
         elif char == 'q':
