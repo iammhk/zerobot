@@ -89,6 +89,8 @@ try:
 
     print("Safety Test Complete.")
 except KeyboardInterrupt:
-    print("\nAborting... Releasing all servos.")
+    print("\nAborting...")
+finally:
+    print("Releasing all servos.")
     for ch in ALL_SERVOS:
         set_pwm(ch, 0, 0)

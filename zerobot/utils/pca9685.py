@@ -141,3 +141,7 @@ class ServoHelper:
     def release(self, channel: int):
         """Stop sending pulses to the channel."""
         self.pca.set_pwm(channel, 0, 0)
+
+    def release_all(self):
+        """Stop sending pulses to all channels."""
+        self.pca.set_all_pwm(0, 0)
