@@ -8,9 +8,19 @@ from luma.lcd.device import st7735
 from luma.core.render import canvas
 from PIL import ImageFont, ImageDraw
 import time
+import RPi.GPIO as GPIO
 
 class ZerobotDisplay:
-    def __init__(self, width=160, height=128, rotate=1):
+    def __init__(self, width=160, height=128, rotate=1, backlight_pin=23):
+        self.backlight_pin = backlight_pin
+        
+        # Setup Backlight
+        if self.backlight_pin:
+            GPIO.setmode(GPIO.BCM)
+            GPIO.setup(self.backlight_pin, GPIO.OUT)
+            GPIO.output(self.backlight_pin, GPIO.HIGH)
+            print(f"Backlight on (GPIO {self.backlight_pin})")
+
         # Configuration for Pi Zero SPI
         # port=0, device=0 (CE0 / GPIO 8)
         # gpio_DC=24, gpio_RST=25
