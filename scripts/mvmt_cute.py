@@ -21,13 +21,19 @@ def set_angle(channel, angle):
     set_pwm(channel, 0, off)
 
 def run():
-    print("Being cute...")
-    set_angle(L2, 160); set_angle(R2, 20); set_angle(R4, 180); set_angle(L4, 0)
-    set_angle(L1, 0); set_angle(R1, 180); set_angle(L3, 180); set_angle(R3, 0)
-    for _ in range(5):
-        set_angle(R4, 180); set_angle(L4, 45); time.sleep(0.3)
-        set_angle(R4, 135); set_angle(L4, 0); time.sleep(0.3)
-    for ch, val in HOME.items(): set_angle(ch, val)
+    try:
+        print("Being cute...")
+        set_angle(L2, 160); set_angle(R2, 20); set_angle(R4, 180); set_angle(L4, 0)
+        set_angle(L1, 0); set_angle(R1, 180); set_angle(L3, 180); set_angle(R3, 0)
+        for _ in range(5):
+            set_angle(R4, 180); set_angle(L4, 45); time.sleep(0.3)
+            set_angle(R4, 135); set_angle(L4, 0); time.sleep(0.3)
+        for ch, val in HOME.items(): set_angle(ch, val)
+        time.sleep(1.0)
+    finally:
+        print("Releasing servos...")
+        for i in range(8):
+            set_pwm(i, 0, 0)
 
 if __name__ == "__main__":
     run()

@@ -21,13 +21,19 @@ def set_angle(channel, angle):
     set_pwm(channel, 0, off)
 
 def run():
-    print("Bouncing...")
-    for _ in range(5):
-        set_angle(L3, 10); set_angle(L4, 10); set_angle(R3, 170); set_angle(R4, 170)
-        time.sleep(0.3)
-        set_angle(L3, 65); set_angle(L4, 65); set_angle(R3, 115); set_angle(R4, 115)
-        time.sleep(0.3)
-    for ch, val in HOME.items(): set_angle(ch, val)
+    try:
+        print("Bouncing...")
+        for _ in range(5):
+            set_angle(L3, 10); set_angle(L4, 10); set_angle(R3, 170); set_angle(R4, 170)
+            time.sleep(0.3)
+            set_angle(L3, 65); set_angle(L4, 65); set_angle(R3, 115); set_angle(R4, 115)
+            time.sleep(0.3)
+        for ch, val in HOME.items(): set_angle(ch, val)
+        time.sleep(1.0)
+    finally:
+        print("Releasing servos...")
+        for i in range(8):
+            set_pwm(i, 0, 0)
 
 if __name__ == "__main__":
     run()
