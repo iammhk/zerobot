@@ -68,6 +68,7 @@ def run_mvmt(name, args=None):
         STATE["running_script"] = False
         STATE["status"] = "RELEASED" # Scripts release at end
         draw_static_ui()
+        expr.happy()
     else:
         HISTORY.append(f"Error: {name} not found")
 
