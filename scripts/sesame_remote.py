@@ -69,11 +69,12 @@ def draw_ui():
     print(term.home + term.clear)
     
     # Header
-    print(term.black_on_cyan(term.center(f" SESAME ROBOT - BLESSED DASHBOARD ").bold))
+    header_text = term.center(" SESAME ROBOT - BLESSED DASHBOARD ")
+    print(term.black_on_cyan(term.bold(header_text)))
     
     # Status Row
     status_clr = term.green if STATE["status"] == "ACTIVE" else term.red
-    print(f"\n Status: {status_clr(STATE['status']).bold}  |  Last: {term.bold_yellow(STATE['last_cmd'])}")
+    print(f"\n Status: {term.bold(status_clr(STATE['status']))}  |  Last: {term.bold_yellow(STATE['last_cmd'])}")
     if STATE["running_script"]:
         print(term.move_x(30) + term.blink_magenta("EXECUTING SEQUENCE..."))
     
