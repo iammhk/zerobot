@@ -1,4 +1,4 @@
-# sesame_remote.py - Advanced TUI Remote using the 'blessed' library
+# sesame_blessed.py - Advanced TUI Remote using the 'blessed' library
 import smbus2
 import time
 import sys
@@ -58,10 +58,9 @@ def run_mvmt(name, args=None):
         draw_ui()
         cmd = [sys.executable, script_path]
         if args: cmd.extend(args)
-        # We use capture_output to keep the UI clean
         subprocess.run(cmd, capture_output=True)
         STATE["running_script"] = False
-        STATE["status"] = "RELEASED" # Scripts release at end
+        STATE["status"] = "RELEASED" # Scripts usually release at end
     else:
         HISTORY.append(f"Error: {name} not found")
 
@@ -69,7 +68,7 @@ def draw_ui():
     print(term.home + term.clear)
     
     # Header
-    print(term.black_on_cyan(term.center(f" SESAME ROBOT - BLESSED DASHBOARD ").bold))
+    print(term.black_on_cyan(term.center(f" SESAME ROBOT v2.0 - BLESSED DASHBOARD ").bold))
     
     # Status Row
     status_clr = term.green if STATE["status"] == "ACTIVE" else term.red
@@ -78,12 +77,12 @@ def draw_ui():
         print(term.move_x(30) + term.blink_magenta("EXECUTING SEQUENCE..."))
     
     # Main Content Area
-    print(term.move_y(5) + term.bold("  [ GAITS ]") + term.move_x(35) + term.bold("[ SERVO TELEMETRY ]"))
-    print(term.move_y(6) + "  W: Walk Fwd" + term.move_x(37) + f"Front L: {term.cyan(str(STATE['angles'][L1]))}  R: {term.cyan(str(STATE['angles'][R1]))}")
-    print(term.move_y(7) + "  S: Walk Bwd" + term.move_x(37) + f"Hind  L: {term.cyan(str(STATE['angles'][L2]))}  R: {term.cyan(str(STATE['angles'][R2]))}")
-    print(term.move_y(8) + "  A: Turn Left" + term.move_x(35) + term.bold("[ KNEE POSITIONS ]"))
-    print(term.move_y(9) + "  D: Turn Right" + term.move_x(37) + f"Front L: {term.yellow(str(STATE['angles'][L3]))}  R: {term.yellow(str(STATE['angles'][R3]))}")
-    print(term.move_y(10) + term.move_x(37) + f"Hind  L: {term.yellow(str(STATE['angles'][L4]))}  R: {term.yellow(str(STATE['angles'][R4]))}")
+    print(term.move_y(5) + term.bold("  [ GAITS ]") + term.move_x(30) + term.bold("[ SERVO TELEMETRY ]"))
+    print(term.move_y(6) + "  W: Walk Fwd" + term.move_x(32) + f"Front L: {term.cyan(str(STATE['angles'][L1]))}  R: {term.cyan(str(STATE['angles'][R1]))}")
+    print(term.move_y(7) + "  S: Walk Bwd" + term.move_x(32) + f"Hind  L: {term.cyan(str(STATE['angles'][L2]))}  R: {term.cyan(str(STATE['angles'][R2]))}")
+    print(term.move_y(8) + "  A: Turn Left" + term.move_x(30) + term.bold("[ KNEE POSITIONS ]"))
+    print(term.move_y(9) + "  D: Turn Right" + term.move_x(32) + f"Front L: {term.yellow(str(STATE['angles'][L3]))}  R: {term.yellow(str(STATE['angles'][R3]))}")
+    print(term.move_y(10) + term.move_x(32) + f"Hind  L: {term.yellow(str(STATE['angles'][L4]))}  R: {term.yellow(str(STATE['angles'][R4]))}")
 
     # Gestures Grid
     print(term.move_y(12) + term.bold("  [ GESTURES & POSES ]"))
@@ -94,7 +93,7 @@ def draw_ui():
         ["Z: Freaky", "K: Shake", "SPACE: Release", "X: Exit"]
     ]
     for i, row in enumerate(grid):
-        line = "  " + "   ".join([f"{item:12}" for item in row])
+        line = "  " + "   ".join(row)
         print(term.move_y(13+i) + line)
 
     # Log Area
@@ -106,20 +105,19 @@ def draw_ui():
     print(term.move_y(term.height - 1) + term.center(term.dim("Use Keyboard to Control | Zerobot Project 2026")))
 
 def main():
+    # Initial setup
     if BUS:
-        # Reset PCA9685 and set freq
-        try:
-            BUS.write_byte_data(ADDR, 0x00, 0x00)
-            prescale = int(25000000.0 / 4096.0 / 50 - 1.0)
-            old_mode = BUS.read_byte_data(ADDR, 0x00)
-            BUS.write_byte_data(ADDR, 0x00, (old_mode & 0x7F) | 0x10)
-            BUS.write_byte_data(ADDR, 0xFE, prescale)
-            BUS.write_byte_data(ADDR, 0x00, old_mode)
-            time.sleep(0.005)
-            BUS.write_byte_data(ADDR, 0x00, old_mode | 0x80)
-        except: pass
+        # Reset PCA9685
+        BUS.write_byte_data(ADDR, 0x00, 0x00)
+        # Set Freq to 50Hz
+        prescale = int(25000000.0 / 4096.0 / 50 - 1.0)
+        old_mode = BUS.read_byte_data(ADDR, 0x00)
+        BUS.write_byte_data(ADDR, 0x00, (old_mode & 0x7F) | 0x10)
+        BUS.write_byte_data(ADDR, 0xFE, prescale)
+        BUS.write_byte_data(ADDR, 0x00, old_mode)
+        time.sleep(0.005)
+        BUS.write_byte_data(ADDR, 0x00, old_mode | 0x80)
     
-    # Stand up
     for ch, val in HOME.items(): set_angle(ch, val)
     
     with term.cbreak(), term.hidden_cursor():
