@@ -101,10 +101,11 @@ def draw_ui():
     # Log Area
     print(term.move_y(18) + term.bold("  [ RECENT ACTIVITY ]"))
     for i, msg in enumerate(HISTORY[-4:]):
-        print(term.move_y(19+i) + f"   {term.dim('>')} {msg}")
+        print(term.move_y(19+i) + f"   {term.dim}> {msg}")
 
     # Footer
-    print(term.move_y(term.height - 1) + term.center(term.dim("Use Keyboard to Control | Zerobot Project 2026")))
+    footer_text = "Use Keyboard to Control | Zerobot Project 2026"
+    print(term.move_y(term.height - 1) + term.center(term.dim + footer_text))
 
 def main():
     if BUS:
