@@ -162,6 +162,15 @@ class DsplyExpressions:
                     draw.text((self.width//2 + 60, self.height//2 - 40), "?", fill="white")
             time.sleep(0.5)
 
+    def surprised(self):
+        """Extra large eyes with small pupils."""
+        with self._lock:
+            with canvas(self.disp.device) as draw:
+                spacing = 50
+                # Large white irises, tiny black pupils
+                self._draw_pro_eye(draw, self.width//2 - spacing, self.height//2, 55, base_color="white")
+                self._draw_pro_eye(draw, self.width//2 + spacing, self.height//2, 55, base_color="white")
+
     def sleeping(self):
         """Flat lines with a Zzz animation."""
         with self._lock:

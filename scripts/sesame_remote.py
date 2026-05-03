@@ -65,50 +65,46 @@ def run_mvmt(name, args=None):
         subprocess.run(cmd, capture_output=True)
         STATE["running_script"] = False
         STATE["status"] = "RELEASED" # Scripts release at end
+        draw_static_ui()
     else:
         HISTORY.append(f"Error: {name} not found")
 
-def draw_ui():
+def draw_static_ui():
+    """Draws labels and frames once."""
     print(term.home + term.clear)
-    
-    # Header
     header_text = term.center(" SESAME ROBOT - BLESSED DASHBOARD ")
     print(term.black_on_cyan(term.bold(header_text)))
-    
-    # Status Row
-    status_clr = term.green if STATE["status"] == "ACTIVE" else term.red
-    print(f"\n Status: {term.bold(status_clr(STATE['status']))}  |  Last: {term.bold_yellow(STATE['last_cmd'])}")
-    if STATE["running_script"]:
-        print(term.move_x(30) + term.blink_magenta("EXECUTING SEQUENCE..."))
-    
-    # Main Content Area
     print(term.move_y(5) + term.bold("  [ GAITS ]") + term.move_x(35) + term.bold("[ SERVO TELEMETRY ]"))
-    print(term.move_y(6) + "  W: Walk Fwd" + term.move_x(37) + f"Front L: {term.cyan(str(STATE['angles'][L1]))}  R: {term.cyan(str(STATE['angles'][R1]))}")
-    print(term.move_y(7) + "  S: Walk Bwd" + term.move_x(37) + f"Hind  L: {term.cyan(str(STATE['angles'][L2]))}  R: {term.cyan(str(STATE['angles'][R2]))}")
+    print(term.move_y(6) + "  W: Walk Fwd" + term.move_x(37) + "Front L:        R:")
+    print(term.move_y(7) + "  S: Walk Bwd" + term.move_x(37) + "Hind  L:        R:")
     print(term.move_y(8) + "  A: Turn Left" + term.move_x(35) + term.bold("[ KNEE POSITIONS ]"))
-    print(term.move_y(9) + "  D: Turn Right" + term.move_x(37) + f"Front L: {term.yellow(str(STATE['angles'][L3]))}  R: {term.yellow(str(STATE['angles'][R3]))}")
-    print(term.move_y(10) + term.move_x(37) + f"Hind  L: {term.yellow(str(STATE['angles'][L4]))}  R: {term.yellow(str(STATE['angles'][R4]))}")
-
-    # Gestures Grid
+    print(term.move_y(9) + "  D: Turn Right" + term.move_x(37) + "Front L:        R:")
+    print(term.move_y(10) + term.move_x(37) + "Hind  L:        R:")
     print(term.move_y(12) + term.bold("  [ GESTURES & POSES ]"))
-    grid = [
-        ["1: Stand", "4: Wave", "7: Point", "0: Shrug"],
-        ["2: Rest",  "5: Bounce", "8: Pushup", "C: Display"],
-        ["3: Bow",   "6: Swim", "9: Cute",   "V: Worm"],
-        ["Z: Freaky", "K: Shake", "SPACE: Release", "X: Exit"]
-    ]
+    grid = [["1: Stand", "4: Wave", "7: Point", "0: Shrug"], ["2: Rest", "5: Bounce", "8: Pushup", "C: Display"], ["3: Bow", "6: Swim", "9: Cute", "V: Worm"], ["Z: Freaky", "K: Shake", "SPACE: Release", "X: Exit"]]
     for i, row in enumerate(grid):
-        line = "  " + "   ".join([f"{item:12}" for item in row])
-        print(term.move_y(13+i) + line)
-
-    # Log Area
+        print(term.move_y(13+i) + "  " + "   ".join([f"{item:12}" for item in row]))
     print(term.move_y(18) + term.bold("  [ RECENT ACTIVITY ]"))
-    for i, msg in enumerate(HISTORY[-4:]):
-        print(term.move_y(19+i) + f"   {term.dim}> {msg}")
+    print(term.move_y(term.height - 1) + term.center(term.dim + "Use Keyboard to Control | Zerobot Project 2026"))
 
-    # Footer
-    footer_text = "Use Keyboard to Control | Zerobot Project 2026"
-    print(term.move_y(term.height - 1) + term.center(term.dim + footer_text))
+def draw_dynamic_ui():
+    """Updates only the values on the screen."""
+    status_clr = term.green if STATE["status"] == "ACTIVE" else term.red
+    with term.location(0, 3):
+        print(term.clear_eol + f" Status: {term.bold(status_clr(STATE['status']))}  |  Last: {term.bold_yellow(STATE['last_cmd'])}")
+    if STATE["running_script"]:
+        with term.location(30, 3): print(term.blink_magenta("EXECUTING..."))
+    # Servo Angles
+    with term.location(46, 6): print(term.cyan(f"{STATE['angles'][L1]:3}"))
+    with term.location(54, 6): print(term.cyan(f"{STATE['angles'][R1]:3}"))
+    with term.location(46, 7): print(term.cyan(f"{STATE['angles'][L2]:3}"))
+    with term.location(54, 7): print(term.cyan(f"{STATE['angles'][R2]:3}"))
+    with term.location(46, 9): print(term.yellow(f"{STATE['angles'][L3]:3}"))
+    with term.location(54, 9): print(term.yellow(f"{STATE['angles'][R3]:3}"))
+    with term.location(46, 10): print(term.yellow(f"{STATE['angles'][L4]:3}"))
+    with term.location(54, 10): print(term.yellow(f"{STATE['angles'][R4]:3}"))
+    for i, msg in enumerate(HISTORY[-4:]):
+        with term.location(3, 19 + i): print(term.clear_eol + f"{term.dim}> {msg}")
 
 def main():
     if BUS:
@@ -129,8 +125,9 @@ def main():
     for ch, val in HOME.items(): set_angle(ch, val)
     
     with term.cbreak(), term.hidden_cursor():
+        draw_static_ui()
         while True:
-            draw_ui()
+            draw_dynamic_ui()
             key = term.inkey(timeout=0.1)
             
             if not key: continue
