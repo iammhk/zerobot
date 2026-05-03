@@ -162,6 +162,15 @@ class DsplyExpressions:
                     draw.text((self.width//2 + 60, self.height//2 - 40), "?", fill="white")
             time.sleep(0.5)
 
+    def sleeping(self):
+        """Flat lines with a Zzz animation."""
+        with self._lock:
+            with canvas(self.disp.device) as draw:
+                spacing = 45
+                self._draw_pro_eye(draw, self.width//2 - spacing, self.height//2, 45, base_color="#4169E1", shape="flat")
+                self._draw_pro_eye(draw, self.width//2 + spacing, self.height//2, 45, base_color="#4169E1", shape="flat")
+                draw.text((self.width - 35, 20), "Zzz...", fill="white")
+
     def love(self):
         with self._lock:
             with canvas(self.disp.device) as draw:
