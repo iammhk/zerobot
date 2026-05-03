@@ -9,6 +9,9 @@ from blessed import Terminal
 # Add scripts directory to path for imports
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), ".")))
 
+from dsply_xprsn import DsplyExpressions
+expr = DsplyExpressions() # Initialize LCD
+
 # I2C Setup
 try:
     BUS = smbus2.SMBus(1)
@@ -121,8 +124,9 @@ def main():
             BUS.write_byte_data(ADDR, 0x00, old_mode | 0x80)
         except: pass
     
-    # Stand up
+    # Stand up and show happy face
     for ch, val in HOME.items(): set_angle(ch, val)
+    expr.happy()
     
     with term.cbreak(), term.hidden_cursor():
         while True:
@@ -145,16 +149,17 @@ def main():
             elif char == '6': STATE["status"]="ACTIVE"; STATE["last_cmd"]="SWIM"; run_mvmt("swim"); HISTORY.append("Swimming")
             elif char == '7': STATE["status"]="ACTIVE"; STATE["last_cmd"]="POINT"; run_mvmt("point"); HISTORY.append("Pointing")
             elif char == '8': STATE["status"]="ACTIVE"; STATE["last_cmd"]="PUSHUP"; run_mvmt("pushups"); HISTORY.append("Pushups")
-            elif char == '9': STATE["status"]="ACTIVE"; STATE["last_cmd"]="CUTE"; run_mvmt("cute"); HISTORY.append("Cute Mode")
+            elif char == '9': STATE["status"]="ACTIVE"; STATE["last_cmd"]="CUTE"; run_mvmt("cute"); HISTORY.append("Cute Mode"); expr.surprised()
             elif char == '0': STATE["status"]="ACTIVE"; STATE["last_cmd"]="SHRUG"; run_mvmt("shrug"); HISTORY.append("Shrugging")
             elif char == 'c': STATE["status"]="ACTIVE"; STATE["last_cmd"]="CRAB"; run_mvmt("crab_display"); HISTORY.append("Crab Display")
             elif char == 'v': STATE["status"]="ACTIVE"; STATE["last_cmd"]="WORM"; run_mvmt("worm"); HISTORY.append("Worming")
             elif char == 'k': STATE["status"]="ACTIVE"; STATE["last_cmd"]="SHAKE"; run_mvmt("shake"); HISTORY.append("Shaking")
-            elif char == 'z': STATE["status"]="ACTIVE"; STATE["last_cmd"]="FREAKY"; run_mvmt("freaky"); HISTORY.append("Freaky Mode")
+            elif char == 'z': STATE["status"]="ACTIVE"; STATE["last_cmd"]="FREAKY"; run_mvmt("freaky"); HISTORY.append("Freaky Mode"); expr.angry()
             elif char == ' ': 
                 STATE["status"]="RELEASED"; STATE["last_cmd"]="RELEASE";
                 for i in range(16): set_pwm(i, 0, 0)
                 HISTORY.append("Motors Released")
+                expr.sleeping()
 
     # Final Release
     for i in range(16): set_pwm(i, 0, 0)
