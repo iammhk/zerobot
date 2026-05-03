@@ -7,7 +7,7 @@ import time
 from typing import Any, Dict
 from pathlib import Path
 
-from . import sys_bench, llm_bench, tool_bench, task_bench
+from . import sys_bench, llm_bench, tool_bench, task_bench, servo_bench
 
 class BenchmarkSuite:
     """The main benchmarking suite."""
@@ -24,6 +24,11 @@ class BenchmarkSuite:
         # 1. System Info
         print("Measuring system resources...")
         self.results["system"] = self.sys_bench.run()
+        
+        # 1.5. Servo Performance
+        print("Benchmarking servo movement sequences...")
+        sb = servo_bench.ServoBenchmark()
+        self.results["servos"] = await sb.run()
         
         # 2. LLM Performance (if bot is provided)
         if self.bot:
@@ -136,6 +141,22 @@ class BenchmarkSuite:
                 for r in tasks["context_stress"]:
                     ttft = f"{r.get('ttft', 0):.2f}s" if r.get("ttft") else "[dim]N/A[/dim]"
                     table.add_row(f"Stress Round {r.get('round')}", f"{r.get('total_latency', 0):.2f}s", f"TTFT: {ttft}")
+            
+            console.print(table)
+
+        # 5. Servo Performance
+        servos = res.get("servos", {})
+        if servos:
+            table = Table(title="Servo Gait & Gesture Latencies", box=box.SIMPLE, header_style="bold blue")
+            table.add_column("Sequence", style="dim")
+            table.add_column("Latency", style="bold yellow")
+            table.add_column("Hardware")
+
+            hw = "[green]Detected[/green]" if servos.get("hardware_available") else "[red]Not Found[/red]"
+            
+            for key in ["forward_gait", "wave_gesture"]:
+                data = servos.get(key, {})
+                table.add_row(key.replace("_", " ").title(), f"{data.get('latency_sec', 0):.4f}s", hw)
             
             console.print(table)
 
