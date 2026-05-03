@@ -63,6 +63,8 @@ dependencies = [
     "ytmusicapi>=1.5.0,<2.0.0",
     "vosk>=0.3.45",
     "pyaudio>=0.2.14",
+    "blessed>=1.20.0",
+    "smbus2>=0.4.3",
 ]
 
 [project.optional-dependencies]
