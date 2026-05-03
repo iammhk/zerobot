@@ -1,13 +1,13 @@
 """
-scripts/dsply_xprsn.py - Expression library for Zerobot LCD
-Provides various eye animations and status displays for the 1.8" TFT.
-Can be called from sesame_remote.py or main zerobot logic.
+scripts/dsply_xprsn.py - High-Quality "Premium" Expression Library for Zerobot
+Features layered eyes, pupils, highlights, and complex animations.
 """
 
 import sys
 import os
 import time
 import threading
+import random
 
 # Add parent directory to path to import zerobot
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
@@ -22,111 +22,125 @@ class DsplyExpressions:
         self.height = self.disp.height
         self._lock = threading.Lock()
 
-    def _draw_eye(self, draw, x, y, size, color="cyan", shape="circle", lid_pos=0):
-        """Helper to draw a single eye with optional eyelid masking."""
-        if shape == "circle":
-            draw.ellipse((x - size//2, y - size//2, x + size//2, y + size//2), fill=color)
-        elif shape == "rect":
-            draw.rectangle((x - size//2, y - size//4, x + size//2, y + size//4), fill=color)
+    def _draw_pro_eye(self, draw, x, y, size, base_color="cyan", pupil_color="black", lid_pos=0, looking="center"):
+        """Draws a premium eye with highlights and pupils."""
+        # 1. Base Eye (The 'iris')
+        draw.ellipse((x - size//2, y - size//2, x + size//2, y + size//2), fill=base_color, outline="white")
         
-        # Eyelid masking (lid_pos 0.0 to 1.0)
-        if lid_pos > 0:
-            mask_height = int(size * lid_pos)
-            draw.rectangle((x - size//2 - 2, y - size//2 - 2, 
-                            x + size//2 + 2, y - size//2 + mask_height), fill="black")
+        # 2. Pupil Position
+        px, py = x, y
+        if looking == "left": px -= size//4
+        elif looking == "right": px += size//4
+        elif looking == "up": py -= size//4
+        elif looking == "down": py += size//4
+        
+        # 3. Draw Pupil
+        draw.ellipse((px - size//4, py - size//4, px + size//4, py + size//4), fill=pupil_color)
+        
+        # 4. Highlight (Reflection)
+        draw.ellipse((x - size//3, y - size//3, x - size//6, y - size//6), fill="white")
 
-    def happy(self):
+        # 5. Eyelid (Masking)
+        if lid_pos > 0:
+            mask_h = int(size * lid_pos)
+            draw.rectangle((x - size//2 - 2, y - size//2 - 2, x + size//2 + 2, y - size//2 + mask_h), fill="black")
+
+    def happy(self, looking="center"):
         with self._lock:
             with canvas(self.disp.device) as draw:
                 spacing = 45
-                self._draw_eye(draw, self.width//2 - spacing, self.height//2, 40)
-                self._draw_eye(draw, self.width//2 + spacing, self.height//2, 40)
+                self._draw_pro_eye(draw, self.width//2 - spacing, self.height//2, 45, base_color="#00FFFF", looking=looking)
+                self._draw_pro_eye(draw, self.width//2 + spacing, self.height//2, 45, base_color="#00FFFF", looking=looking)
 
     def blink(self):
-        # Quick blink animation
-        for pos in [0.2, 0.5, 0.8, 1.0, 0.5, 0.0]:
+        for pos in [0.3, 0.7, 1.0, 0.5, 0.0]:
             with self._lock:
                 with canvas(self.disp.device) as draw:
                     spacing = 45
-                    self._draw_eye(draw, self.width//2 - spacing, self.height//2, 40, lid_pos=pos)
-                    self._draw_eye(draw, self.width//2 + spacing, self.height//2, 40, lid_pos=pos)
-            time.sleep(0.05)
+                    self._draw_pro_eye(draw, self.width//2 - spacing, self.height//2, 45, lid_pos=pos)
+                    self._draw_pro_eye(draw, self.width//2 + spacing, self.height//2, 45, lid_pos=pos)
+            time.sleep(0.04)
 
     def angry(self):
         with self._lock:
             with canvas(self.disp.device) as draw:
                 spacing = 45
                 y = self.height//2
-                # Slanted eyes
-                draw.pieslice((self.width//2 - spacing - 25, y - 25, self.width//2 - spacing + 25, y + 25), 
-                              start=30, end=330, fill="red")
-                draw.pieslice((self.width//2 + spacing - 25, y - 25, self.width//2 + spacing + 25, y + 25), 
-                              start=210, end=150, fill="red")
+                # Red glowing irises
+                self._draw_pro_eye(draw, self.width//2 - spacing, y, 45, base_color="#FF0000")
+                self._draw_pro_eye(draw, self.width//2 + spacing, y, 45, base_color="#FF0000")
+                # Angry Brows (Diagonal rectangles)
+                draw.polygon([(self.width//2 - 80, y - 40), (self.width//2 - 10, y - 10), (self.width//2 - 20, y - 5), (self.width//2 - 90, y - 35)], fill="white")
+                draw.polygon([(self.width//2 + 80, y - 40), (self.width//2 + 10, y - 10), (self.width//2 + 20, y - 5), (self.width//2 + 90, y - 35)], fill="white")
 
-    def thinking(self):
-        # Eyes looking up and moving left to right
-        for offset in [-10, 0, 10, 0]:
-            with self._lock:
-                with canvas(self.disp.device) as draw:
-                    spacing = 45
-                    y = self.height//2 - 10
-                    self._draw_eye(draw, self.width//2 - spacing + offset, y, 35, color="yellow")
-                    self._draw_eye(draw, self.width//2 + spacing + offset, y, 35, color="yellow")
-            time.sleep(0.3)
-
-    def surprised(self):
-        with self._lock:
-            with canvas(self.disp.device) as draw:
-                spacing = 50
-                self._draw_eye(draw, self.width//2 - spacing, self.height//2, 55, color="white")
-                self._draw_eye(draw, self.width//2 + spacing, self.height//2, 55, color="white")
-
-    def sleeping(self):
+    def love(self):
+        """Heart shaped pink eyes."""
         with self._lock:
             with canvas(self.disp.device) as draw:
                 spacing = 45
-                draw.line((self.width//2 - spacing - 15, self.height//2, 
-                           self.width//2 - spacing + 15, self.height//2), fill="blue", width=4)
-                draw.line((self.width//2 + spacing - 15, self.height//2, 
-                           self.width//2 + spacing + 15, self.height//2), fill="blue", width=4)
-                draw.text((self.width - 30, 20), "Zzz...", fill="white")
+                for side in [-1, 1]:
+                    cx = self.width//2 + (side * spacing)
+                    cy = self.height//2
+                    # Simple heart shape
+                    draw.pieslice((cx-25, cy-25, cx, cy+10), start=180, end=0, fill="#FF69B4")
+                    draw.pieslice((cx, cy-25, cx+25, cy+10), start=180, end=0, fill="#FF69B4")
+                    draw.polygon([(cx-25, cy-5), (cx+25, cy-5), (cx, cy+25)], fill="#FF69B4")
 
-    def loading(self, text="UPDATING"):
-        # Spinning circle animation
-        for i in range(8):
+    def matrix(self):
+        """Falling green code effect."""
+        cols = self.width // 10
+        rows = [random.randint(-20, 0) for _ in range(cols)]
+        for _ in range(15):
             with self._lock:
                 with canvas(self.disp.device) as draw:
-                    draw.text((self.width//2 - 30, self.height - 30), text, fill="white")
-                    # Draw a simple spinner
-                    angle = i * 45
-                    draw.pieslice((self.width//2 - 20, self.height//2 - 30, 
-                                   self.width//2 + 20, self.height//2 + 10), 
-                                  start=angle, end=angle+90, fill="magenta")
-            time.sleep(0.1)
+                    for i, r in enumerate(rows):
+                        char = random.choice("01ABCDEF")
+                        y = r * 10
+                        draw.text((i*10, y), char, fill="#00FF00")
+                        rows[i] = (r + 1) if y < self.height else 0
+            time.sleep(0.05)
+
+    def scan(self):
+        """Red Cylon/KITT style scanner."""
+        for x in range(0, self.width - 40, 10):
+            with self._lock:
+                with canvas(self.disp.device) as draw:
+                    draw.rectangle((x, self.height//2 - 10, x + 40, self.height//2 + 10), fill="#FF0000", outline="white")
+                    # Add a tail effect
+                    draw.rectangle((x-20, self.height//2 - 5, x, self.height//2 + 5), fill="#880000")
+            time.sleep(0.05)
+        for x in range(self.width - 40, 0, -10):
+            with self._lock:
+                with canvas(self.disp.device) as draw:
+                    draw.rectangle((x, self.height//2 - 10, x + 40, self.height//2 + 10), fill="#FF0000", outline="white")
+            time.sleep(0.05)
+
+    def loading(self, text="UPDATING"):
+        colors = ["#FF00FF", "#00FFFF", "#FFFF00", "#00FF00"]
+        for i in range(12):
+            with self._lock:
+                with canvas(self.disp.device) as draw:
+                    draw.text((self.width//2 - 30, self.height - 20), text, fill="white")
+                    angle = i * 30
+                    draw.pieslice((self.width//2 - 30, self.height//2 - 40, self.width//2 + 30, self.height//2 + 20), 
+                                  start=angle, end=angle+60, fill=colors[i%4], outline="white")
+            time.sleep(0.08)
 
     def clear(self):
         self.disp.clear()
 
 if __name__ == "__main__":
-    # Test all expressions
     expr = DsplyExpressions()
-    print("Testing Happy...")
-    expr.happy()
+    print("Happy (Premium)...")
+    expr.happy(looking="right")
     time.sleep(2)
-    print("Blinking...")
-    expr.blink()
-    time.sleep(1)
-    print("Angry...")
+    print("Love...")
+    expr.love()
+    time.sleep(2)
+    print("Angry (Aggressive)...")
     expr.angry()
     time.sleep(2)
-    print("Thinking...")
-    expr.thinking()
-    print("Surprised...")
-    expr.surprised()
-    time.sleep(2)
-    print("Sleeping...")
-    expr.sleeping()
-    time.sleep(3)
-    print("Loading...")
-    expr.loading("BOOTING...")
-    expr.clear()
+    print("Scan...")
+    expr.scan()
+    print("Matrix...")
+    expr.matrix()
