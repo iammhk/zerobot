@@ -58,7 +58,7 @@ def run_mvmt(name, args=None):
     script_path = os.path.join(os.path.dirname(__file__), f"mvmt_{name}.py")
     if os.path.exists(script_path):
         STATE["running_script"] = True
-        draw_ui()
+        draw_dynamic_ui()
         cmd = [sys.executable, script_path]
         if args: cmd.extend(args)
         # We use capture_output to keep the UI clean
