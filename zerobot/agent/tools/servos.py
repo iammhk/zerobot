@@ -15,10 +15,11 @@ from zerobot.utils.pca9685 import PCA9685, ServoHelper
     tool_parameters_schema(
         action=StringSchema(
             "The servo action to perform",
-            enum=["move", "release", "set_pwm", "center"],
+            enum=["move", "release", "set_pwm", "center", "sequence"],
         ),
         channel=IntegerSchema("The servo channel (0-15)", minimum=0, maximum=15),
         angle=NumberSchema("Angle in degrees (0-180) for 'move' action", nullable=True),
+        sequence=StringSchema("The name of the movement sequence (e.g., 'wave', 'dance') for 'sequence' action", nullable=True),
         pulse=IntegerSchema("Raw pulse width in microseconds for 'set_pwm' action", nullable=True),
         required=["action", "channel"],
     )
@@ -39,8 +40,9 @@ class ServoTool(Tool):
     def description(self) -> str:
         return (
             "Control servos connected to the Waveshare Servo Driver HAT. "
-            "Actions: move (to angle), release (stop power), center (move to 90), set_pwm (raw pulse). "
-            "Channels range from 0 to 15."
+            "Actions: move (to angle), release (stop power), center (move to 90), set_pwm (raw pulse), "
+            "sequence (run a pre-defined movement script like 'wave' or 'dance'). "
+            "Channels range from 0 to 15 (ignored for 'sequence')."
         )
 
     def _get_helper(self) -> ServoHelper:
@@ -56,6 +58,7 @@ class ServoTool(Tool):
         channel: int,
         angle: float | None = None,
         pulse: int | None = None,
+        sequence: str | None = None,
         **kwargs: Any,
     ) -> str:
         if sys.platform != "linux":
@@ -83,6 +86,42 @@ class ServoTool(Tool):
                     return "Error: Action 'set_pwm' requires a 'pulse' (microseconds)."
                 helper.set_pulse(channel, pulse)
                 return f"Set servo on channel {channel} to raw pulse {pulse}us."
+            
+            elif action == "sequence":
+                if not sequence:
+                    return "Error: Action 'sequence' requires a 'sequence' name."
+                
+                import subprocess
+                import os
+                
+                # Try to find the script
+                # We assume the scripts are in a 'scripts' folder in the root of the workspace
+                # This is a bit of a hack, we should ideally have a better path discovery
+                possible_paths = [
+                    os.path.abspath(os.path.join(os.getcwd(), "scripts", f"mvmt_{sequence}.py")),
+                    os.path.abspath(os.path.join(os.getcwd(), "..", "scripts", f"mvmt_{sequence}.py")), # If running from zerobot/
+                ]
+                
+                script_path = None
+                for p in possible_paths:
+                    if os.path.exists(p):
+                        script_path = p
+                        break
+                
+                if not script_path:
+                    return f"Error: Movement sequence '{sequence}' not found (tried {possible_paths})."
+                
+                logger.info(f"Running movement sequence: {sequence} via {script_path}")
+                # We run this in the background or wait for it? 
+                # Benchmarks showed it takes a few seconds. We'll wait.
+                try:
+                    # We need to make sure the I2C bus is not held by the tool if possible
+                    # but our tool uses lazy init and doesn't hold the bus open between calls
+                    # unless it's in the middle of this execute call.
+                    subprocess.run([sys.executable, script_path], check=True, capture_output=True, text=True)
+                    return f"Successfully executed movement sequence '{sequence}'."
+                except subprocess.CalledProcessError as e:
+                    return f"Error executing movement sequence '{sequence}': {e.stderr}"
             
             else:
                 return f"Error: Unknown action '{action}'"

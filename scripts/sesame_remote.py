@@ -4,6 +4,11 @@ import time
 import sys
 import tty
 import termios
+import subprocess
+import os
+
+# Add scripts directory to path for imports
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), ".")))
 
 # I2C Setup
 BUS = smbus2.SMBus(1)
@@ -63,70 +68,31 @@ def getch():
         termios.tcsetattr(fd, termios.TCSADRAIN, old_settings)
     return ch
 
+def run_mvmt(name):
+    """Run a movement script from the scripts folder."""
+    try:
+        script_path = os.path.join(os.path.dirname(__file__), f"mvmt_{name}.py")
+        if os.path.exists(script_path):
+            # We run as a subprocess to keep the remote and movement isolated
+            subprocess.run([sys.executable, script_path])
+        else:
+            print(f"Error: Movement script mvmt_{name}.py not found.")
+    except Exception as e:
+        print(f"Error running movement {name}: {e}")
+
 # --- POSES (Translated from sesame-robot) ---
 def run_stand():
     for ch, val in HOME.items(): set_angle(ch, val)
 
-def run_bow():
-    set_angle(L1, 0); set_angle(R1, 180)
-    set_angle(L3, 10); set_angle(R3, 170)
-    set_angle(L2, 180); set_angle(R2, 0)
-    set_angle(L4, 180); set_angle(R4, 0)
-    time.sleep(1)
-    set_angle(L3, 90); set_angle(R3, 90)
-    time.sleep(2)
-    run_stand()
-
-def run_wave():
-    run_stand()
-    time.sleep(0.2)
-    # Lean right/back
-    set_angle(R3, 170); set_angle(L4, 10); set_angle(R4, 170)
-    time.sleep(0.3)
-    set_angle(L3, 170) # Lift FL knee high
-    time.sleep(0.3)
-    for _ in range(4):
-        set_angle(L1, 10); time.sleep(0.3)
-        set_angle(L1, 80); time.sleep(0.3)
-    run_stand()
-
-def run_dance():
-    for _ in range(5):
-        set_angle(L3, 10); set_angle(L4, 10); set_angle(R3, 170); set_angle(R4, 170)
-        time.sleep(0.3)
-        set_angle(L3, 65); set_angle(L4, 65); set_angle(R3, 115); set_angle(R4, 115)
-        time.sleep(0.3)
-    run_stand()
-
-def run_shrug():
-    set_angle(L3, 90); set_angle(R3, 90); set_angle(L4, 90); set_angle(R4, 90)
-    time.sleep(1)
-    set_angle(L3, 180); set_angle(L4, 0); set_angle(R3, 0); set_angle(R4, 180)
-    time.sleep(1.5)
-    run_stand()
-
-def run_pushup():
-    set_angle(L1, 0); set_angle(R1, 180)
-    for _ in range(4):
-        set_angle(L3, 10); set_angle(R3, 170); time.sleep(0.6)
-        set_angle(L3, 90); set_angle(R3, 90); time.sleep(0.5)
-    run_stand()
-
-def run_cute():
-    set_angle(L2, 160); set_angle(R2, 20); set_angle(R4, 180); set_angle(L4, 0)
-    set_angle(L1, 0); set_angle(R1, 180); set_angle(L3, 180); set_angle(R3, 0)
-    for _ in range(5):
-        set_angle(R4, 180); set_angle(L4, 45); time.sleep(0.3)
-        set_angle(R4, 135); set_angle(L4, 0); time.sleep(0.3)
-    run_stand()
-
-def run_crab():
-    for _ in range(5):
-        set_angle(R4, 45); set_angle(R3, 135); set_angle(L3, 0); set_angle(L4, 180)
-        time.sleep(0.3)
-        set_angle(R4, 0); set_angle(R3, 180); set_angle(L3, 45); set_angle(L4, 135)
-        time.sleep(0.3)
-    run_stand()
+def run_bow(): run_mvmt("bow")
+def run_wave(): run_mvmt("wave")
+def run_dance(): run_mvmt("bounce")
+def run_shrug(): run_mvmt("shrug")
+def run_pushup(): run_mvmt("pushups")
+def run_cute(): run_mvmt("cute")
+def run_crab(): run_mvmt("crab_display")
+def run_stand():
+    for ch, val in HOME.items(): set_angle(ch, val)
 
 # --- Sesame Gaits ---
 def run_walk(dir=1):
@@ -167,48 +133,11 @@ def run_turn(dir=1):
             set_angle(R4, 0); set_angle(L3, 0); time.sleep(0.1)
             set_angle(R2, 45); set_angle(L1, 45); time.sleep(0.1)
 
-def run_swim():
-    for _ in range(4):
-        set_angle(R1, 135); set_angle(R2, 45); set_angle(L1, 45); set_angle(L2, 135); time.sleep(0.4)
-        set_angle(R1, 90); set_angle(R2, 90); set_angle(L1, 90); set_angle(L2, 90); time.sleep(0.4)
-    run_stand()
-
-def run_point():
-    set_angle(L2, 180); set_angle(R1, 135); set_angle(R2, 45); set_angle(L4, 180)
-    set_angle(L1, 0); set_angle(L3, 180); set_angle(R4, 0); set_angle(R3, 180)
-    time.sleep(2.0)
-    run_stand()
-
-def run_worm():
-    set_angle(R1, 180); set_angle(R2, 0); set_angle(L1, 0); set_angle(L2, 180)
-    set_angle(R4, 90); set_angle(R3, 90); set_angle(L3, 90); set_angle(L4, 90)
-    time.sleep(0.2)
-    for _ in range(5):
-        set_angle(R3, 45); set_angle(L3, 135); set_angle(R4, 45); set_angle(L4, 135); time.sleep(0.3)
-        set_angle(R3, 135); set_angle(L3, 45); set_angle(R4, 135); set_angle(L4, 45); time.sleep(0.3)
-    run_stand()
-
-def run_shake():
-    run_stand()
-    time.sleep(0.2)
-    set_angle(R1, 135); set_angle(L1, 45); set_angle(L3, 90); set_angle(R3, 90)
-    set_angle(L2, 90); set_angle(R2, 90)
-    time.sleep(0.2)
-    for _ in range(5):
-        set_angle(R4, 45); set_angle(L4, 135); time.sleep(0.15)
-        set_angle(R4, 0); set_angle(L4, 180); time.sleep(0.15)
-    run_stand()
-
-def run_freaky():
-    run_stand()
-    time.sleep(0.2)
-    set_angle(L1, 0); set_angle(R1, 180); set_angle(L2, 180); set_angle(R2, 0)
-    set_angle(R4, 90); set_angle(R3, 0)
-    time.sleep(0.2)
-    for _ in range(6):
-        set_angle(R3, 25); time.sleep(0.2)
-        set_angle(R3, 0); time.sleep(0.2)
-    run_stand()
+def run_swim(): run_mvmt("swim")
+def run_point(): run_mvmt("point")
+def run_worm(): run_mvmt("worm")
+def run_shake(): run_mvmt("shake")
+def run_freaky(): run_mvmt("freaky")
 
 # --- Main UI ---
 HISTORY = ["Sesame Remote Booted..."]

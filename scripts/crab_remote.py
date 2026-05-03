@@ -4,6 +4,11 @@ import time
 import sys
 import tty
 import termios
+import subprocess
+import os
+
+# Add scripts directory to path (optional, using subprocess for isolation)
+SCRIPTS_DIR = os.path.dirname(__file__)
 
 # I2C Setup
 BUS = smbus2.SMBus(1)
@@ -113,59 +118,18 @@ def turn_inplace(dir=1):
         time.sleep(0.08)
     for ch in [L1, R1, L2, R2]: set_angle(ch, HOME[ch])
 
-def move_home():
-    for ch, val in HOME.items(): set_angle(ch, val)
-
-def getch():
-    """Read a single character from stdin without waiting for Enter."""
-    fd = sys.stdin.fileno()
-    old_settings = termios.tcgetattr(fd)
+def run_mvmt(name):
+    """Run a movement script from the scripts folder."""
     try:
-        tty.setraw(sys.stdin.fileno())
-        ch = sys.stdin.read(1)
-    finally:
-        termios.tcsetattr(fd, termios.TCSADRAIN, old_settings)
-    return ch
-
-# --- Gait Functions ---
-def step_trot(direction=1):
-    swing, lift = 35, 45
-    # Phase 1
-    set_angle(4, HOME[4] + lift)
-    set_angle(7, HOME[7] - lift)
-    time.sleep(0.1)
-    set_angle(0, HOME[0] - (swing * direction))
-    set_angle(3, HOME[3] - (swing * direction))
-    set_angle(1, HOME[1] - (swing * direction))
-    set_angle(2, HOME[2] - (swing * direction))
-    time.sleep(0.1)
-    set_angle(4, HOME[4])
-    set_angle(7, HOME[7])
-    time.sleep(0.1)
-    # Phase 2
-    set_angle(5, HOME[5] + lift)
-    set_angle(6, HOME[6] - lift)
-    time.sleep(0.1)
-    set_angle(1, HOME[1] + (swing * direction))
-    set_angle(2, HOME[2] + (swing * direction))
-    set_angle(0, HOME[0] + (swing * direction))
-    set_angle(3, HOME[3] + (swing * direction))
-    time.sleep(0.1)
-    set_angle(5, HOME[5])
-    set_angle(6, HOME[6])
-    time.sleep(0.1)
-
-def turn_inplace(dir=1):
-    for ch in [L1, R1, L2, R2]:
-        mid_k = HOME[ch+4]
-        lift = 40 if ch in [L1, R2] else -40
-        set_angle(ch+4, mid_k + lift)
-        time.sleep(0.08)
-        set_angle(ch, HOME[ch] + (30 * dir))
-        time.sleep(0.08)
-        set_angle(ch+4, mid_k)
-        time.sleep(0.08)
-    for ch in [L1, R1, L2, R2]: set_angle(ch, HOME[ch])
+        script_path = os.path.join(SCRIPTS_DIR, f"mvmt_{name}.py")
+        if os.path.exists(script_path):
+            update_history(f"Running {name}...")
+            subprocess.run([sys.executable, script_path])
+            update_history(f"Finished {name}")
+        else:
+            update_history(f"Error: {name} not found")
+    except Exception as e:
+        update_history(f"Fail: {str(e)}")
 
 # --- Main Interface ---
 def print_ui(last_cmd="None"):
@@ -219,57 +183,16 @@ try:
         if char == 'w': step_trot(1)
         elif char == 's': step_trot(-1)
         elif char == 'h': move_home()
-        elif char == 't':
-            # Stomp
-            for _ in range(3):
-                set_angle(4, 160); time.sleep(0.12); set_angle(4, 10); time.sleep(0.1); set_angle(4, 45); time.sleep(0.1)
-                set_angle(5, 20); time.sleep(0.12); set_angle(5, 170); time.sleep(0.1); set_angle(5, 135); time.sleep(0.1)
-            move_home()
-        elif char == 'f':
-            # Lay Flat
-            for i in range(30):
-                o = i * 4
-                set_angle(4, 45+o); set_angle(5, 135-o); set_angle(6, 135-o); set_angle(7, 45+o)
-                time.sleep(0.02)
-            for i in range(16): set_pwm(i, 0, 0)
+        elif char == 't': run_mvmt("stomp")
+        elif char == 'f': run_mvmt("flat")
         elif char == 'a': turn_inplace(1)
         elif char == 'd': turn_inplace(-1)
-        elif char == 'q':
-            # Scuttle Left
-            set_angle(4, 160); set_angle(6, 20); time.sleep(0.15)
-            set_angle(0, 5); set_angle(2, 175); time.sleep(0.15)
-            set_angle(4, HOME[4]); set_angle(6, HOME[6]); time.sleep(0.15)
-            set_angle(0, HOME[0]); set_angle(2, HOME[2]); time.sleep(0.2)
-        elif char == 'e':
-            # Scuttle Right
-            set_angle(5, 20); set_angle(7, 160); time.sleep(0.15)
-            set_angle(1, 175); set_angle(3, 5); time.sleep(0.15)
-            set_angle(5, HOME[5]); set_angle(7, HOME[7]); time.sleep(0.15)
-            set_angle(1, HOME[1]); set_angle(3, HOME[3]); time.sleep(0.2)
-        elif char == 'p':
-            for _ in range(3):
-                set_angle(4, 10); set_angle(5, 170); time.sleep(0.4)
-                set_angle(4, 80); set_angle(5, 100); time.sleep(0.4)
-            move_home()
-        elif char == 'l':
-            # Wave sequence
-            set_angle(5, 170); set_angle(6, 10); set_angle(7, 170); time.sleep(0.5)
-            set_angle(4, 170); time.sleep(0.3)
-            for _ in range(4):
-                set_angle(0, 10); time.sleep(0.2); set_angle(0, 80); time.sleep(0.2)
-            move_home()
-        elif char == ' ' or char == 'k':
-            last_cmd = "STOP/RELEASE"
-            for i in range(8): set_pwm(i, 0, 0)
-        elif char == 'u':
-            for i in range(20):
-                o = i * 2
-                set_angle(4, 45-o); set_angle(5, 135+o); set_angle(6, 135+o); set_angle(7, 45-o)
-                time.sleep(0.02)
-        elif char == 'j':
-            for i in range(20):
-                o = i * 2
-                set_angle(4, 45+o); set_angle(5, 135-o); time.sleep(0.02)
+        elif char == 'q': run_mvmt("scuttle_left")
+        elif char == 'e': run_mvmt("scuttle_right")
+        elif char == 'p': run_mvmt("pushups")
+        elif char == 'l': run_mvmt("wave")
+        elif char == 'u': run_mvmt("lookup")
+        elif char == 'j': run_mvmt("lookdown")
 
 except KeyboardInterrupt:
     pass
