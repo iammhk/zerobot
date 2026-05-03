@@ -131,18 +131,27 @@ def run_crab():
 # --- Sesame Gaits ---
 def run_walk(dir=1):
     # Sesame ripple gait translated
+    # We use the dir parameter to flip the shoulder swing direction
+    def sa(ch, ang):
+        if ch in [L1, R1, L2, R2]:
+            home_val = HOME[ch]
+            # Offset from home is multiplied by direction
+            set_angle(ch, home_val + (ang - home_val) * dir)
+        else:
+            set_angle(ch, ang)
+
     # Initial Step
-    set_angle(R3, 135); set_angle(L3, 45)
-    set_angle(R2, 100); set_angle(L1, 25)
+    sa(R3, 135); sa(L3, 45)
+    sa(R2, 100); sa(L1, 25)
     time.sleep(0.1)
 
     # Core Loop (1 cycle)
-    set_angle(R3, 135); set_angle(L3, 0); time.sleep(0.1)
-    set_angle(L4, 135); set_angle(L2, 90); set_angle(R4, 0); set_angle(R1, 180); time.sleep(0.1)
-    set_angle(R2, 45); set_angle(L1, 90); time.sleep(0.1)
-    set_angle(R4, 45); set_angle(L4, 180); time.sleep(0.1)
-    set_angle(R3, 180); set_angle(L3, 45); set_angle(R2, 90); set_angle(L1, 0); time.sleep(0.1)
-    set_angle(L2, 135); set_angle(R1, 90); time.sleep(0.1)
+    sa(R3, 135); sa(L3, 0); time.sleep(0.1)
+    sa(L4, 135); sa(L2, 90); sa(R4, 0); sa(R1, 180); time.sleep(0.1)
+    sa(R2, 45); sa(L1, 90); time.sleep(0.1)
+    sa(R4, 45); sa(L4, 180); time.sleep(0.1)
+    sa(R3, 180); sa(L3, 45); sa(R2, 90); sa(L1, 0); time.sleep(0.1)
+    sa(L2, 135); sa(R1, 90); time.sleep(0.1)
 
 def run_turn(dir=1):
     # Simplified Sesame turn
