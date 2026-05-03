@@ -65,6 +65,9 @@ dependencies = [
     "pyaudio>=0.2.14",
     "blessed>=1.20.0",
     "smbus2>=0.4.3",
+    "luma.lcd>=2.9.0",
+    "spidev>=3.6",
+    "RPi.GPIO>=0.7.1; sys_platform == 'linux'",
 ]
 
 [project.optional-dependencies]
