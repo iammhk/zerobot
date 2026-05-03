@@ -35,7 +35,9 @@ STATE = {
     "status": "ACTIVE",
     "last_cmd": "NONE",
     "angles": {i: 90 for i in range(8)},
-    "running_script": False
+    "running_script": False,
+    "last_blink": time.time(),
+    "blink_interval": 5.0
 }
 
 def set_pwm(channel, on, off):
@@ -130,9 +132,20 @@ def main():
             draw_dynamic_ui()
             key = term.inkey(timeout=0.1)
             
-            if not key: continue
+            if not key: 
+                # Random Idle Blink
+                if time.time() - STATE["last_blink"] > STATE["blink_interval"] and STATE["status"] == "ACTIVE":
+                    expr.blink()
+                    STATE["last_blink"] = time.time()
+                    STATE["blink_interval"] = 3.0 + (5.0 * (1.0 - (1.0 / (1.0 + time.time() % 10)))) # Randomize next
+                continue
             
             char = key.lower()
+            # Reset expression to happy on any movement/active key if we were sleeping
+            if STATE["status"] == "RELEASED" and char != ' ' and char != 'x':
+                expr.happy()
+                STATE["status"] = "ACTIVE"
+
             if char == 'x': break
             elif char == 'w': STATE["status"]="ACTIVE"; STATE["last_cmd"]="WALK_FWD"; run_mvmt("sesame_walk", ["--dir","1"]); HISTORY.append("Walk Forward")
             elif char == 's': STATE["status"]="ACTIVE"; STATE["last_cmd"]="WALK_BWD"; run_mvmt("sesame_walk", ["--dir","-1"]); HISTORY.append("Walk Backward")
