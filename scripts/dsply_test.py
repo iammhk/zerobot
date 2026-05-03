@@ -1,6 +1,6 @@
 """
 scripts/dsply_test.py - Comprehensive display test for Zerobot
-Iterates through all PREMIUM expressions in dsply_xprsn.py.
+Iterates through all expressions in dsply_xprsn.py.
 """
 
 import sys
@@ -13,19 +13,22 @@ sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from scripts.dsply_xprsn import DsplyExpressions
 
 def run_test():
-    print("Initializing PREMIUM Expression Test Suite...")
+    print("Initializing HUGE Expression Test Suite...")
     expr = DsplyExpressions()
     
     test_sequence = [
-        ("Booting", expr.loading, "LOADING SYSTEM"),
-        ("Happy Pro", expr.happy, None),
-        ("Looking Left", lambda: expr.happy(looking="left"), None),
-        ("Looking Right", lambda: expr.happy(looking="right"), None),
-        ("Blink", expr.blink, None),
+        ("Waking Up", expr.wakeup, None),
+        ("Happy", expr.happy, None),
+        ("Wink", expr.wink, None),
+        ("Pondering", expr.pondering, None),
         ("Love", expr.love, None),
+        ("Party", expr.party, None),
+        ("Glitch", expr.glitch, None),
         ("Matrix", expr.matrix, None),
         ("Scanner", expr.scan, None),
-        ("Angry Pro", expr.angry, None)
+        ("Angry", expr.angry, None),
+        ("Sad", expr.sad, None),
+        ("Dead", expr.dead, None)
     ]
 
     for name, func, arg in test_sequence:
@@ -34,7 +37,7 @@ def run_test():
             func(arg)
         else:
             func()
-        time.sleep(1.5)
+        time.sleep(1.0)
 
     print("Test Complete.")
     expr.happy()

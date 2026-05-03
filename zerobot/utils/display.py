@@ -11,7 +11,7 @@ import time
 import RPi.GPIO as GPIO
 
 class ZerobotDisplay:
-    def __init__(self, width=160, height=128, rotate=1, backlight_pin=23):
+    def __init__(self, width=160, height=128, rotate=3, backlight_pin=23):
         self.backlight_pin = backlight_pin
         
         # Setup Backlight

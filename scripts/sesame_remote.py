@@ -124,9 +124,9 @@ def main():
             BUS.write_byte_data(ADDR, 0x00, old_mode | 0x80)
         except: pass
     
-    # Stand up and show happy face
+    # Wake up and stand up
+    expr.wakeup()
     for ch, val in HOME.items(): set_angle(ch, val)
-    expr.happy()
     
     with term.cbreak(), term.hidden_cursor():
         while True:
