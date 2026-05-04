@@ -51,7 +51,7 @@ class DsplyExpressions:
     def surprised(self):
         self.eyes.set_mood(self.eyes.DEFAULT)
         old_w, old_h = self.eyes.eye_w, self.eyes.eye_h
-        self.eyes.eye_w, self.eyes.eye_h = 55, 60
+        self.eyes.eye_w, self.eyes.eye_h = 48, 55
         self.eyes.update()
         time.sleep(1)
         self.eyes.eye_w, self.eyes.eye_h = old_w, old_h
@@ -62,9 +62,9 @@ class DsplyExpressions:
                 spacing = self.eyes.spacing
                 for side in [-1, 1]:
                     cx, cy = self.width//2 + (side * spacing), self.height//2
-                    draw.pieslice((cx-25, cy-25, cx, cy+10), start=180, end=0, fill="#FF69B4")
-                    draw.pieslice((cx, cy-25, cx+25, cy+10), start=180, end=0, fill="#FF69B4")
-                    draw.polygon([(cx-25, cy-5), (cx+25, cy-5), (cx, cy+25)], fill="#FF69B4")
+                    draw.pieslice((cx-20, cy-20, cx, cy+8), start=180, end=0, fill="#FF69B4")
+                    draw.pieslice((cx, cy-20, cx+20, cy+8), start=180, end=0, fill="#FF69B4")
+                    draw.polygon([(cx-20, cy-4), (cx+20, cy-4), (cx, cy+20)], fill="#FF69B4")
 
     def wink(self):
         self.eyes.wink()

@@ -31,10 +31,10 @@ class RoboEyes:
         
         # State
         self.mood = self.DEFAULT
-        self.eye_w = 45
+        self.eye_w = 38
         self.eye_h = 50
         self.eye_r = 10 # Corner radius
-        self.spacing = 50
+        self.spacing = 35
         
         # Positions
         self.offset_x = 0
