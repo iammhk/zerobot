@@ -133,6 +133,57 @@ class RoboEyes:
                         self._draw_robo_eye(draw, rx, cy, self.eye_w, self.eye_h, self.eye_r, self.mood)
             time.sleep(0.05)
 
+    def dizzy(self):
+        """Rolls the eyes in a circle."""
+        for angle in range(0, 360, 45):
+            rad = math.radians(angle)
+            self.offset_x = int(math.cos(rad) * 15)
+            self.offset_y = int(math.sin(rad) * 10)
+            self.update()
+            time.sleep(0.05)
+        self.offset_x, self.offset_y = 0, 0
+        self.update()
+
+    def shake(self, duration=1.0):
+        """Vibrates the eyes rapidly."""
+        start = time.time()
+        while time.time() - start < duration:
+            self.offset_x = random.randint(-5, 5)
+            self.offset_y = random.randint(-3, 3)
+            self.update()
+            time.sleep(0.02)
+        self.offset_x, self.offset_y = 0, 0
+        self.update()
+
+    def pulse(self, cycles=3):
+        """Eyes 'breathe' by changing size."""
+        base_w, base_h = self.eye_w, self.eye_h
+        for _ in range(cycles):
+            for size in range(0, 8, 2):
+                self.eye_w, self.eye_h = base_w + size, base_h + size
+                self.update()
+                time.sleep(0.05)
+            for size in range(8, 0, -2):
+                self.eye_w, self.eye_h = base_w + size, base_h + size
+                self.update()
+                time.sleep(0.05)
+        self.eye_w, self.eye_h = base_w, base_h
+        self.update()
+
+    def squint(self):
+        """Slowly squints both eyes."""
+        for lid in [0.1, 0.2, 0.3, 0.4]:
+            self.lid_top = lid
+            self.lid_bottom = lid
+            self.update()
+            time.sleep(0.1)
+        time.sleep(0.5)
+        for lid in [0.3, 0.2, 0.1, 0.0]:
+            self.lid_top = lid
+            self.lid_bottom = lid
+            self.update()
+            time.sleep(0.1)
+
 if __name__ == "__main__":
     eyes = RoboEyes()
     print("RoboEyes: Default Blink")

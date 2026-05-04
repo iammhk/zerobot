@@ -28,7 +28,11 @@ def run_test():
         ("Scanner", expr.scan, None),
         ("Angry", expr.angry, None),
         ("Sad", expr.sad, None),
-        ("Dead", expr.dead, None)
+        ("Dead", expr.dead, None),
+        ("Dizzy", expr.dizzy, None),
+        ("Shake", expr.shake, None),
+        ("Pulse", expr.pulse, None),
+        ("Squint", expr.squint, None)
     ]
 
     for name, func, arg in test_sequence:

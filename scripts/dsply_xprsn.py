@@ -138,6 +138,18 @@ class DsplyExpressions:
         self.eyes.set_mood(self.eyes.TIRED)
         self.eyes.look("down")
 
+    def dizzy(self):
+        self.eyes.dizzy()
+
+    def shake(self):
+        self.eyes.shake()
+
+    def pulse(self):
+        self.eyes.pulse()
+
+    def squint(self):
+        self.eyes.squint()
+
     def clear(self):
         self.eyes.disp.clear()
 
