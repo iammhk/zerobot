@@ -30,31 +30,27 @@ except:
 REMOTE_NAME_KEYWORDS = ["Remote", "Shutter", "Gamepad", "Keyboard", "VR-PARK"]
 
 # --- Mapping ---
-# Standard mapping for common Bluetooth remotes (like VR-PARK or Selfie Remotes)
-# These often send different keys depending on the 'mode' (Game/Music/Mouse)
+# Custom mapping for Xiaomi RC Keyboard / Consumer Control
 KEY_MAP = {
-    # Directional (DPAD or Analog Stick)
+    # Directional
     "KEY_UP": "sesame_walk --dir 1",
     "KEY_DOWN": "sesame_walk --dir -1",
     "KEY_LEFT": "sesame_turn --dir 1",
     "KEY_RIGHT": "sesame_turn --dir -1",
     
-    # Action Buttons
-    "KEY_ENTER": "stand",
-    "KEY_HOMEPAGE": "stand",
-    "KEY_BACK": "mvmt_release",
+    # Primary Actions
+    "KEY_SELECT": "stand",       # Center button
+    "KEY_HOMEPAGE": "stand",     # Home button
+    "KEY_BACK": "mvmt_release",  # Back button (Release motors)
+    "KEY_POWER": "mvmt_release", # Power button (Safety)
+    
+    # Secondary Actions
     "KEY_VOLUMEUP": "wave",
     "KEY_VOLUMEDOWN": "bow",
-    "KEY_PLAYPAUSE": "dance",
-    "KEY_MUTE": "mvmt_release",
-    
-    # Generic ABC Buttons (sometimes sent as letters or numbers)
-    "KEY_A": "bounce",
-    "KEY_B": "swim",
-    "KEY_C": "point",
-    "KEY_D": "cute",
-    "KEY_X": "freaky",
-    "KEY_Y": "shake",
+    "KEY_VIDEO": "dance",        # Play/Video button
+    "KEY_GREEN": "bounce",       # Green / Special button
+    "KEY_VOICECOMMAND": "cute",   # Voice / Mic button
+    "KEY_APPSELECT": "point",    # App / Menu button
 }
 
 def find_remote():
