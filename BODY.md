@@ -7,6 +7,18 @@ This document describes the physical hardware that you (the agent) are currently
 - **Servo Driver**: Waveshare Servo Driver HAT (PCA9685)
 - **Power**: 12V External Supply
 
+## Visual Display (LCD)
+- **Model**: 1.8" TFT SPI LCD (ST7735 Driver)
+- **Resolution**: 128x160 pixels
+- **Communication**: SPI (Bus 0, Device 0)
+- **GPIO Pinout**:
+  - **SCLK**: GPIO 11
+  - **MOSI**: GPIO 10
+  - **CS**: GPIO 8
+  - **DC**: GPIO 24
+  - **RES**: GPIO 25
+  - **Backlight (BL)**: GPIO 23 (Managed via `RPi.GPIO`)
+
 ## Physical Structure: Quadruped Crab-Bot
 The robot has a crab-like structure with **4 legs**, each using **2 servos** (Total 8 servos).
 
@@ -50,7 +62,19 @@ Each leg has two segments:
 - **L4 (Ch 6)**: 0° to 180°
 - **R4 (Ch 7)**: 0° to 180°
 
+## Control Interfaces
+- **Keyboard**: Terminal-based control via `sesame_remote.py` (uses `blessed` library).
+- **Bluetooth Remote**: Supported via `evdev` event listener integrated into `sesame_remote.py`.
+  - **Model**: Xiaomi RC Bluetooth Remote (Consumer Control interface).
+  - **Detection**: Automated via name-matching ("Consumer Control", "Xiaomi").
+  - **Mapping**:
+    - **DPAD**: Movement (Walk/Turn).
+    - **Center/Home**: Standing position.
+    - **Back/Power**: Safety Motor Release.
+    - **Volume/Media**: Gestures (Wave, Bow, Dance).
+
 ## Safety & Constraints
 - **Hardware Limits**: You MUST stay within the Hard Limits defined above to avoid mechanical damage.
 - **Default Position**: Midpoint of the safe range for each joint.
 - **Coordination**: Leg movements often require moving both the Shoulder and Joint servos together to maintain balance or step.
+- **Emergency Stop**: Pressing **SPACE** on the keyboard or **BACK/POWER** on the Bluetooth remote will instantly release all servos.
