@@ -25,11 +25,9 @@ class DsplyExpressions:
         """Classic waking up sequence with RoboEyes."""
         self.eyes.set_mood(self.eyes.TIRED)
         self.eyes.lid_top = 1.0
-        self.eyes.lid_bottom = 0.0
         self.eyes.update()
         time.sleep(1.0)
         
-        # Slowly open
         for lid in [0.8, 0.6, 0.4, 0.2, 0.0]:
             self.eyes.lid_top = lid
             self.eyes.update()
@@ -82,10 +80,6 @@ class DsplyExpressions:
     def pondering(self):
         self.eyes.set_mood(self.eyes.DEFAULT)
         self.eyes.look("up")
-        with canvas(self.eyes.disp.device) as draw:
-            # We have to draw the eyes manually if we want text overlay or use update() then draw
-            self.eyes.update() # This clears the screen, so we need to draw text AFTER
-        # Re-rendering with text
         with self.eyes._lock:
             with canvas(self.eyes.disp.device) as draw:
                 cx, cy = self.width//2, self.height//2
@@ -117,7 +111,28 @@ class DsplyExpressions:
                 offset = random.randint(-5, 5)
                 self.eyes._draw_robo_eye(draw, self.width//2 - self.eyes.spacing + offset, self.height//2, 45, 50, 10, self.eyes.DEFAULT)
                 self.eyes._draw_robo_eye(draw, self.width//2 + self.eyes.spacing - offset, self.height//2, 45, 50, 10, self.eyes.DEFAULT)
+                for _ in range(3):
+                    gy = random.randint(0, self.height)
+                    draw.rectangle((0, gy, self.width, gy+2), fill=random.choice(["#FF00FF", "#00FFFF"]))
             time.sleep(0.05)
+
+    def party(self):
+        colors = ["#FF0000", "#00FF00", "#0000FF", "#FFFF00", "#FF00FF", "#00FFFF"]
+        for _ in range(20):
+            with canvas(self.eyes.disp.device) as draw:
+                c1, c2 = random.sample(colors, 2)
+                self.eyes._draw_robo_eye(draw, self.width//2 - self.eyes.spacing, self.height//2, 50, 55, 10, self.eyes.DEFAULT, base_color=c1)
+                self.eyes._draw_robo_eye(draw, self.width//2 + self.eyes.spacing, self.height//2, 50, 55, 10, self.eyes.DEFAULT, base_color=c2)
+                for _ in range(15):
+                    draw.point((random.randint(0, self.width), random.randint(0, self.height)), fill=random.choice(colors))
+            time.sleep(0.05)
+
+    def dead(self):
+        """X-eyes for errors or shutdown."""
+        with canvas(self.eyes.disp.device) as draw:
+            spacing = self.eyes.spacing
+            self.eyes._draw_robo_eye(draw, self.width//2 - spacing, self.height//2, 45, 50, 10, self.eyes.DEFAULT, base_color="white", shape="x")
+            self.eyes._draw_robo_eye(draw, self.width//2 + spacing, self.height//2, 45, 50, 10, self.eyes.DEFAULT, base_color="white", shape="x")
 
     def sad(self):
         self.eyes.set_mood(self.eyes.TIRED)
@@ -129,6 +144,5 @@ class DsplyExpressions:
 if __name__ == "__main__":
     expr = DsplyExpressions()
     expr.wakeup()
-    expr.pondering()
-    time.sleep(1)
+    expr.party()
     expr.clear()
