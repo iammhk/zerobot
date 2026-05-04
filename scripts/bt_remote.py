@@ -27,7 +27,7 @@ except:
 
 # --- Configuration ---
 # You can update this to match your remote's name or part of it.
-REMOTE_NAME_KEYWORDS = ["Remote", "Shutter", "Gamepad", "Keyboard", "VR-PARK"]
+REMOTE_NAME_KEYWORDS = ["Consumer Control", "Remote", "Shutter", "Gamepad", "Keyboard", "VR-PARK"]
 
 # --- Mapping ---
 # Custom mapping for Xiaomi RC Keyboard / Consumer Control
@@ -54,19 +54,22 @@ KEY_MAP = {
 }
 
 def find_remote():
-    """Finds the first input device that matches common remote names."""
+    """Finds the first input device that matches common remote names, respecting keyword priority."""
     try:
         devices = [evdev.InputDevice(path) for path in evdev.list_devices()]
         if not devices:
             print("⚠️ No input devices found. Are you running as root?")
             return None
             
-        for device in devices:
-            print(f"Found device: {device.name} at {device.path}")
-            for keyword in REMOTE_NAME_KEYWORDS:
+        # Priority search based on REMOTE_NAME_KEYWORDS order
+        for keyword in REMOTE_NAME_KEYWORDS:
+            for device in devices:
                 if keyword.lower() in device.name.lower():
-                    print(f"✅ Selected: {device.name}")
+                    print(f"✅ Selected: {device.name} (matched '{keyword}')")
                     return device
+                    
+        print("Available devices searched:")
+        for d in devices: print(f" - {d.name} ({d.path})")
     except Exception as e:
         print(f"Error listing devices: {e}")
     return None
