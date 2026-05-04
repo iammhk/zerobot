@@ -6,6 +6,12 @@ import subprocess
 import os
 from blessed import Terminal
 
+try:
+    import evdev
+    from evdev import ecodes
+except ImportError:
+    evdev = None
+
 # Add scripts directory to path for imports
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), ".")))
 
@@ -37,8 +43,29 @@ STATE = {
     "angles": {i: 90 for i in range(8)},
     "running_script": False,
     "last_blink": time.time(),
-    "blink_interval": 5.0
+    "blink_interval": 5.0,
+    "remote_dev": None
 }
+
+# --- Bluetooth Config ---
+REMOTE_NAME_KEYWORDS = ["Consumer Control", "Remote", "Shutter", "Gamepad", "Keyboard", "VR-PARK"]
+BT_KEY_MAP = {
+    "KEY_UP": 'w', "KEY_DOWN": 's', "KEY_LEFT": 'a', "KEY_RIGHT": 'd',
+    "KEY_SELECT": '1', "KEY_HOMEPAGE": '1', "KEY_BACK": ' ', "KEY_POWER": ' ',
+    "KEY_VOLUMEUP": '4', "KEY_VOLUMEDOWN": '3', "KEY_VIDEO": '6',
+    "KEY_GREEN": '5', "KEY_VOICECOMMAND": '9', "KEY_APPSELECT": '7',
+}
+
+def find_remote():
+    if not evdev: return None
+    try:
+        devices = [evdev.InputDevice(path) for path in evdev.list_devices()]
+        for keyword in REMOTE_NAME_KEYWORDS:
+            for device in devices:
+                if keyword.lower() in device.name.lower():
+                    return device
+    except: pass
+    return None
 
 def set_pwm(channel, on, off):
     if BUS:
@@ -109,6 +136,41 @@ def draw_dynamic_ui():
     for i, msg in enumerate(HISTORY[-4:]):
         with term.location(3, 19 + i): print(term.clear_eol + f"{term.dim}> {msg}")
 
+def handle_input(char):
+    if not char: return True
+    char = char.lower()
+    
+    # Reset expression to happy on any movement/active key if we were sleeping
+    if STATE["status"] == "RELEASED" and char != ' ' and char != 'x':
+        expr.happy()
+        STATE["status"] = "ACTIVE"
+
+    if char == 'x': return False
+    elif char == 'w': STATE["status"]="ACTIVE"; STATE["last_cmd"]="WALK_FWD"; expr.eyes.look("up"); run_mvmt("sesame_walk", ["--dir","1"]); HISTORY.append("Walk Forward")
+    elif char == 's': STATE["status"]="ACTIVE"; STATE["last_cmd"]="WALK_BWD"; expr.eyes.look("down"); run_mvmt("sesame_walk", ["--dir","-1"]); HISTORY.append("Walk Backward")
+    elif char == 'a': STATE["status"]="ACTIVE"; STATE["last_cmd"]="TURN_LEFT"; expr.eyes.look("left"); run_mvmt("sesame_turn", ["--dir","1"]); HISTORY.append("Turn Left")
+    elif char == 'd': STATE["status"]="ACTIVE"; STATE["last_cmd"]="TURN_RIGHT"; expr.eyes.look("right"); run_mvmt("sesame_turn", ["--dir","-1"]); HISTORY.append("Turn Right")
+    elif char == '1': STATE["status"]="ACTIVE"; STATE["last_cmd"]="STAND"; expr.happy(); [set_angle(ch, val) for ch, val in HOME.items()]; HISTORY.append("Stand")
+    elif char == '2': STATE["status"]="ACTIVE"; STATE["last_cmd"]="REST"; expr.sad(); [set_angle(i, 90) for i in range(8)]; HISTORY.append("Resting")
+    elif char == '3': STATE["status"]="ACTIVE"; STATE["last_cmd"]="BOW"; expr.happy(looking="down"); run_mvmt("bow"); HISTORY.append("Bowing")
+    elif char == '4': STATE["status"]="ACTIVE"; STATE["last_cmd"]="WAVE"; expr.wink(); run_mvmt("wave"); HISTORY.append("Waving")
+    elif char == '5': STATE["status"]="ACTIVE"; STATE["last_cmd"]="BOUNCE"; expr.happy(); run_mvmt("bounce"); HISTORY.append("Bouncing")
+    elif char == '6': STATE["status"]="ACTIVE"; STATE["last_cmd"]="SWIM"; expr.happy(); run_mvmt("swim"); HISTORY.append("Swimming")
+    elif char == '7': STATE["status"]="ACTIVE"; STATE["last_cmd"]="POINT"; expr.happy(); run_mvmt("point"); HISTORY.append("Pointing")
+    elif char == '8': STATE["status"]="ACTIVE"; STATE["last_cmd"]="PUSHUP"; expr.happy(); run_mvmt("pushups"); HISTORY.append("Pushups")
+    elif char == '9': STATE["status"]="ACTIVE"; STATE["last_cmd"]="CUTE"; expr.love(); run_mvmt("cute"); HISTORY.append("Cute Mode")
+    elif char == '0': STATE["status"]="ACTIVE"; STATE["last_cmd"]="SHRUG"; expr.pondering(); run_mvmt("shrug"); HISTORY.append("Shrugging")
+    elif char == 'c': STATE["status"]="ACTIVE"; STATE["last_cmd"]="CRAB"; expr.scan(); run_mvmt("crab_display"); HISTORY.append("Crab Display")
+    elif char == 'v': STATE["status"]="ACTIVE"; STATE["last_cmd"]="WORM"; expr.glitch(); run_mvmt("worm"); HISTORY.append("Worming")
+    elif char == 'k': STATE["status"]="ACTIVE"; STATE["last_cmd"]="SHAKE"; expr.matrix(); run_mvmt("shake"); HISTORY.append("Shaking")
+    elif char == 'z': STATE["status"]="ACTIVE"; STATE["last_cmd"]="FREAKY"; expr.angry(); run_mvmt("freaky"); HISTORY.append("Freaky Mode")
+    elif char == ' ': 
+        STATE["status"]="RELEASED"; STATE["last_cmd"]="RELEASE";
+        for i in range(16): set_pwm(i, 0, 0)
+        HISTORY.append("Motors Released")
+        expr.sleeping()
+    return True
+
 def main():
     if BUS:
         # Reset PCA9685 and set freq
@@ -127,50 +189,44 @@ def main():
     expr.wakeup()
     for ch, val in HOME.items(): set_angle(ch, val)
     
+    # Try to find Bluetooth Remote
+    STATE["remote_dev"] = find_remote()
+    if STATE["remote_dev"]:
+        HISTORY.append(f"Remote Linked: {STATE['remote_dev'].name}")
+    else:
+        HISTORY.append("No BT Remote Found")
+
     with term.cbreak(), term.hidden_cursor():
         draw_static_ui()
         while True:
             draw_dynamic_ui()
-            key = term.inkey(timeout=0.1)
+            key = term.inkey(timeout=0.05) # Faster polling
             
-            if not key: 
-                # Random Idle Blink
+            # 1. Handle Keyboard
+            if key:
+                if not handle_input(str(key)): break
+            
+            # 2. Handle Bluetooth Remote (Non-blocking)
+            if STATE["remote_dev"]:
+                try:
+                    for event in STATE["remote_dev"].read():
+                        if event.type == ecodes.EV_KEY:
+                            key_event = evdev.categorize(event)
+                            if key_event.keystate == key_event.key_down:
+                                key_name = key_event.keycode
+                                if isinstance(key_name, list): key_name = key_name[0]
+                                if key_name in BT_KEY_MAP:
+                                    if not handle_input(BT_KEY_MAP[key_name]): break
+                except (IOError, EOFError):
+                    STATE["remote_dev"] = None # Lost connection
+                    HISTORY.append("BT Remote Disconnected")
+            
+            # 3. Idle Animations
+            if not key:
                 if time.time() - STATE["last_blink"] > STATE["blink_interval"] and STATE["status"] == "ACTIVE":
                     expr.blink()
                     STATE["last_blink"] = time.time()
-                    STATE["blink_interval"] = 3.0 + (5.0 * (1.0 - (1.0 / (1.0 + time.time() % 10)))) # Randomize next
-                continue
-            
-            char = key.lower()
-            # Reset expression to happy on any movement/active key if we were sleeping
-            if STATE["status"] == "RELEASED" and char != ' ' and char != 'x':
-                expr.happy()
-                STATE["status"] = "ACTIVE"
-
-            if char == 'x': break
-            elif char == 'w': STATE["status"]="ACTIVE"; STATE["last_cmd"]="WALK_FWD"; expr.eyes.look("up"); run_mvmt("sesame_walk", ["--dir","1"]); HISTORY.append("Walk Forward")
-            elif char == 's': STATE["status"]="ACTIVE"; STATE["last_cmd"]="WALK_BWD"; expr.eyes.look("down"); run_mvmt("sesame_walk", ["--dir","-1"]); HISTORY.append("Walk Backward")
-            elif char == 'a': STATE["status"]="ACTIVE"; STATE["last_cmd"]="TURN_LEFT"; expr.eyes.look("left"); run_mvmt("sesame_turn", ["--dir","1"]); HISTORY.append("Turn Left")
-            elif char == 'd': STATE["status"]="ACTIVE"; STATE["last_cmd"]="TURN_RIGHT"; expr.eyes.look("right"); run_mvmt("sesame_turn", ["--dir","-1"]); HISTORY.append("Turn Right")
-            elif char == '1': STATE["status"]="ACTIVE"; STATE["last_cmd"]="STAND"; expr.happy(); [set_angle(ch, val) for ch, val in HOME.items()]; HISTORY.append("Stand")
-            elif char == '2': STATE["status"]="ACTIVE"; STATE["last_cmd"]="REST"; expr.sad(); [set_angle(i, 90) for i in range(8)]; HISTORY.append("Resting")
-            elif char == '3': STATE["status"]="ACTIVE"; STATE["last_cmd"]="BOW"; expr.happy(looking="down"); run_mvmt("bow"); HISTORY.append("Bowing")
-            elif char == '4': STATE["status"]="ACTIVE"; STATE["last_cmd"]="WAVE"; expr.wink(); run_mvmt("wave"); HISTORY.append("Waving")
-            elif char == '5': STATE["status"]="ACTIVE"; STATE["last_cmd"]="BOUNCE"; expr.happy(); run_mvmt("bounce"); HISTORY.append("Bouncing")
-            elif char == '6': STATE["status"]="ACTIVE"; STATE["last_cmd"]="SWIM"; expr.happy(); run_mvmt("swim"); HISTORY.append("Swimming")
-            elif char == '7': STATE["status"]="ACTIVE"; STATE["last_cmd"]="POINT"; expr.happy(); run_mvmt("point"); HISTORY.append("Pointing")
-            elif char == '8': STATE["status"]="ACTIVE"; STATE["last_cmd"]="PUSHUP"; expr.happy(); run_mvmt("pushups"); HISTORY.append("Pushups")
-            elif char == '9': STATE["status"]="ACTIVE"; STATE["last_cmd"]="CUTE"; expr.love(); run_mvmt("cute"); HISTORY.append("Cute Mode")
-            elif char == '0': STATE["status"]="ACTIVE"; STATE["last_cmd"]="SHRUG"; expr.pondering(); run_mvmt("shrug"); HISTORY.append("Shrugging")
-            elif char == 'c': STATE["status"]="ACTIVE"; STATE["last_cmd"]="CRAB"; expr.scan(); run_mvmt("crab_display"); HISTORY.append("Crab Display")
-            elif char == 'v': STATE["status"]="ACTIVE"; STATE["last_cmd"]="WORM"; expr.glitch(); run_mvmt("worm"); HISTORY.append("Worming")
-            elif char == 'k': STATE["status"]="ACTIVE"; STATE["last_cmd"]="SHAKE"; expr.matrix(); run_mvmt("shake"); HISTORY.append("Shaking")
-            elif char == 'z': STATE["status"]="ACTIVE"; STATE["last_cmd"]="FREAKY"; expr.angry(); run_mvmt("freaky"); HISTORY.append("Freaky Mode")
-            elif char == ' ': 
-                STATE["status"]="RELEASED"; STATE["last_cmd"]="RELEASE";
-                for i in range(16): set_pwm(i, 0, 0)
-                HISTORY.append("Motors Released")
-                expr.sleeping()
+                    STATE["blink_interval"] = 3.0 + (5.0 * (1.0 - (1.0 / (1.0 + time.time() % 10))))
 
     # Final Release
     for i in range(16): set_pwm(i, 0, 0)
