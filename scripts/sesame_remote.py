@@ -148,12 +148,12 @@ def main():
                 STATE["status"] = "ACTIVE"
 
             if char == 'x': break
-            elif char == 'w': STATE["status"]="ACTIVE"; STATE["last_cmd"]="WALK_FWD"; run_mvmt("sesame_walk", ["--dir","1"]); HISTORY.append("Walk Forward")
-            elif char == 's': STATE["status"]="ACTIVE"; STATE["last_cmd"]="WALK_BWD"; run_mvmt("sesame_walk", ["--dir","-1"]); HISTORY.append("Walk Backward")
-            elif char == 'a': STATE["status"]="ACTIVE"; STATE["last_cmd"]="TURN_LEFT"; run_mvmt("sesame_turn", ["--dir","1"]); HISTORY.append("Turn Left")
-            elif char == 'd': STATE["status"]="ACTIVE"; STATE["last_cmd"]="TURN_RIGHT"; run_mvmt("sesame_turn", ["--dir","-1"]); HISTORY.append("Turn Right")
-            elif char == '1': STATE["status"]="ACTIVE"; STATE["last_cmd"]="STAND"; [set_angle(ch, val) for ch, val in HOME.items()]; HISTORY.append("Stand"); expr.happy()
-            elif char == '2': STATE["status"]="ACTIVE"; STATE["last_cmd"]="REST"; [set_angle(i, 90) for i in range(8)]; HISTORY.append("Resting")
+            elif char == 'w': STATE["status"]="ACTIVE"; STATE["last_cmd"]="WALK_FWD"; expr.eyes.look("up"); run_mvmt("sesame_walk", ["--dir","1"]); HISTORY.append("Walk Forward")
+            elif char == 's': STATE["status"]="ACTIVE"; STATE["last_cmd"]="WALK_BWD"; expr.eyes.look("down"); run_mvmt("sesame_walk", ["--dir","-1"]); HISTORY.append("Walk Backward")
+            elif char == 'a': STATE["status"]="ACTIVE"; STATE["last_cmd"]="TURN_LEFT"; expr.eyes.look("left"); run_mvmt("sesame_turn", ["--dir","1"]); HISTORY.append("Turn Left")
+            elif char == 'd': STATE["status"]="ACTIVE"; STATE["last_cmd"]="TURN_RIGHT"; expr.eyes.look("right"); run_mvmt("sesame_turn", ["--dir","-1"]); HISTORY.append("Turn Right")
+            elif char == '1': STATE["status"]="ACTIVE"; STATE["last_cmd"]="STAND"; expr.happy(); [set_angle(ch, val) for ch, val in HOME.items()]; HISTORY.append("Stand")
+            elif char == '2': STATE["status"]="ACTIVE"; STATE["last_cmd"]="REST"; expr.sad(); [set_angle(i, 90) for i in range(8)]; HISTORY.append("Resting")
             elif char == '3': STATE["status"]="ACTIVE"; STATE["last_cmd"]="BOW"; expr.happy(looking="down"); run_mvmt("bow"); HISTORY.append("Bowing")
             elif char == '4': STATE["status"]="ACTIVE"; STATE["last_cmd"]="WAVE"; expr.wink(); run_mvmt("wave"); HISTORY.append("Waving")
             elif char == '5': STATE["status"]="ACTIVE"; STATE["last_cmd"]="BOUNCE"; expr.happy(); run_mvmt("bounce"); HISTORY.append("Bouncing")
@@ -162,10 +162,10 @@ def main():
             elif char == '8': STATE["status"]="ACTIVE"; STATE["last_cmd"]="PUSHUP"; expr.happy(); run_mvmt("pushups"); HISTORY.append("Pushups")
             elif char == '9': STATE["status"]="ACTIVE"; STATE["last_cmd"]="CUTE"; expr.love(); run_mvmt("cute"); HISTORY.append("Cute Mode")
             elif char == '0': STATE["status"]="ACTIVE"; STATE["last_cmd"]="SHRUG"; expr.pondering(); run_mvmt("shrug"); HISTORY.append("Shrugging")
-            elif char == 'c': STATE["status"]="ACTIVE"; STATE["last_cmd"]="CRAB"; run_mvmt("crab_display"); HISTORY.append("Crab Display")
-            elif char == 'v': STATE["status"]="ACTIVE"; STATE["last_cmd"]="WORM"; run_mvmt("worm"); HISTORY.append("Worming")
-            elif char == 'k': STATE["status"]="ACTIVE"; STATE["last_cmd"]="SHAKE"; run_mvmt("shake"); HISTORY.append("Shaking")
-            elif char == 'z': STATE["status"]="ACTIVE"; STATE["last_cmd"]="FREAKY"; run_mvmt("freaky"); HISTORY.append("Freaky Mode"); expr.angry()
+            elif char == 'c': STATE["status"]="ACTIVE"; STATE["last_cmd"]="CRAB"; expr.scan(); run_mvmt("crab_display"); HISTORY.append("Crab Display")
+            elif char == 'v': STATE["status"]="ACTIVE"; STATE["last_cmd"]="WORM"; expr.glitch(); run_mvmt("worm"); HISTORY.append("Worming")
+            elif char == 'k': STATE["status"]="ACTIVE"; STATE["last_cmd"]="SHAKE"; expr.matrix(); run_mvmt("shake"); HISTORY.append("Shaking")
+            elif char == 'z': STATE["status"]="ACTIVE"; STATE["last_cmd"]="FREAKY"; expr.angry(); run_mvmt("freaky"); HISTORY.append("Freaky Mode")
             elif char == ' ': 
                 STATE["status"]="RELEASED"; STATE["last_cmd"]="RELEASE";
                 for i in range(16): set_pwm(i, 0, 0)
