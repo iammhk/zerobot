@@ -42,26 +42,32 @@ class RoboEyes:
         self.lid_top = 0.0 # 0.0 to 1.0 (closed)
         self.lid_bottom = 0.0
         
-    def _draw_robo_eye(self, draw, x, y, w, h, r, mood, lid_top=0.0, lid_bottom=0.0):
+    def _draw_robo_eye(self, draw, x, y, w, h, r, mood, lid_top=0.0, lid_bottom=0.0, base_color=None, shape="circle"):
         """Draws a FluxGarage style rounded rectangle eye."""
         # Main Eye Rect
         x1, y1 = x - w//2, y - h//2
         x2, y2 = x + w//2, y + h//2
         
         # Base Color
-        color = "#00FFFF" # Cyan
-        if mood == self.ANGRY: color = "#FF0000"
-        elif mood == self.TIRED: color = "#FFA500"
-        elif mood == self.HAPPY: color = "#00FF00"
+        color = base_color if base_color else "#00FFFF" # Default Cyan
+        if not base_color:
+            if mood == self.ANGRY: color = "#FF0000"
+            elif mood == self.TIRED: color = "#FFA500"
+            elif mood == self.HAPPY: color = "#00FF00"
         
-        # Draw Rounded Rect (if Pillow < 8.2, we fallback to rectangle)
-        try:
-            draw.rounded_rectangle([x1, y1, x2, y2], radius=r, fill=color)
-        except AttributeError:
-            draw.rectangle([x1, y1, x2, y2], fill=color)
+        if shape == "circle":
+            # Draw Rounded Rect (if Pillow < 8.2, we fallback to rectangle)
+            try:
+                draw.rounded_rectangle([x1, y1, x2, y2], radius=r, fill=color)
+            except AttributeError:
+                draw.rectangle([x1, y1, x2, y2], fill=color)
 
-        # Pupils / Highlights (Small circles)
-        draw.ellipse([x - w//4, y - h//4, x, y], fill="white")
+            # Pupils / Highlights (Small circles)
+            draw.ellipse([x - w//4, y - h//4, x, y], fill="white")
+        elif shape == "x":
+            # Dead eyes (FluxGarage style X)
+            draw.line((x1, y1, x2, y2), fill=color, width=4)
+            draw.line((x2, y1, x1, y2), fill=color, width=4)
 
         # Lid Masking (Simulating eyelids)
         if lid_top > 0:
