@@ -217,6 +217,8 @@ def main():
                                 if isinstance(key_name, list): key_name = key_name[0]
                                 if key_name in BT_KEY_MAP:
                                     if not handle_input(BT_KEY_MAP[key_name]): break
+                except (BlockingIOError, OSError):
+                    pass # No events available right now
                 except (IOError, EOFError):
                     STATE["remote_dev"] = None # Lost connection
                     HISTORY.append("BT Remote Disconnected")
