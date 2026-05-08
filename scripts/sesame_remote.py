@@ -1,6 +1,9 @@
 # sesame_remote.py - Advanced TUI Remote using the 'blessed' library
-import smbus2
 import time
+import sys, os
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+from zerobot import servo
+
 import sys
 import subprocess
 import os
@@ -20,19 +23,11 @@ expr = DsplyExpressions() # Initialize LCD
 
 # I2C Setup
 try:
-    BUS = smbus2.SMBus(1)
-    ADDR = 0x40
-except:
+    except:
     BUS = None
-    ADDR = 0x40
-
-# --- Channel Mapping ---
-L1, L2, L3, L4 = 0, 1, 5, 4
-R1, R2, R3, R4 = 3, 2, 7, 6
-HOME = { L1: 45, R1: 135, L2: 135, R2: 45, L3: 45, R3: 135, L4: 135, R4: 45 }
-LIMITS = {i: (0, 180) for i in range(8)}
-LIMITS[L1] = (0, 90); LIMITS[R1] = (90, 180)
-LIMITS[L2] = (90, 180); LIMITS[R2] = (0, 90)
+    # --- Channel Mapping ---
+servo.config.LIMITS[servo.L1] = (0, 90); servo.config.LIMITS[servo.R1] = (90, 180)
+servo.config.LIMITS[servo.L2] = (90, 180); servo.config.LIMITS[servo.R2] = (0, 90)
 
 # --- State ---
 term = Terminal()
@@ -67,19 +62,7 @@ def find_remote():
     except: pass
     return None
 
-def set_pwm(channel, on, off):
-    if BUS:
-        BUS.write_byte_data(ADDR, 0x06 + 4*channel, on & 0xFF)
-        BUS.write_byte_data(ADDR, 0x07 + 4*channel, on >> 8)
-        BUS.write_byte_data(ADDR, 0x08 + 4*channel, off & 0xFF)
-        BUS.write_byte_data(ADDR, 0x09 + 4*channel, off >> 8)
 
-def set_angle(channel, angle):
-    min_a, max_a = LIMITS.get(channel, (0, 180))
-    safe_angle = max(min_a, min(max_a, angle))
-    pulse_us = 500 + (safe_angle / 180.0) * 2000
-    off = int(pulse_us * 4096 * 50 / 1000000)
-    set_pwm(channel, 0, off)
     if channel in STATE["angles"]:
         STATE["angles"][channel] = int(safe_angle)
 
@@ -125,14 +108,14 @@ def draw_dynamic_ui():
     if STATE["running_script"]:
         with term.location(30, 3): print(term.blink_magenta("EXECUTING..."))
     # Servo Angles
-    with term.location(46, 6): print(term.cyan(f"{STATE['angles'][L1]:3}"))
-    with term.location(54, 6): print(term.cyan(f"{STATE['angles'][R1]:3}"))
-    with term.location(46, 7): print(term.cyan(f"{STATE['angles'][L2]:3}"))
-    with term.location(54, 7): print(term.cyan(f"{STATE['angles'][R2]:3}"))
-    with term.location(46, 9): print(term.yellow(f"{STATE['angles'][L3]:3}"))
-    with term.location(54, 9): print(term.yellow(f"{STATE['angles'][R3]:3}"))
-    with term.location(46, 10): print(term.yellow(f"{STATE['angles'][L4]:3}"))
-    with term.location(54, 10): print(term.yellow(f"{STATE['angles'][R4]:3}"))
+    with term.location(46, 6): print(term.cyan(f"{STATE['angles'][servo.L1]:3}"))
+    with term.location(54, 6): print(term.cyan(f"{STATE['angles'][servo.R1]:3}"))
+    with term.location(46, 7): print(term.cyan(f"{STATE['angles'][servo.L2]:3}"))
+    with term.location(54, 7): print(term.cyan(f"{STATE['angles'][servo.R2]:3}"))
+    with term.location(46, 9): print(term.yellow(f"{STATE['angles'][servo.L3]:3}"))
+    with term.location(54, 9): print(term.yellow(f"{STATE['angles'][servo.R3]:3}"))
+    with term.location(46, 10): print(term.yellow(f"{STATE['angles'][servo.L4]:3}"))
+    with term.location(54, 10): print(term.yellow(f"{STATE['angles'][servo.R4]:3}"))
     for i, msg in enumerate(HISTORY[-4:]):
         with term.location(3, 19 + i): print(term.clear_eol + f"{term.dim}> {msg}")
 
@@ -150,8 +133,8 @@ def handle_input(char):
     elif char == 's': STATE["status"]="ACTIVE"; STATE["last_cmd"]="WALK_BWD"; expr.eyes.look("down"); run_mvmt("sesame_walk", ["--dir","-1"]); HISTORY.append("Walk Backward")
     elif char == 'a': STATE["status"]="ACTIVE"; STATE["last_cmd"]="TURN_LEFT"; expr.eyes.look("left"); run_mvmt("sesame_turn", ["--dir","1"]); HISTORY.append("Turn Left")
     elif char == 'd': STATE["status"]="ACTIVE"; STATE["last_cmd"]="TURN_RIGHT"; expr.eyes.look("right"); run_mvmt("sesame_turn", ["--dir","-1"]); HISTORY.append("Turn Right")
-    elif char == '1': STATE["status"]="ACTIVE"; STATE["last_cmd"]="STAND"; expr.happy(); [set_angle(ch, val) for ch, val in HOME.items()]; HISTORY.append("Stand")
-    elif char == '2': STATE["status"]="ACTIVE"; STATE["last_cmd"]="REST"; expr.sad(); [set_angle(i, 90) for i in range(8)]; HISTORY.append("Resting")
+    elif char == '1': STATE["status"]="ACTIVE"; STATE["last_cmd"]="STAND"; expr.happy(); [servo.set_angle(ch, val) for ch, val in HOME.items()]; HISTORY.append("Stand")
+    elif char == '2': STATE["status"]="ACTIVE"; STATE["last_cmd"]="REST"; expr.sad(); [servo.set_angle(i, 90) for i in range(8)]; HISTORY.append("Resting")
     elif char == '3': STATE["status"]="ACTIVE"; STATE["last_cmd"]="BOW"; expr.happy(looking="down"); run_mvmt("bow"); HISTORY.append("Bowing")
     elif char == '4': STATE["status"]="ACTIVE"; STATE["last_cmd"]="WAVE"; expr.wink(); run_mvmt("wave"); HISTORY.append("Waving")
     elif char == '5': STATE["status"]="ACTIVE"; STATE["last_cmd"]="BOUNCE"; expr.happy(); run_mvmt("bounce"); HISTORY.append("Bouncing")
@@ -166,7 +149,7 @@ def handle_input(char):
     elif char == 'z': STATE["status"]="ACTIVE"; STATE["last_cmd"]="FREAKY"; expr.angry(); run_mvmt("freaky"); HISTORY.append("Freaky Mode")
     elif char == ' ': 
         STATE["status"]="RELEASED"; STATE["last_cmd"]="RELEASE";
-        for i in range(16): set_pwm(i, 0, 0)
+        for i in range(16): servo.release(i)
         HISTORY.append("Motors Released")
         expr.sleeping()
     return True
@@ -174,20 +157,11 @@ def handle_input(char):
 def main():
     if BUS:
         # Reset PCA9685 and set freq
-        try:
-            BUS.write_byte_data(ADDR, 0x00, 0x00)
-            prescale = int(25000000.0 / 4096.0 / 50 - 1.0)
-            old_mode = BUS.read_byte_data(ADDR, 0x00)
-            BUS.write_byte_data(ADDR, 0x00, (old_mode & 0x7F) | 0x10)
-            BUS.write_byte_data(ADDR, 0xFE, prescale)
-            BUS.write_byte_data(ADDR, 0x00, old_mode)
-            time.sleep(0.005)
-            BUS.write_byte_data(ADDR, 0x00, old_mode | 0x80)
-        except: pass
+        
     
     # Wake up and stand up
     expr.wakeup()
-    for ch, val in HOME.items(): set_angle(ch, val)
+    for ch, val in HOME.items(): servo.set_angle(ch, val)
     
     # Try to find Bluetooth Remote
     STATE["remote_dev"] = find_remote()
@@ -231,12 +205,12 @@ def main():
                     STATE["blink_interval"] = 3.0 + (5.0 * (1.0 - (1.0 / (1.0 + time.time() % 10))))
 
     # Final Release
-    for i in range(16): set_pwm(i, 0, 0)
+    for i in range(16): servo.release(i)
     print(term.clear + "Remote closed safely.")
 
 if __name__ == "__main__":
     try:
         main()
     except KeyboardInterrupt:
-        for i in range(16): set_pwm(i, 0, 0)
+        for i in range(16): servo.release(i)
         sys.exit(0)
