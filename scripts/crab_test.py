@@ -9,14 +9,14 @@ BUS = smbus2.SMBus(1)
 ADDR = 0x40
 
 # --- Channel Mapping ---
-L1 = 0 # Front Left Shoulder
-R1 = 1 # Front Right Shoulder
-L2 = 2 # Hind Left Shoulder
-R2 = 3 # Hind Right Shoulder
-L3 = 4 # Front Left Joint (Knee)
-R3 = 5 # Front Right Joint (Knee)
-L4 = 6 # Hind Left Joint (Knee)
-R4 = 7 # Hind Right Joint (Knee)
+L1 = 0 
+L2 = 1 
+L3 = 5 
+L4 = 4 
+R1 = 3 
+R2 = 2 
+R3 = 7 
+R4 = 6 
 
 ALL_SERVOS = [L1, R1, L2, R2, L3, R3, L4, R4]
 NAMES = {L1: "L1", R1: "R1", L2: "L2", R2: "R2", L3: "L3", R3: "R3", L4: "L4", R4: "R4"}

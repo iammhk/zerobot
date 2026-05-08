@@ -7,10 +7,10 @@ BUS = smbus2.SMBus(1)
 ADDR = 0x40
 
 # --- Channel Mapping ---
-L1, R1 = 0, 1 # Shoulders (Front)
-L2, R2 = 2, 3 # Shoulders (Hind)
-L3, R3 = 4, 5 # Knees (Front)
-L4, R4 = 6, 7 # Knees (Hind)
+L1, R1 = 0, 3 # Shoulders (Front)
+L2, R2 = 1, 2 # Shoulders (Hind)
+L3, R3 = 5, 7 # Knees (Front)
+L4, R4 = 4, 6 # Knees (Hind)
 
 # --- HARD LIMITS (Mirroring your mechanical constraints) ---
 LIMITS = {

@@ -5,8 +5,8 @@ import time
 BUS = smbus2.SMBus(1)
 ADDR = 0x40
 
-L1, R1, L2, R2 = 0, 1, 2, 3
-L3, R3, L4, R4 = 4, 5, 6, 7
+L1, L2, L3, L4 = 0, 1, 5, 4
+R1, R2, R3, R4 = 3, 2, 7, 6
 
 def set_pwm(channel, on, off):
     BUS.write_byte_data(ADDR, 0x06 + 4*channel, on & 0xFF)

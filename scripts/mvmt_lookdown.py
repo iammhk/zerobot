@@ -7,7 +7,7 @@ BUS = smbus2.SMBus(1)
 ADDR = 0x40
 
 # --- Channel Mapping ---
-L3, R3, L4, R4 = 4, 5, 6, 7
+
 
 # --- HARD LIMITS ---
 LIMITS = { 4: (0, 180), 5: (0, 180), 6: (0, 180), 7: (0, 180) }
