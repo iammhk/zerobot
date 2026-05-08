@@ -1,13 +1,14 @@
 # sesame_remote.py - Advanced TUI Remote using the 'blessed' library
+# Refactored for central servo control and optional Bluetooth Remote.
+
 import time
 import sys, os
+import subprocess
+from blessed import Terminal
+
+# Add root directory to path for zerobot imports
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 from zerobot import servo
-
-import sys
-import subprocess
-import os
-from blessed import Terminal
 
 try:
     import evdev
@@ -15,22 +16,15 @@ try:
 except ImportError:
     evdev = None
 
-# Add scripts directory to path for imports
+# Add current directory to path for display imports
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), ".")))
-
 from dsply_xprsn import DsplyExpressions
-expr = DsplyExpressions() # Initialize LCD
 
-# I2C Setup
-try:
-    except:
-    BUS = None
-    # --- Channel Mapping ---
-servo.config.LIMITS[servo.L1] = (0, 90); servo.config.LIMITS[servo.R1] = (90, 180)
-servo.config.LIMITS[servo.L2] = (90, 180); servo.config.LIMITS[servo.R2] = (0, 90)
+# Initialize systems
+term = Terminal()
+expr = DsplyExpressions()
 
 # --- State ---
-term = Terminal()
 HISTORY = ["System Initialized"]
 STATE = {
     "status": "ACTIVE",
@@ -62,8 +56,13 @@ def find_remote():
     except: pass
     return None
 
-
+def set_angle(channel, angle):
+    """Wrapper for servo.set_angle that updates UI state."""
+    servo.set_angle(channel, angle)
     if channel in STATE["angles"]:
+        # Get actual clipped angle for UI feedback
+        min_a, max_a = servo.config.LIMITS.get(channel, (0, 180))
+        safe_angle = max(min_a, min(max_a, angle))
         STATE["angles"][channel] = int(safe_angle)
 
 def run_mvmt(name, args=None):
@@ -73,17 +72,16 @@ def run_mvmt(name, args=None):
         draw_dynamic_ui()
         cmd = [sys.executable, script_path]
         if args: cmd.extend(args)
-        # We use capture_output to keep the UI clean
         subprocess.run(cmd, capture_output=True)
         STATE["running_script"] = False
-        STATE["status"] = "RELEASED" # Scripts release at end
+        STATE["status"] = "RELEASED"
         draw_static_ui()
         expr.happy()
     else:
         HISTORY.append(f"Error: {name} not found")
 
 def draw_static_ui():
-    """Draws labels and frames once."""
+    """Draws labels and frames."""
     print(term.home + term.clear)
     header_text = term.center(" SESAME ROBOT - BLESSED DASHBOARD ")
     print(term.black_on_cyan(term.bold(header_text)))
@@ -101,7 +99,7 @@ def draw_static_ui():
     print(term.move_y(term.height - 1) + term.center(term.dim + "Use Keyboard to Control | Zerobot Project 2026"))
 
 def draw_dynamic_ui():
-    """Updates only the values on the screen."""
+    """Updates dynamic values."""
     status_clr = term.green if STATE["status"] == "ACTIVE" else term.red
     with term.location(0, 3):
         print(term.clear_eol + f" Status: {term.bold(status_clr(STATE['status']))}  |  Last: {term.bold_yellow(STATE['last_cmd'])}")
@@ -123,8 +121,7 @@ def handle_input(char):
     if not char: return True
     char = char.lower()
     
-    # Reset expression to happy on any movement/active key if we were sleeping
-    if STATE["status"] == "RELEASED" and char != ' ' and char != 'x':
+    if STATE["status"] == "RELEASED" and char not in [' ', 'x']:
         expr.happy()
         STATE["status"] = "ACTIVE"
 
@@ -133,8 +130,14 @@ def handle_input(char):
     elif char == 's': STATE["status"]="ACTIVE"; STATE["last_cmd"]="WALK_BWD"; expr.eyes.look("down"); run_mvmt("sesame_walk", ["--dir","-1"]); HISTORY.append("Walk Backward")
     elif char == 'a': STATE["status"]="ACTIVE"; STATE["last_cmd"]="TURN_LEFT"; expr.eyes.look("left"); run_mvmt("sesame_turn", ["--dir","1"]); HISTORY.append("Turn Left")
     elif char == 'd': STATE["status"]="ACTIVE"; STATE["last_cmd"]="TURN_RIGHT"; expr.eyes.look("right"); run_mvmt("sesame_turn", ["--dir","-1"]); HISTORY.append("Turn Right")
-    elif char == '1': STATE["status"]="ACTIVE"; STATE["last_cmd"]="STAND"; expr.happy(); [servo.set_angle(ch, val) for ch, val in HOME.items()]; HISTORY.append("Stand")
-    elif char == '2': STATE["status"]="ACTIVE"; STATE["last_cmd"]="REST"; expr.sad(); [servo.set_angle(i, 90) for i in range(8)]; HISTORY.append("Resting")
+    elif char == '1': 
+        STATE["status"]="ACTIVE"; STATE["last_cmd"]="STAND"; expr.happy()
+        for ch, val in servo.HOME.items(): set_angle(ch, val)
+        HISTORY.append("Stand")
+    elif char == '2': 
+        STATE["status"]="ACTIVE"; STATE["last_cmd"]="REST"; expr.sad()
+        for i in range(8): set_angle(i, 90)
+        HISTORY.append("Resting")
     elif char == '3': STATE["status"]="ACTIVE"; STATE["last_cmd"]="BOW"; expr.happy(looking="down"); run_mvmt("bow"); HISTORY.append("Bowing")
     elif char == '4': STATE["status"]="ACTIVE"; STATE["last_cmd"]="WAVE"; expr.wink(); run_mvmt("wave"); HISTORY.append("Waving")
     elif char == '5': STATE["status"]="ACTIVE"; STATE["last_cmd"]="BOUNCE"; expr.happy(); run_mvmt("bounce"); HISTORY.append("Bouncing")
@@ -148,39 +151,47 @@ def handle_input(char):
     elif char == 'k': STATE["status"]="ACTIVE"; STATE["last_cmd"]="SHAKE"; expr.matrix(); run_mvmt("shake"); HISTORY.append("Shaking")
     elif char == 'z': STATE["status"]="ACTIVE"; STATE["last_cmd"]="FREAKY"; expr.angry(); run_mvmt("freaky"); HISTORY.append("Freaky Mode")
     elif char == ' ': 
-        STATE["status"]="RELEASED"; STATE["last_cmd"]="RELEASE";
-        for i in range(16): servo.release(i)
+        STATE["status"]="RELEASED"; STATE["last_cmd"]="RELEASE"
+        servo.release_all()
         HISTORY.append("Motors Released")
         expr.sleeping()
     return True
 
 def main():
-    if BUS:
-        # Reset PCA9685 and set freq
-        
+    # 1. Pre-initialization Prompt
+    print(term.clear + term.home)
+    print(term.bold_cyan("Zerobot Control System 2026"))
+    use_bt = input("\nEnable Bluetooth Remote functionality? (y/n): ").strip().lower() == 'y'
     
-    # Wake up and stand up
+    # 2. Hardware Initialization
     expr.wakeup()
-    for ch, val in HOME.items(): servo.set_angle(ch, val)
+    for ch, val in servo.HOME.items(): set_angle(ch, val)
     
-    # Try to find Bluetooth Remote
-    STATE["remote_dev"] = find_remote()
-    if STATE["remote_dev"]:
-        HISTORY.append(f"Remote Linked: {STATE['remote_dev'].name}")
+    if use_bt:
+        print(term.yellow("\nSearching for Bluetooth Remote..."))
+        STATE["remote_dev"] = find_remote()
+        if STATE["remote_dev"]:
+            HISTORY.append(f"Remote Linked: {STATE['remote_dev'].name}")
+            print(term.green(f"Success! Linked to {STATE['remote_dev'].name}"))
+            time.sleep(1)
+        else:
+            HISTORY.append("No BT Remote Found")
+            print(term.red("No remote found. Continuing with keyboard only."))
+            time.sleep(1.5)
     else:
-        HISTORY.append("No BT Remote Found")
+        HISTORY.append("BT Remote Disabled")
 
+    # 3. Main TUI Loop
     with term.cbreak(), term.hidden_cursor():
         draw_static_ui()
         while True:
             draw_dynamic_ui()
-            key = term.inkey(timeout=0.05) # Faster polling
+            key = term.inkey(timeout=0.05)
             
-            # 1. Handle Keyboard
             if key:
                 if not handle_input(str(key)): break
             
-            # 2. Handle Bluetooth Remote (Non-blocking)
+            # Handle Remote Events
             if STATE["remote_dev"]:
                 try:
                     for event in STATE["remote_dev"].read():
@@ -191,26 +202,24 @@ def main():
                                 if isinstance(key_name, list): key_name = key_name[0]
                                 if key_name in BT_KEY_MAP:
                                     if not handle_input(BT_KEY_MAP[key_name]): break
-                except (BlockingIOError, OSError):
-                    pass # No events available right now
+                except (BlockingIOError, OSError): pass
                 except (IOError, EOFError):
-                    STATE["remote_dev"] = None # Lost connection
+                    STATE["remote_dev"] = None
                     HISTORY.append("BT Remote Disconnected")
             
-            # 3. Idle Animations
+            # Idle Animations
             if not key:
                 if time.time() - STATE["last_blink"] > STATE["blink_interval"] and STATE["status"] == "ACTIVE":
                     expr.blink()
                     STATE["last_blink"] = time.time()
                     STATE["blink_interval"] = 3.0 + (5.0 * (1.0 - (1.0 / (1.0 + time.time() % 10))))
 
-    # Final Release
-    for i in range(16): servo.release(i)
-    print(term.clear + "Remote closed safely.")
+    servo.release_all()
+    print(term.clear + "Dashboard closed safely.")
 
 if __name__ == "__main__":
     try:
         main()
     except KeyboardInterrupt:
-        for i in range(16): servo.release(i)
+        servo.release_all()
         sys.exit(0)
