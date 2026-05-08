@@ -23,10 +23,10 @@ LIMITS = {
 
 # --- HOME POSITIONS (Default Standing) ---
 HOME = {
-    L1: 45, R1: 135,
+    L1: 45,  R1: 135,
     L2: 135, R2: 45,
-    L3: 45, R3: 135,
-    L4: 135, R4: 45
+    L3: 0,   R3: 180,
+    L4: 180, R4: 0
 }
 
 # --- HARDWARE SETTINGS ---

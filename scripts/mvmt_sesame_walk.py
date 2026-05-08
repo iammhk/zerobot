@@ -1,44 +1,53 @@
-# mvmt_sesame_walk.py - Ripple gait from Sesame Robot
+# mvmt_sesame_walk.py - Gait logic matched from official firmware
 import time
 import sys, os
+import argparse
+
+# Add root directory to path for zerobot imports
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 from zerobot import servo
 
-import sys
-import argparse
-
 def run(direction=1, cycles=1):
     try:
-        def sa(ch, ang):
-            if ch in [servo.L1, servo.R1, servo.L2, servo.R2]:
-                home_val = servo.HOME[ch]
-                servo.set_angle(ch, home_val + (ang - home_val) * direction)
-            else:
-                servo.set_angle(ch, ang)
+        # Initial positions
+        servo.move_to_home()
+        time.sleep(0.2)
+        
+        # Initial Step
+        servo.set_angle(servo.R3, 135); servo.set_angle(servo.L3, 45)
+        if direction == 1:
+            servo.set_angle(servo.R2, 100); servo.set_angle(servo.L1, 25)
+        else:
+            servo.set_angle(servo.R2, 90); servo.set_angle(servo.L1, 0)
+        time.sleep(0.2)
 
         for _ in range(cycles):
-            # Initial Step
-            sa(servo.R3, 135); sa(servo.L3, 45)
-            sa(servo.R2, 100); sa(servo.L1, 25)
-            time.sleep(0.1)
-
-            # Core Loop (1 cycle)
-            sa(servo.R3, 135); sa(servo.L3, 0); time.sleep(0.1)
-            sa(servo.L4, 135); sa(servo.L2, 90); sa(servo.R4, 0); sa(servo.R1, 180); time.sleep(0.1)
-            sa(servo.R2, 45); sa(servo.L1, 90); time.sleep(0.1)
-            sa(servo.R4, 45); sa(servo.L4, 180); time.sleep(0.1)
-            sa(servo.R3, 180); sa(servo.L3, 45); sa(servo.R2, 90); sa(servo.L1, 0); time.sleep(0.1)
-            sa(servo.L2, 135); sa(servo.R1, 90); time.sleep(0.1)
+            if direction == 1:
+                # WALK FORWARD
+                servo.set_angle(servo.R3, 135); servo.set_angle(servo.L3, 0); time.sleep(0.2)
+                servo.set_angle(servo.L4, 135); servo.set_angle(servo.L2, 90)
+                servo.set_angle(servo.R4, 0); servo.set_angle(servo.R1, 180); time.sleep(0.2)
+                servo.set_angle(servo.R2, 45); servo.set_angle(servo.L1, 90); time.sleep(0.2)
+                servo.set_angle(servo.R4, 45); servo.set_angle(servo.L4, 180); time.sleep(0.2)
+                servo.set_angle(servo.R3, 180); servo.set_angle(servo.L3, 45)
+                servo.set_angle(servo.R2, 90); servo.set_angle(servo.L1, 0); time.sleep(0.2)
+                servo.set_angle(servo.L2, 135); servo.set_angle(servo.R1, 90); time.sleep(0.2)
+            else:
+                # WALK BACKWARD
+                servo.set_angle(servo.R3, 135); servo.set_angle(servo.L3, 0); time.sleep(0.2)
+                servo.set_angle(servo.L4, 135); servo.set_angle(servo.L2, 135)
+                servo.set_angle(servo.R4, 0); servo.set_angle(servo.R1, 90); time.sleep(0.2)
+                servo.set_angle(servo.R2, 90); servo.set_angle(servo.L1, 0); time.sleep(0.2)
+                servo.set_angle(servo.R4, 45); servo.set_angle(servo.L4, 180); time.sleep(0.2)
+                servo.set_angle(servo.R3, 180); servo.set_angle(servo.L3, 45)
+                servo.set_angle(servo.R2, 45); servo.set_angle(servo.L1, 90); time.sleep(0.2)
+                servo.set_angle(servo.L2, 90); servo.set_angle(servo.R1, 180); time.sleep(0.2)
             
-        # Optional: Return home or stay? Remote usually calls multiple times.
-        # But standalone script should probably return home.
-        for ch, val in HOME.items(): servo.set_angle(ch, val)
-        time.sleep(0.2)
+        servo.move_to_home()
+    except Exception as e:
+        print(f"Error: {e}")
     finally:
-        # Release if standalone, but remote might not want release between steps.
-        # However, user asked for release in previous turn.
-        for i in range(8):
-            servo.release(i)
+        servo.release_all()
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()

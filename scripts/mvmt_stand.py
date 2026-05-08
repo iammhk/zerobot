@@ -1,29 +1,18 @@
-# scripts/mvmt_stand.py - Reset all servos to home position (standing).
-# Used in actual project for initialization and recovery.
-
-import sys
+# mvmt_stand.py - Official Stand Pose
 import time
 import sys, os
+
+# Add root directory to path for zerobot imports
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 from zerobot import servo
 
-
-# I2C Setup
-BUS = None
-try:
-    except:
-    pass
-
-# --- Channel Mapping ---
-except:
-            pass
-
-
-def main():
-    print("Moving to STAND position...")
-    for ch, val in HOME.items():
-        servo.set_angle(ch, val)
-    print("Standing.")
+def run():
+    try:
+        print("Standing up...")
+        servo.move_to_home()
+        time.sleep(1.0)
+    except Exception as e:
+        print(f"Error: {e}")
 
 if __name__ == "__main__":
-    main()
+    run()

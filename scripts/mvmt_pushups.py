@@ -1,58 +1,38 @@
-# crab_pushups.py - Front-Leg Only Pushups
+# mvmt_pushups.py - Pushups sequence matched from official firmware
 import time
 import sys, os
+
+# Add root directory to path for zerobot imports
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 from zerobot import servo
 
-
-# I2C Setup
-# --- HARD CHANNEL MAPPING ---
-# Shoulders: 0=servo.L1, 1=servo.R1, 2=servo.L2, 3=servo.R2
-# Knees:     4=servo.L3 (Front Left), 5=servo.R3 (Front Right)
-#            6=servo.L4 (Hind Left), 7=servo.R4 (Hind Right)
-
-ALL_CHANNELS = [0, 1, 2, 3, 4, 5, 6, 7]
-
-# --- HARD LIMITS ---
-
-
-# Standing Home Position
-
-
-
-
-
-
-
-try:
-    print("Moving all legs to HOME (Standing)...")
-    for ch, val in HOME.items():
-        servo.set_angle(ch, val)
-    time.sleep(1.5)
-
-    print("Starting Front-Leg Pushups (Channels 4 & 5)...")
-    for i in range(10):
-        print(f"Rep {i+1} / 10")
+def run():
+    try:
+        print("Doing pushups...")
+        servo.move_to_home()
+        time.sleep(0.2)
         
-        # PUSH UP (Lift body using Front Knees)
-        servo.set_angle(4, 10)  # Front Left Knee
-        servo.set_angle(5, 170) # Front Right Knee
+        servo.set_angle(servo.L1, 0)
+        servo.set_angle(servo.R1, 180)
+        servo.set_angle(servo.L3, 90)
+        servo.set_angle(servo.R3, 90)
         time.sleep(0.5)
         
-        # PUSH DOWN
-        servo.set_angle(4, 80)  # Return towards home
-        servo.set_angle(5, 100) # Return towards home
-        time.sleep(0.5)
+        for _ in range(4):
+            # Down
+            servo.set_angle(servo.L3, 0)
+            servo.set_angle(servo.R3, 180)
+            time.sleep(0.6)
+            # Up
+            servo.set_angle(servo.L3, 90)
+            servo.set_angle(servo.R3, 90)
+            time.sleep(0.5)
+            
+        servo.move_to_home()
+    except Exception as e:
+        print(f"Error: {e}")
+    finally:
+        servo.release_all()
 
-    print("\nWorkout complete. Returning to Home.")
-    for ch, val in HOME.items():
-        servo.set_angle(ch, val)
-    time.sleep(1)
-    
-    # Release all
-    for ch in ALL_CHANNELS:
-        set_pwm(ch, 0, 0)
-
-except KeyboardInterrupt:
-    for ch in ALL_CHANNELS:
-        set_pwm(ch, 0, 0)
+if __name__ == "__main__":
+    run()
