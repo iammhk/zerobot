@@ -1,10 +1,9 @@
 # sesame_remote.py - Advanced TUI Remote using the 'blessed' library
-# Optimized for performance and responsiveness.
+# Optimized for performance over SSH and Zero-Latency script execution.
 
 import time
 import sys, os
-import subprocess
-import threading
+import importlib
 from blessed import Terminal
 
 # Add root directory to path for zerobot imports
@@ -17,7 +16,7 @@ try:
 except ImportError:
     evdev = None
 
-# Add current directory to path for display imports
+# Add current directory to path for display and movement imports
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), ".")))
 from dsply_xprsn import DsplyExpressions
 
@@ -39,6 +38,9 @@ STATE = {
     "last_ui_update": 0
 }
 
+# Cache for movement modules
+MVMT_CACHE = {}
+
 # --- Bluetooth Config ---
 REMOTE_NAME_KEYWORDS = ["Consumer Control", "Remote", "Shutter", "Gamepad", "Keyboard", "VR-PARK"]
 BT_KEY_MAP = {
@@ -59,15 +61,6 @@ def find_remote():
     except: pass
     return None
 
-def set_expr(name, *args, **kwargs):
-    """Run expression in background thread to avoid blocking."""
-    def target():
-        try:
-            method = getattr(expr, name)
-            method(*args, **kwargs)
-        except: pass
-    threading.Thread(target=target, daemon=True).start()
-
 def set_angle(channel, angle):
     """Wrapper for servo.set_angle that updates UI state."""
     servo.set_angle(channel, angle)
@@ -78,21 +71,34 @@ def set_angle(channel, angle):
             STATE["angles"][channel] = int(safe_angle)
             STATE["dirty"] = True
 
-def run_mvmt(name, args=None):
-    script_path = os.path.join(os.path.dirname(__file__), f"mvmt_{name}.py")
-    if os.path.exists(script_path):
+def run_mvmt(name, kwargs=None):
+    """Executes a movement by importing its module for zero-latency startup."""
+    try:
+        if name not in MVMT_CACHE:
+            module_name = f"mvmt_{name}"
+            # Modules are in the same directory as this script
+            MVMT_CACHE[name] = importlib.import_module(module_name)
+        
+        module = MVMT_CACHE[name]
+        
         STATE["running_script"] = True
         draw_dynamic_ui(force=True)
-        cmd = [sys.executable, script_path]
-        if args: cmd.extend(args)
-        subprocess.run(cmd, capture_output=True)
+        
+        # Call the module's run() function
+        if kwargs:
+            module.run(**kwargs)
+        else:
+            module.run()
+            
         STATE["running_script"] = False
         STATE["status"] = "RELEASED"
         STATE["dirty"] = True
         draw_static_ui()
-        set_expr("happy")
-    else:
-        HISTORY.append(f"Error: {name} not found")
+        expr.happy()
+        
+    except Exception as e:
+        HISTORY.append(f"Mvmt Error ({name}): {e}")
+        STATE["running_script"] = False
         STATE["dirty"] = True
 
 def draw_static_ui():
@@ -128,6 +134,7 @@ def draw_dynamic_ui(force=False):
     else:
         output += term.move_xy(30, 3) + term.clear_eol
 
+    # Servo Angles
     output += term.move_xy(46, 6) + term.cyan(f"{STATE['angles'][servo.L1]:3}")
     output += term.move_xy(54, 6) + term.cyan(f"{STATE['angles'][servo.R1]:3}")
     output += term.move_xy(46, 7) + term.cyan(f"{STATE['angles'][servo.L2]:3}")
@@ -149,7 +156,7 @@ def handle_input(char):
     char = char.lower()
     
     if STATE["status"] == "RELEASED" and char not in [' ', 'x']:
-        set_expr("happy")
+        expr.happy()
         STATE["status"] = "ACTIVE"
         STATE["dirty"] = True
 
@@ -157,35 +164,35 @@ def handle_input(char):
     
     STATE["dirty"] = True
     
-    if char == 'w': STATE["last_cmd"]="WALK_FWD"; set_expr("eyes", "look", "up"); run_mvmt("sesame_walk", ["--dir","1"]); HISTORY.append("Walk Forward")
-    elif char == 's': STATE["last_cmd"]="WALK_BWD"; set_expr("eyes", "look", "down"); run_mvmt("sesame_walk", ["--dir","-1"]); HISTORY.append("Walk Backward")
-    elif char == 'a': STATE["last_cmd"]="TURN_LEFT"; set_expr("eyes", "look", "left"); run_mvmt("sesame_turn", ["--dir","1"]); HISTORY.append("Turn Left")
-    elif char == 'd': STATE["last_cmd"]="TURN_RIGHT"; set_expr("eyes", "look", "right"); run_mvmt("sesame_turn", ["--dir","-1"]); HISTORY.append("Turn Right")
+    if char == 'w': STATE["last_cmd"]="WALK_FWD"; expr.eyes.look("up"); run_mvmt("sesame_walk", {"direction": 1}); HISTORY.append("Walk Forward")
+    elif char == 's': STATE["last_cmd"]="WALK_BWD"; expr.eyes.look("down"); run_mvmt("sesame_walk", {"direction": -1}); HISTORY.append("Walk Backward")
+    elif char == 'a': STATE["last_cmd"]="TURN_LEFT"; expr.eyes.look("left"); run_mvmt("sesame_turn", {"direction": 1}); HISTORY.append("Turn Left")
+    elif char == 'd': STATE["last_cmd"]="TURN_RIGHT"; expr.eyes.look("right"); run_mvmt("sesame_turn", {"direction": -1}); HISTORY.append("Turn Right")
     elif char == '1': 
-        STATE["last_cmd"]="STAND"; set_expr("happy")
+        STATE["last_cmd"]="STAND"; expr.happy()
         for ch, val in servo.HOME.items(): set_angle(ch, val)
         HISTORY.append("Stand")
     elif char == '2': 
-        STATE["last_cmd"]="REST"; set_expr("sad")
+        STATE["last_cmd"]="REST"; expr.sad()
         for i in range(8): set_angle(i, 90)
         HISTORY.append("Resting")
-    elif char == '3': STATE["last_cmd"]="BOW"; set_expr("happy", looking="down"); run_mvmt("bow"); HISTORY.append("Bowing")
-    elif char == '4': STATE["last_cmd"]="WAVE"; set_expr("wink"); run_mvmt("wave"); HISTORY.append("Waving")
-    elif char == '5': STATE["last_cmd"]="BOUNCE"; set_expr("happy"); run_mvmt("bounce"); HISTORY.append("Bouncing")
-    elif char == '6': STATE["last_cmd"]="SWIM"; set_expr("happy"); run_mvmt("swim"); HISTORY.append("Swimming")
-    elif char == '7': STATE["last_cmd"]="POINT"; set_expr("happy"); run_mvmt("point"); HISTORY.append("Pointing")
-    elif char == '8': STATE["last_cmd"]="PUSHUP"; set_expr("happy"); run_mvmt("pushups"); HISTORY.append("Pushups")
-    elif char == '9': STATE["last_cmd"]="CUTE"; set_expr("love"); run_mvmt("cute"); HISTORY.append("Cute Mode")
-    elif char == '0': STATE["last_cmd"]="SHRUG"; set_expr("pondering"); run_mvmt("shrug"); HISTORY.append("Shrugging")
-    elif char == 'c': STATE["last_cmd"]="CRAB"; set_expr("scan"); run_mvmt("crab_display"); HISTORY.append("Crab Display")
-    elif char == 'v': STATE["last_cmd"]="WORM"; set_expr("glitch"); run_mvmt("worm"); HISTORY.append("Worming")
-    elif char == 'k': STATE["last_cmd"]="SHAKE"; set_expr("matrix"); run_mvmt("shake"); HISTORY.append("Shaking")
-    elif char == 'z': STATE["last_cmd"]="FREAKY"; set_expr("angry"); run_mvmt("freaky"); HISTORY.append("Freaky Mode")
+    elif char == '3': STATE["last_cmd"]="BOW"; expr.happy(looking="down"); run_mvmt("bow"); HISTORY.append("Bowing")
+    elif char == '4': STATE["last_cmd"]="WAVE"; expr.wink(); run_mvmt("wave"); HISTORY.append("Waving")
+    elif char == '5': STATE["last_cmd"]="BOUNCE"; expr.happy(); run_mvmt("bounce"); HISTORY.append("Bouncing")
+    elif char == '6': STATE["last_cmd"]="SWIM"; expr.happy(); run_mvmt("swim"); HISTORY.append("Swimming")
+    elif char == '7': STATE["last_cmd"]="POINT"; expr.happy(); run_mvmt("point"); HISTORY.append("Pointing")
+    elif char == '8': STATE["last_cmd"]="PUSHUP"; expr.happy(); run_mvmt("pushups"); HISTORY.append("Pushups")
+    elif char == '9': STATE["last_cmd"]="CUTE"; expr.love(); run_mvmt("cute"); HISTORY.append("Cute Mode")
+    elif char == '0': STATE["last_cmd"]="SHRUG"; expr.pondering(); run_mvmt("shrug"); HISTORY.append("Shrugging")
+    elif char == 'c': STATE["last_cmd"]="CRAB"; expr.scan(); run_mvmt("crab_display"); HISTORY.append("Crab Display")
+    elif char == 'v': STATE["last_cmd"]="WORM"; expr.glitch(); run_mvmt("worm"); HISTORY.append("Worming")
+    elif char == 'k': STATE["last_cmd"]="SHAKE"; expr.matrix(); run_mvmt("shake"); HISTORY.append("Shaking")
+    elif char == 'z': STATE["last_cmd"]="FREAKY"; expr.angry(); run_mvmt("freaky"); HISTORY.append("Freaky Mode")
     elif char == ' ': 
         STATE["status"]="RELEASED"; STATE["last_cmd"]="RELEASE"
         servo.release_all()
         HISTORY.append("Motors Released")
-        set_expr("sleeping")
+        expr.sleeping()
     return True
 
 def main():
@@ -195,7 +202,7 @@ def main():
     use_bt = input("\nEnable Bluetooth Remote functionality? (y/n): ").strip().lower() == 'y'
     
     # 2. Hardware Initialization
-    set_expr("wakeup")
+    expr.wakeup()
     for ch, val in servo.HOME.items(): set_angle(ch, val)
     
     if use_bt:
@@ -240,7 +247,7 @@ def main():
             
             if not key:
                 if time.time() - STATE["last_blink"] > STATE["blink_interval"] and STATE["status"] == "ACTIVE":
-                    set_expr("blink")
+                    expr.blink()
                     STATE["last_blink"] = time.time()
                     STATE["blink_interval"] = 3.0 + (5.0 * (1.0 - (1.0 / (1.0 + time.time() % 10))))
 
