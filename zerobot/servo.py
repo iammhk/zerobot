@@ -3,7 +3,7 @@
 
 import time
 from .utils.pca9685 import PCA9685, ServoHelper
-from . import config
+from . import hardware as config
 
 # Initialize the hardware
 _pca = PCA9685(address=config.I2C_ADDR, bus_id=config.I2C_BUS)
