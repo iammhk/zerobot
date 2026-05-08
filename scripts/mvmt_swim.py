@@ -11,17 +11,17 @@ def run():
         print("Swimming...")
         # Reset to 90
         for i in range(8): servo.set_angle(i, 90)
-        time.sleep(0.4)
+        time.sleep(servo.config.FRAME_DELAY * 4.0)
         
         for _ in range(4):
             # Stroke
             servo.set_angle(servo.R1, 135); servo.set_angle(servo.R2, 45)
             servo.set_angle(servo.L1, 45); servo.set_angle(servo.L2, 135)
-            time.sleep(0.4)
+            time.sleep(servo.config.FRAME_DELAY * 4.0)
             # Reset Shoulders
             servo.set_angle(servo.R1, 90); servo.set_angle(servo.R2, 90)
             servo.set_angle(servo.L1, 90); servo.set_angle(servo.L2, 90)
-            time.sleep(0.4)
+            time.sleep(servo.config.FRAME_DELAY * 4.0)
             
         servo.move_to_home()
     except Exception as e:

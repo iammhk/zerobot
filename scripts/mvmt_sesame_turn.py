@@ -10,33 +10,33 @@ from zerobot import servo
 def run(direction=1, cycles=2):
     try:
         servo.move_to_home()
-        time.sleep(0.2)
+        time.sleep(servo.config.FRAME_DELAY * 2.0)
         
         for _ in range(cycles):
             if direction > 0: 
                 # TURN LEFT
                 # Legset 1 (R1 L2)
-                servo.set_angle(servo.R3, 135); servo.set_angle(servo.L4, 135); time.sleep(0.2)
-                servo.set_angle(servo.R1, 180); servo.set_angle(servo.L2, 180); time.sleep(0.2)
-                servo.set_angle(servo.R3, 180); servo.set_angle(servo.L4, 180); time.sleep(0.2)
-                servo.set_angle(servo.R1, 135); servo.set_angle(servo.L2, 135); time.sleep(0.2)
+                servo.set_angle(servo.R3, 135); servo.set_angle(servo.L4, 135); time.sleep(servo.config.FRAME_DELAY * 2.0)
+                servo.set_angle(servo.R1, 180); servo.set_angle(servo.L2, 180); time.sleep(servo.config.FRAME_DELAY * 2.0)
+                servo.set_angle(servo.R3, 180); servo.set_angle(servo.L4, 180); time.sleep(servo.config.FRAME_DELAY * 2.0)
+                servo.set_angle(servo.R1, 135); servo.set_angle(servo.L2, 135); time.sleep(servo.config.FRAME_DELAY * 2.0)
                 # Legset 2 (R2 L1)
-                servo.set_angle(servo.R4, 45); servo.set_angle(servo.L3, 45); time.sleep(0.2)
-                servo.set_angle(servo.R2, 90); servo.set_angle(servo.L1, 90); time.sleep(0.2)
-                servo.set_angle(servo.R4, 0); servo.set_angle(servo.L3, 0); time.sleep(0.2)
-                servo.set_angle(servo.R2, 45); servo.set_angle(servo.L1, 45); time.sleep(0.2)
+                servo.set_angle(servo.R4, 45); servo.set_angle(servo.L3, 45); time.sleep(servo.config.FRAME_DELAY * 2.0)
+                servo.set_angle(servo.R2, 90); servo.set_angle(servo.L1, 90); time.sleep(servo.config.FRAME_DELAY * 2.0)
+                servo.set_angle(servo.R4, 0); servo.set_angle(servo.L3, 0); time.sleep(servo.config.FRAME_DELAY * 2.0)
+                servo.set_angle(servo.R2, 45); servo.set_angle(servo.L1, 45); time.sleep(servo.config.FRAME_DELAY * 2.0)
             else: 
                 # TURN RIGHT
                 # Legset 2 (R2 L1)
-                servo.set_angle(servo.R4, 45); servo.set_angle(servo.L3, 45); time.sleep(0.2)
-                servo.set_angle(servo.R2, 0); servo.set_angle(servo.L1, 0); time.sleep(0.2)
-                servo.set_angle(servo.R4, 0); servo.set_angle(servo.L3, 0); time.sleep(0.2)
-                servo.set_angle(servo.R2, 45); servo.set_angle(servo.L1, 45); time.sleep(0.2)
+                servo.set_angle(servo.R4, 45); servo.set_angle(servo.L3, 45); time.sleep(servo.config.FRAME_DELAY * 2.0)
+                servo.set_angle(servo.R2, 0); servo.set_angle(servo.L1, 0); time.sleep(servo.config.FRAME_DELAY * 2.0)
+                servo.set_angle(servo.R4, 0); servo.set_angle(servo.L3, 0); time.sleep(servo.config.FRAME_DELAY * 2.0)
+                servo.set_angle(servo.R2, 45); servo.set_angle(servo.L1, 45); time.sleep(servo.config.FRAME_DELAY * 2.0)
                 # Legset 1 (R1 L2)
-                servo.set_angle(servo.R3, 135); servo.set_angle(servo.L4, 135); time.sleep(0.2)
-                servo.set_angle(servo.R1, 90); servo.set_angle(servo.L2, 90); time.sleep(0.2)
-                servo.set_angle(servo.R3, 180); servo.set_angle(servo.L4, 180); time.sleep(0.2)
-                servo.set_angle(servo.R1, 135); servo.set_angle(servo.L2, 135); time.sleep(0.2)
+                servo.set_angle(servo.R3, 135); servo.set_angle(servo.L4, 135); time.sleep(servo.config.FRAME_DELAY * 2.0)
+                servo.set_angle(servo.R1, 90); servo.set_angle(servo.L2, 90); time.sleep(servo.config.FRAME_DELAY * 2.0)
+                servo.set_angle(servo.R3, 180); servo.set_angle(servo.L4, 180); time.sleep(servo.config.FRAME_DELAY * 2.0)
+                servo.set_angle(servo.R1, 135); servo.set_angle(servo.L2, 135); time.sleep(servo.config.FRAME_DELAY * 2.0)
         
         servo.move_to_home()
     except Exception as e:

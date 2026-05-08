@@ -10,24 +10,24 @@ def run():
     try:
         print("Worming...")
         servo.move_to_home()
-        time.sleep(0.2)
+        time.sleep(servo.config.FRAME_DELAY * 2.0)
         
         # Flatten
         servo.set_angle(servo.R1, 180); servo.set_angle(servo.R2, 0)
         servo.set_angle(servo.L1, 0); servo.set_angle(servo.L2, 180)
         servo.set_angle(servo.R4, 90); servo.set_angle(servo.R3, 90)
         servo.set_angle(servo.L3, 90); servo.set_angle(servo.L4, 90)
-        time.sleep(0.2)
+        time.sleep(servo.config.FRAME_DELAY * 2.0)
         
         for _ in range(5):
             # Squish
             servo.set_angle(servo.R3, 45); servo.set_angle(servo.L3, 135)
             servo.set_angle(servo.R4, 45); servo.set_angle(servo.L4, 135)
-            time.sleep(0.3)
+            time.sleep(servo.config.FRAME_DELAY * 3.0)
             # Stretch
             servo.set_angle(servo.R3, 135); servo.set_angle(servo.L3, 45)
             servo.set_angle(servo.R4, 135); servo.set_angle(servo.L4, 45)
-            time.sleep(0.3)
+            time.sleep(servo.config.FRAME_DELAY * 3.0)
             
         servo.move_to_home()
     except Exception as e:

@@ -20,7 +20,7 @@ try:
     # 1. Center Shoulders
     servo.set_angle(0, 45); servo.set_angle(1, 135)
     servo.set_angle(2, 135); servo.set_angle(3, 45)
-    time.sleep(0.5)
+    time.sleep(servo.config.FRAME_DELAY * 5.0)
 
     # 2. Maximum Flex (Legs up, Body down)
     # Smoothly lower the body
@@ -29,10 +29,10 @@ try:
         servo.set_angle(5, 135 - (i * 2.5)) # servo.R3 135 -> 10
         servo.set_angle(6, 135 - (i * 2.5)) # servo.L4 135 -> 10
         servo.set_angle(7, 45 + (i * 2.5))  # servo.R4 45 -> 170
-        time.sleep(0.02)
+        time.sleep(servo.config.FRAME_DELAY * 0.2)
 
     print("Resting body on the ground.")
-    time.sleep(1)
+    time.sleep(servo.config.FRAME_DELAY * 10.0)
     
     # 3. Release torque
     for i in range(16):

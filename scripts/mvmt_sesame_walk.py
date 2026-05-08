@@ -11,7 +11,7 @@ def run(direction=1, cycles=1):
     try:
         # Initial positions
         servo.move_to_home()
-        time.sleep(0.2)
+        time.sleep(servo.config.FRAME_DELAY * 2.0)
         
         # Initial Step
         servo.set_angle(servo.R3, 135); servo.set_angle(servo.L3, 45)
@@ -19,29 +19,29 @@ def run(direction=1, cycles=1):
             servo.set_angle(servo.R2, 100); servo.set_angle(servo.L1, 25)
         else:
             servo.set_angle(servo.R2, 90); servo.set_angle(servo.L1, 0)
-        time.sleep(0.2)
+        time.sleep(servo.config.FRAME_DELAY * 2.0)
 
         for _ in range(cycles):
             if direction == 1:
                 # WALK FORWARD
-                servo.set_angle(servo.R3, 135); servo.set_angle(servo.L3, 0); time.sleep(0.2)
+                servo.set_angle(servo.R3, 135); servo.set_angle(servo.L3, 0); time.sleep(servo.config.FRAME_DELAY * 2.0)
                 servo.set_angle(servo.L4, 135); servo.set_angle(servo.L2, 90)
-                servo.set_angle(servo.R4, 0); servo.set_angle(servo.R1, 180); time.sleep(0.2)
-                servo.set_angle(servo.R2, 45); servo.set_angle(servo.L1, 90); time.sleep(0.2)
-                servo.set_angle(servo.R4, 45); servo.set_angle(servo.L4, 180); time.sleep(0.2)
+                servo.set_angle(servo.R4, 0); servo.set_angle(servo.R1, 180); time.sleep(servo.config.FRAME_DELAY * 2.0)
+                servo.set_angle(servo.R2, 45); servo.set_angle(servo.L1, 90); time.sleep(servo.config.FRAME_DELAY * 2.0)
+                servo.set_angle(servo.R4, 45); servo.set_angle(servo.L4, 180); time.sleep(servo.config.FRAME_DELAY * 2.0)
                 servo.set_angle(servo.R3, 180); servo.set_angle(servo.L3, 45)
-                servo.set_angle(servo.R2, 90); servo.set_angle(servo.L1, 0); time.sleep(0.2)
-                servo.set_angle(servo.L2, 135); servo.set_angle(servo.R1, 90); time.sleep(0.2)
+                servo.set_angle(servo.R2, 90); servo.set_angle(servo.L1, 0); time.sleep(servo.config.FRAME_DELAY * 2.0)
+                servo.set_angle(servo.L2, 135); servo.set_angle(servo.R1, 90); time.sleep(servo.config.FRAME_DELAY * 2.0)
             else:
                 # WALK BACKWARD
-                servo.set_angle(servo.R3, 135); servo.set_angle(servo.L3, 0); time.sleep(0.2)
+                servo.set_angle(servo.R3, 135); servo.set_angle(servo.L3, 0); time.sleep(servo.config.FRAME_DELAY * 2.0)
                 servo.set_angle(servo.L4, 135); servo.set_angle(servo.L2, 135)
-                servo.set_angle(servo.R4, 0); servo.set_angle(servo.R1, 90); time.sleep(0.2)
-                servo.set_angle(servo.R2, 90); servo.set_angle(servo.L1, 0); time.sleep(0.2)
-                servo.set_angle(servo.R4, 45); servo.set_angle(servo.L4, 180); time.sleep(0.2)
+                servo.set_angle(servo.R4, 0); servo.set_angle(servo.R1, 90); time.sleep(servo.config.FRAME_DELAY * 2.0)
+                servo.set_angle(servo.R2, 90); servo.set_angle(servo.L1, 0); time.sleep(servo.config.FRAME_DELAY * 2.0)
+                servo.set_angle(servo.R4, 45); servo.set_angle(servo.L4, 180); time.sleep(servo.config.FRAME_DELAY * 2.0)
                 servo.set_angle(servo.R3, 180); servo.set_angle(servo.L3, 45)
-                servo.set_angle(servo.R2, 45); servo.set_angle(servo.L1, 90); time.sleep(0.2)
-                servo.set_angle(servo.L2, 90); servo.set_angle(servo.R1, 180); time.sleep(0.2)
+                servo.set_angle(servo.R2, 45); servo.set_angle(servo.L1, 90); time.sleep(servo.config.FRAME_DELAY * 2.0)
+                servo.set_angle(servo.L2, 90); servo.set_angle(servo.R1, 180); time.sleep(servo.config.FRAME_DELAY * 2.0)
             
         servo.move_to_home()
     except Exception as e:

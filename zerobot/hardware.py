@@ -36,6 +36,9 @@ PWM_FREQ = 50
 MIN_PULSE = 500  # us
 MAX_PULSE = 2500 # us
 
+# --- MOVEMENT SETTINGS ---
+FRAME_DELAY = 0.1  # Global speed control for movement sequences (seconds)
+
 # Helper lists
 ALL_SERVOS = [L1, R1, L2, R2, L3, R3, L4, R4]
 SHOULDERS = [L1, R1, L2, R2]

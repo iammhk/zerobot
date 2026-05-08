@@ -32,7 +32,7 @@ def leg_step(shoulder, knee, swing_offset=30, lift_offset=30):
         servo.set_angle(knee, mid_k - lift_offset)
     else: # servo.R3 and servo.L4
         servo.set_angle(knee, mid_k + lift_offset)
-    time.sleep(0.15)
+    time.sleep(servo.config.FRAME_DELAY * 1.5)
     
     # 2. Swing Shoulder
     # servo.L1 (0:90), servo.R1 (90:180), servo.L2 (90:180), servo.R2 (0:90)
@@ -40,11 +40,11 @@ def leg_step(shoulder, knee, swing_offset=30, lift_offset=30):
         servo.set_angle(shoulder, mid_s - swing_offset)
     else:
         servo.set_angle(shoulder, mid_s + swing_offset)
-    time.sleep(0.15)
+    time.sleep(servo.config.FRAME_DELAY * 1.5)
     
     # 3. Lower Knee
     servo.set_angle(knee, mid_k)
-    time.sleep(0.15)
+    time.sleep(servo.config.FRAME_DELAY * 1.5)
 
 
 
@@ -67,12 +67,12 @@ try:
         print("Shifting body...")
         for ch in [servo.L1, servo.R1, servo.L2, servo.R2]:
             servo.set_angle(ch, servo.HOME[ch])
-        time.sleep(0.4)
+        time.sleep(servo.config.FRAME_DELAY * 4.0)
 
     print("\nWalk complete. Returning to resting position (90 degrees)...")
     for ch in range(8):
         servo.set_angle(ch, 90)  # Clipped by safety limits (will stay at 90)
-    time.sleep(1)
+    time.sleep(servo.config.FRAME_DELAY * 10.0)
     
     print("Releasing all servos.")
     for i in range(8):

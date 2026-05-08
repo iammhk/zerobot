@@ -10,12 +10,12 @@ def run():
     try:
         print("Shrugging...")
         servo.move_to_home()
-        time.sleep(0.2)
+        time.sleep(servo.config.FRAME_DELAY * 2.0)
         
         # Lower knees
         servo.set_angle(servo.R3, 90); servo.set_angle(servo.R4, 90)
         servo.set_angle(servo.L3, 90); servo.set_angle(servo.L4, 90)
-        time.sleep(1.0)
+        time.sleep(servo.config.FRAME_DELAY * 10.0)
         
         # Shrug (Knees up)
         servo.set_angle(servo.R3, 0); servo.set_angle(servo.R4, 180)

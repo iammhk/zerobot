@@ -10,14 +10,14 @@ def run():
     try:
         print("Bowing...")
         servo.move_to_home()
-        time.sleep(0.2)
+        time.sleep(servo.config.FRAME_DELAY * 2.0)
         
         # Bowing pose
         servo.set_angle(servo.L1, 0); servo.set_angle(servo.R1, 180)
         servo.set_angle(servo.L3, 0); servo.set_angle(servo.R3, 180)
         servo.set_angle(servo.L2, 180); servo.set_angle(servo.R2, 0)
         servo.set_angle(servo.R4, 0); servo.set_angle(servo.L4, 180)
-        time.sleep(0.6)
+        time.sleep(servo.config.FRAME_DELAY * 6.0)
         
         # Nod
         servo.set_angle(servo.L3, 90); servo.set_angle(servo.R3, 90)

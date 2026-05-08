@@ -10,7 +10,7 @@ def run():
     try:
         print("Freaky Mode...")
         servo.move_to_home()
-        time.sleep(0.2)
+        time.sleep(servo.config.FRAME_DELAY * 2.0)
         
         servo.set_angle(servo.L1, 0)
         servo.set_angle(servo.R1, 180)
@@ -18,13 +18,13 @@ def run():
         servo.set_angle(servo.R2, 0)
         servo.set_angle(servo.R4, 90)
         servo.set_angle(servo.R3, 0)
-        time.sleep(0.2)
+        time.sleep(servo.config.FRAME_DELAY * 2.0)
         
         for _ in range(3):
             servo.set_angle(servo.R3, 25)
-            time.sleep(0.4)
+            time.sleep(servo.config.FRAME_DELAY * 4.0)
             servo.set_angle(servo.R3, 0)
-            time.sleep(0.4)
+            time.sleep(servo.config.FRAME_DELAY * 4.0)
             
         servo.move_to_home()
     except Exception as e:

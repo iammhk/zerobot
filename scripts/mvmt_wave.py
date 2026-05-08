@@ -10,23 +10,23 @@ def run():
     try:
         print("Waving...")
         servo.move_to_home()
-        time.sleep(0.2)
+        time.sleep(servo.config.FRAME_DELAY * 2.0)
         
         # Initial Wave Pose
         servo.set_angle(servo.R4, 80)
         servo.set_angle(servo.L3, 180)
         servo.set_angle(servo.L2, 60)
         servo.set_angle(servo.R1, 100)
-        time.sleep(0.2)
+        time.sleep(servo.config.FRAME_DELAY * 2.0)
         
         servo.set_angle(servo.L3, 180)
-        time.sleep(0.3)
+        time.sleep(servo.config.FRAME_DELAY * 3.0)
         
         for _ in range(4):
             servo.set_angle(servo.L3, 180)
-            time.sleep(0.3)
+            time.sleep(servo.config.FRAME_DELAY * 3.0)
             servo.set_angle(servo.L3, 100)
-            time.sleep(0.3)
+            time.sleep(servo.config.FRAME_DELAY * 3.0)
             
         servo.move_to_home()
     except Exception as e:

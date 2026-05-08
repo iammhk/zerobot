@@ -10,7 +10,7 @@ def run():
     try:
         print("Standing up...")
         servo.move_to_home()
-        time.sleep(1.0)
+        time.sleep(servo.config.FRAME_DELAY * 10.0)
     except Exception as e:
         print(f"Error: {e}")
 

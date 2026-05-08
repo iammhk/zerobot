@@ -26,16 +26,16 @@ def turn_step(s_ch, k_ch, dir):
     # 1. Lift
     lift_val = 40 if k_ch in [4, 7] else -40
     servo.set_angle(k_ch, mid_k + lift_val)
-    time.sleep(0.12)
+    time.sleep(servo.config.FRAME_DELAY * 1.2)
     
     # 2. Swing shoulder to the target turn position
     offset = 35 * dir
     servo.set_angle(s_ch, mid_s + offset)
-    time.sleep(0.12)
+    time.sleep(servo.config.FRAME_DELAY * 1.2)
     
     # 3. Lower
     servo.set_angle(k_ch, mid_k)
-    time.sleep(0.12)
+    time.sleep(servo.config.FRAME_DELAY * 1.2)
 
 
 
@@ -56,11 +56,11 @@ try:
         print("Rotating body...")
         for ch in [servo.L1, servo.R1, servo.L2, servo.R2]:
             servo.set_angle(ch, servo.HOME[ch])
-        time.sleep(0.4)
+        time.sleep(servo.config.FRAME_DELAY * 4.0)
 
     print("Resting at Home.")
     for ch, val in HOME.items(): servo.set_angle(ch, val)
-    time.sleep(1)
+    time.sleep(servo.config.FRAME_DELAY * 10.0)
     for ch in range(8): set_pwm(ch, 0, 0)
 
 except KeyboardInterrupt:

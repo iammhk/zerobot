@@ -21,7 +21,7 @@ from zerobot import servo
 try:
     print("Standing up...")
     for ch, val in HOME.items(): servo.set_angle(ch, val)
-    time.sleep(1.0)
+    time.sleep(servo.config.FRAME_DELAY * 10.0)
 
     print("Tilting UP (Pitching back)...")
     # Smooth transition for a dramatic tilt
@@ -36,13 +36,13 @@ try:
         servo.set_angle(5, 135 + offset)
         servo.set_angle(6, 135 + offset)
         servo.set_angle(7, 45 - offset)
-        time.sleep(0.02)
+        time.sleep(servo.config.FRAME_DELAY * 0.2)
     
     time.sleep(2.0) # Hold the tilt
 
     print("Returning to Home...")
     for ch, val in HOME.items(): servo.set_angle(ch, val)
-    time.sleep(1)
+    time.sleep(servo.config.FRAME_DELAY * 10.0)
     
     for ch in range(8): set_pwm(ch, 0, 0)
 

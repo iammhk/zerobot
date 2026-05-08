@@ -14,17 +14,17 @@ def run():
         servo.set_angle(servo.L1, 90); servo.set_angle(servo.L2, 90)
         servo.set_angle(servo.R4, 160); servo.set_angle(servo.R3, 160)
         servo.set_angle(servo.L3, 10); servo.set_angle(servo.L4, 10)
-        time.sleep(0.3)
+        time.sleep(servo.config.FRAME_DELAY * 3.0)
         
         for _ in range(5):
             # Move 1
             servo.set_angle(servo.R4, 115); servo.set_angle(servo.R3, 115)
             servo.set_angle(servo.L3, 10); servo.set_angle(servo.L4, 10)
-            time.sleep(0.3)
+            time.sleep(servo.config.FRAME_DELAY * 3.0)
             # Move 2
             servo.set_angle(servo.R4, 160); servo.set_angle(servo.R3, 160)
             servo.set_angle(servo.L3, 65); servo.set_angle(servo.L4, 65)
-            time.sleep(0.3)
+            time.sleep(servo.config.FRAME_DELAY * 3.0)
             
         servo.move_to_home()
     except Exception as e:
