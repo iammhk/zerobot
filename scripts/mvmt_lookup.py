@@ -1,45 +1,30 @@
-# crab_lookup.py - Curious tilt-up movement for the Crab-Bot
+# scripts/mvmt_lookup.py - Robot tilts its body upwards
+# This file is used in the Sesame Remote app to provide a "Look Up" gesture.
+
 import time
 import sys, os
+
+# Add root directory to path for zerobot imports
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 from zerobot import servo
 
-
-# I2C Setup
-# --- Channel Mapping ---
-# --- HARD LIMITS ---
-
-
-# Standing Home Position
-
-
-
-
-
-
-
-try:
-    print("Standing up...")
-    servo.move_to_home()
-    time.sleep(servo.config.FRAME_DELAY * 10.0)
-
-    print("Curious Tilt (Look Up)...")
-    # Pivot around the back legs.
-    # Front legs extend to tilt the body up.
-    # Hind legs stay at HOME to act as the pivot point.
-    for i in range(35):
-        offset = i
-        servo.set_angle(4, 45 - offset)  # servo.L3 Front Left extend
-        servo.set_angle(5, 135 + offset) # servo.R3 Front Right extend
-        time.sleep(servo.config.FRAME_DELAY * 0.3)
+def run():
+    """Executes the Look Up pose."""
+    # Front Knees at Standing (Home)
+    servo.set_angle(servo.L3, 0)
+    servo.set_angle(servo.R3, 180)
     
-    time.sleep(2.5)
-
-    print("Returning to Home...")
-    servo.move_to_home()
-    time.sleep(servo.config.FRAME_DELAY * 10.0)
+    # Hind Knees partially folded to lower the back
+    servo.set_angle(servo.L4, 120)
+    servo.set_angle(servo.R4, 60)
     
-    for ch in range(8): set_pwm(ch, 0, 0)
+    # Shoulders at Home
+    servo.set_angle(servo.L1, 45)
+    servo.set_angle(servo.R1, 135)
+    servo.set_angle(servo.L2, 135)
+    servo.set_angle(servo.R2, 45)
+    
+    time.sleep(0.2)
 
-except KeyboardInterrupt:
-    for ch in range(8): set_pwm(ch, 0, 0)
+if __name__ == "__main__":
+    run()
