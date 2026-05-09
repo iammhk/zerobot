@@ -107,7 +107,8 @@ def run_mvmt(name, kwargs=None):
             module.run()
             
         STATE["running_script"] = False
-        STATE["status"] = "RELEASED"
+        if name != "idle":
+            STATE["status"] = "RELEASED"
         STATE["dirty"] = True
         draw_static_ui()
         expr.happy()
