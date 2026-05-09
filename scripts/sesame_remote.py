@@ -45,7 +45,7 @@ MVMT_CACHE = {}
 REMOTE_NAME_KEYWORDS = ["Consumer Control", "Remote", "Shutter", "Gamepad", "Keyboard", "VR-PARK", "MOCUTE", "XiaoMi", "Controller", "Input"]
 BT_KEY_MAP = {
     "KEY_UP": 'w', "KEY_DOWN": 's', "KEY_LEFT": 'a', "KEY_RIGHT": 'd',
-    "KEY_SELECT": '1', "KEY_HOMEPAGE": '1', "KEY_BACK": ' ', "KEY_POWER": 'x',
+    "KEY_SELECT": '1', "KEY_HOMEPAGE": '2', "KEY_BACK": ' ', "KEY_POWER": 'x',
     "KEY_VOLUMEUP": '4', "KEY_VOLUMEDOWN": '3', "KEY_VIDEO": '6',
     "KEY_GREEN": '5', "KEY_VOICECOMMAND": '9', "KEY_APPSELECT": '7',
 }
