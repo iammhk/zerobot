@@ -257,8 +257,13 @@ def main():
                                 STATE["last_input_time"] = time.time()
                                 key_name = key_event.keycode
                                 if isinstance(key_name, list): key_name = key_name[0]
+                                
+                                # Debug: log all remote keys to history
+                                HISTORY.append(f"Remote: {key_name}")
+                                
                                 if key_name in BT_KEY_MAP:
-                                    if not handle_input(BT_KEY_MAP[key_name]): break
+                                    if not handle_input(BT_KEY_MAP[key_name]):
+                                        return # Exit main()
                 except (BlockingIOError, OSError): pass
                 except (IOError, EOFError):
                     STATE["remote_dev"] = None
