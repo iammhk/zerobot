@@ -34,7 +34,8 @@ def main():
         ("Dizzy", "dizzy", 0),       # dizzy has internal loop
         ("Shake", "shake", 0),       # shake has internal loop
         ("Pulse", "pulse", 0),       # pulse has internal loop
-        ("Squint", "squint", 0)      # squint has internal loop
+        ("Squint", "squint", 0),     # squint has internal loop
+        ("Bounce", "bounce", 0)      # bounce has internal loop
     ]
 
     try:

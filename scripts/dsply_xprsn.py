@@ -150,6 +150,26 @@ class DsplyExpressions:
     def squint(self):
         self.eyes.squint()
 
+    def bounce(self, duration=5.0):
+        """Eyes bounce around the screen like balls."""
+        balls = [
+            {"x": self.width//3, "y": self.height//2, "vx": 4, "vy": 3},
+            {"x": 2*self.width//3, "y": self.height//2, "vx": -3, "vy": 5}
+        ]
+        start = time.time()
+        while time.time() - start < duration:
+            with canvas(self.eyes.disp.device) as draw:
+                for b in balls:
+                    b["x"] += b["vx"]
+                    b["y"] += b["vy"]
+                    
+                    # Bounce logic
+                    if b["x"] < 20 or b["x"] > self.width - 20: b["vx"] *= -1
+                    if b["y"] < 20 or b["y"] > self.height - 20: b["vy"] *= -1
+                    
+                    self.eyes._draw_robo_eye(draw, b["x"], b["y"], 35, 35, 10, self.eyes.DEFAULT)
+            time.sleep(0.02)
+
     def clear(self):
         self.eyes.disp.clear()
 
