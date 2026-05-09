@@ -8,15 +8,15 @@ import sys, os
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 from zerobot import servo
 
-def run():
-    """Executes the Look Up pose."""
+def run(offset=30):
+    """Executes the Look Up pose with a variable offset."""
     # Front Knees at Standing (Home)
     servo.set_angle(servo.L3, 0)
     servo.set_angle(servo.R3, 180)
     
     # Hind Knees partially folded to lower the back
-    servo.set_angle(servo.L4, 120)
-    servo.set_angle(servo.R4, 60)
+    servo.set_angle(servo.L4, 180 - offset)
+    servo.set_angle(servo.R4, 0 + offset)
     
     # Shoulders at Home
     servo.set_angle(servo.L1, 45)

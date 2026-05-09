@@ -38,7 +38,8 @@ STATE = {
     "remote_dev": None,
     "dirty": True,
     "last_ui_update": 0,
-    "last_input_time": time.time()
+    "last_input_time": time.time(),
+    "tilt_level": 0
 }
 
 # Cache for movement modules
@@ -177,12 +178,26 @@ def handle_input(char):
     
     STATE["dirty"] = True
     
+    # Reset tilt if it's not a tilt command
+    if char not in ['q', 'e']:
+        STATE["tilt_level"] = 0
+
     if char == 'w': STATE["last_cmd"]="WALK_FWD"; expr.eyes.look("up"); run_mvmt("sesame_walk", {"direction": 1}); HISTORY.append("Walk Forward")
     elif char == 's': STATE["last_cmd"]="WALK_BWD"; expr.eyes.look("down"); run_mvmt("sesame_walk", {"direction": -1}); HISTORY.append("Walk Backward")
     elif char == 'a': STATE["last_cmd"]="TURN_LEFT"; expr.eyes.look("left"); run_mvmt("sesame_turn", {"direction": 1}); HISTORY.append("Turn Left")
     elif char == 'd': STATE["last_cmd"]="TURN_RIGHT"; expr.eyes.look("right"); run_mvmt("sesame_turn", {"direction": -1}); HISTORY.append("Turn Right")
-    elif char == 'q': STATE["last_cmd"]="LOOK_UP"; expr.eyes.look("up"); run_mvmt("lookup"); HISTORY.append("Look Up")
-    elif char == 'e': STATE["last_cmd"]="LOOK_DOWN"; expr.eyes.look("down"); run_mvmt("lookdown"); HISTORY.append("Look Down")
+    elif char == 'q': 
+        STATE["last_cmd"]="LOOK_UP"
+        STATE["tilt_level"] = min(STATE["tilt_level"] + 15, 60)
+        expr.eyes.look("up")
+        run_mvmt("lookup", {"offset": STATE["tilt_level"]})
+        HISTORY.append(f"Look Up (+{STATE['tilt_level']})")
+    elif char == 'e': 
+        STATE["last_cmd"]="LOOK_DOWN"
+        STATE["tilt_level"] = max(STATE["tilt_level"] - 15, -60)
+        expr.eyes.look("down")
+        run_mvmt("lookdown", {"offset": abs(STATE["tilt_level"])})
+        HISTORY.append(f"Look Down (-{abs(STATE['tilt_level'])})")
     elif char == '1': 
         STATE["last_cmd"]="STAND"; expr.happy()
         for ch, val in servo.HOME.items(): set_angle(ch, val)
