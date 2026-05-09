@@ -36,7 +36,8 @@ STATE = {
     "remote_dev": None,
     "dirty": True,
     "last_ui_update": 0,
-    "last_input_time": time.time()
+    "last_input_time": time.time(),
+    "last_idle_eye": 0
 }
 
 # Cache for movement modules
@@ -282,6 +283,15 @@ def main():
                 elif idle_time > 5.0 and STATE["last_cmd"] not in ["STAND", "REST"]:
                     HISTORY.append("Auto-Stand (Idle)")
                     handle_input('1')
+
+                # Idle Display Sequence (Looking around)
+                if idle_time > 5.0 and STATE["status"] == "ACTIVE" and not STATE["running_script"]:
+                    if time.time() - STATE["last_idle_eye"] > 3.0:
+                        import random
+                        expr.eyes.look(random.choice(["left", "right", "center", "up", "down", "left", "right"]))
+                        if random.random() > 0.5: expr.blink()
+                        STATE["last_idle_eye"] = time.time()
+                        STATE["dirty"] = True
 
                 if time.time() - STATE["last_blink"] > STATE["blink_interval"] and STATE["status"] == "ACTIVE":
                     expr.blink()
