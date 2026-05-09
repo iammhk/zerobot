@@ -1,4 +1,4 @@
-# mvmt_wakeup.py - Slow waking up and stretching sequence
+# mvmt_wakeup.py - Slow waking up and stretching sequence followed by a wave
 import time
 import sys, os
 
@@ -15,32 +15,40 @@ def run():
         
         # 2. Slow Shoulder Stretch (Move to home shoulders slowly)
         for i in range(10):
-            # L1: 90->45, R1: 90->135, L2: 90->135, R2: 90->45
             servo.set_angle(servo.L1, 90 - 4.5*i)
             servo.set_angle(servo.R1, 90 + 4.5*i)
             servo.set_angle(servo.L2, 90 + 4.5*i)
             servo.set_angle(servo.R2, 90 - 4.5*i)
             time.sleep(servo.config.FRAME_DELAY * 2)
             
-        # 3. Yawn/Stretch Front (Lift front knees)
+        # 3. Stretch Front (Lift front knees)
         for i in range(5):
             servo.set_angle(servo.L3, 0 + 10*i)
             servo.set_angle(servo.R3, 180 - 10*i)
             time.sleep(servo.config.FRAME_DELAY * 3)
         time.sleep(0.5)
         
-        # 4. Yawn/Stretch Back (Lift back knees)
+        # 4. Stretch Back (Lift back knees)
         for i in range(5):
             servo.set_angle(servo.L4, 180 - 10*i)
             servo.set_angle(servo.R4, 0 + 10*i)
             time.sleep(servo.config.FRAME_DELAY * 3)
         time.sleep(0.5)
         
-        # 5. Full Body Stretch (Flatten out)
-        servo.set_angle(servo.L3, 160); servo.set_angle(servo.R3, 20)
-        servo.set_angle(servo.L4, 20); servo.set_angle(servo.R4, 160)
-        time.sleep(0.8)
+        # 5. Final Wave (Instead of Full Body Stretch)
+        print("Waving hello!")
+        servo.set_angle(servo.R4, 80)
+        servo.set_angle(servo.L3, 180)
+        servo.set_angle(servo.L2, 60)
+        servo.set_angle(servo.R1, 100)
+        time.sleep(0.2)
         
+        for _ in range(3): # Shorter wave for startup
+            servo.set_angle(servo.L3, 180)
+            time.sleep(0.3)
+            servo.set_angle(servo.L3, 100)
+            time.sleep(0.3)
+            
         # 6. Return to Stand (HOME)
         servo.move_to_home()
         print("Ready!")
