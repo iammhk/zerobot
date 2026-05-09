@@ -42,7 +42,7 @@ STATE = {
 MVMT_CACHE = {}
 
 # --- Bluetooth Config ---
-REMOTE_NAME_KEYWORDS = ["Consumer Control", "Remote", "Shutter", "Gamepad", "Keyboard", "VR-PARK"]
+REMOTE_NAME_KEYWORDS = ["Consumer Control", "Remote", "Shutter", "Gamepad", "Keyboard", "VR-PARK", "MOCUTE", "XiaoMi", "Controller", "Input"]
 BT_KEY_MAP = {
     "KEY_UP": 'w', "KEY_DOWN": 's', "KEY_LEFT": 'a', "KEY_RIGHT": 'd',
     "KEY_SELECT": '1', "KEY_HOMEPAGE": '1', "KEY_BACK": ' ', "KEY_POWER": ' ',
@@ -54,11 +54,20 @@ def find_remote():
     if not evdev: return None
     try:
         devices = [evdev.InputDevice(path) for path in evdev.list_devices()]
+        if not devices:
+            HISTORY.append("No input devices found")
+            return None
+        
+        # Log all devices found for debugging
+        dev_names = [d.name for d in devices]
+        HISTORY.append(f"Found {len(devices)} devs: {', '.join(dev_names[:3])}")
+        
         for keyword in REMOTE_NAME_KEYWORDS:
             for device in devices:
                 if keyword.lower() in device.name.lower():
                     return device
-    except: pass
+    except Exception as e:
+        HISTORY.append(f"Remote Search Error: {e}")
     return None
 
 def set_angle(channel, angle):
