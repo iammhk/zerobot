@@ -5,6 +5,7 @@ This document describes the physical hardware that you (the agent) are currently
 ## Core System
 - **Processor**: Raspberry Pi Zero 2 W
 - **Servo Driver**: Waveshare Servo Driver HAT (PCA9685)
+- **Camera**: Raspberry Pi Camera V1.3 (5MP Mini CSI)
 - **Power**: 12V External Supply
 
 ## Visual Display (LCD)
@@ -18,6 +19,12 @@ This document describes the physical hardware that you (the agent) are currently
   - **DC**: GPIO 24
   - **RES**: GPIO 25
   - **Backlight (BL)**: GPIO 23 (Managed via `RPi.GPIO`)
+
+## Camera (Vision)
+- **Model**: Raspberry Pi Camera V1.3
+- **Sensor**: OmniVision OV5647 (5MP)
+- **Interface**: CSI (Camera Serial Interface)
+- **Integration**: Managed via `Picamera2` and `libcamera`.
 
 ## Physical Structure: Quadruped Crab-Bot
 The robot has a crab-like structure with **4 legs**, each using **2 servos** (Total 8 servos).

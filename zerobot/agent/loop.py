@@ -35,6 +35,7 @@ from zerobot.agent.tools.bluetooth import BluetoothTool
 from zerobot.agent.tools.servos import ServoTool
 from zerobot.agent.tools.music import MusicTool
 from zerobot.agent.tools.display import DisplayTool
+from zerobot.agent.tools.camera import CameraTool
 from zerobot.agent.tools.web import WebFetchTool, WebSearchTool
 from zerobot.bus.events import InboundMessage, OutboundMessage
 from zerobot.bus.queue import MessageBus
@@ -355,6 +356,8 @@ class AgentLoop:
             self.tools.register(ServoTool())
         if "st7735" in (self.context.connected_hardware or []):
             self.tools.register(DisplayTool())
+        if "camera" in (self.context.connected_hardware or []):
+            self.tools.register(CameraTool())
 
     async def _connect_mcp(self) -> None:
         """Connect to configured MCP servers (one-time, lazy)."""
