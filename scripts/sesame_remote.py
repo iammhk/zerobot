@@ -5,6 +5,7 @@ import time
 import sys, os
 import importlib
 import random
+import threading
 from blessed import Terminal
 
 # Add root directory to path for zerobot imports
@@ -208,7 +209,11 @@ def handle_input(char):
         HISTORY.append("Resting")
     elif char == '3': STATE["last_cmd"]="BOW"; expr.happy(looking="down"); run_mvmt("bow"); HISTORY.append("Bowing")
     elif char == '4': STATE["last_cmd"]="WAVE"; expr.wink(); run_mvmt("wave"); HISTORY.append("Waving")
-    elif char == '5': STATE["last_cmd"]="BOUNCE"; expr.happy(); run_mvmt("bounce"); HISTORY.append("Bouncing")
+    elif char == '5': 
+        STATE["last_cmd"]="BOUNCE"
+        threading.Thread(target=expr.bounce, args=(4.0,), daemon=True).start()
+        run_mvmt("bounce")
+        HISTORY.append("Bouncing")
     elif char == '6': STATE["last_cmd"]="SWIM"; expr.happy(); run_mvmt("swim"); HISTORY.append("Swimming")
     elif char == '7': STATE["last_cmd"]="POINT"; expr.happy(); run_mvmt("point"); HISTORY.append("Pointing")
     elif char == '8': STATE["last_cmd"]="PUSHUP"; expr.happy(); run_mvmt("pushups"); HISTORY.append("Pushups")
