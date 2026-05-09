@@ -45,7 +45,7 @@ MVMT_CACHE = {}
 REMOTE_NAME_KEYWORDS = ["Consumer Control", "Remote", "Shutter", "Gamepad", "Keyboard", "VR-PARK", "MOCUTE", "XiaoMi", "Controller", "Input"]
 BT_KEY_MAP = {
     "KEY_UP": 'w', "KEY_DOWN": 's', "KEY_LEFT": 'a', "KEY_RIGHT": 'd',
-    "KEY_SELECT": '1', "KEY_HOMEPAGE": '1', "KEY_BACK": ' ', "KEY_POWER": ' ',
+    "KEY_SELECT": '1', "KEY_HOMEPAGE": '1', "KEY_BACK": ' ', "KEY_POWER": 'x',
     "KEY_VOLUMEUP": '4', "KEY_VOLUMEDOWN": '3', "KEY_VIDEO": '6',
     "KEY_GREEN": '5', "KEY_VOICECOMMAND": '9', "KEY_APPSELECT": '7',
 }
@@ -205,10 +205,18 @@ def handle_input(char):
     return True
 
 def main():
+    import argparse
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--bt", action="store_true", help="Auto-enable Bluetooth Remote")
+    args = parser.parse_args()
+
     # 1. Pre-initialization Prompt
-    print(term.clear + term.home)
-    print(term.bold_cyan("Zerobot Control System 2026"))
-    use_bt = input("\nEnable Bluetooth Remote functionality? (y/n): ").strip().lower() == 'y'
+    if not args.bt:
+        print(term.clear + term.home)
+        print(term.bold_cyan("Zerobot Control System 2026"))
+        use_bt = input("\nEnable Bluetooth Remote functionality? (y/n): ").strip().lower() == 'y'
+    else:
+        use_bt = True
     
     # 2. Hardware Initialization
     expr.wakeup()
