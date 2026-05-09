@@ -314,6 +314,8 @@ def main():
                     if idle_time < 30.0 and time.time() - STATE.get("last_idle_mvmt", 0) > random.uniform(3.0, 6.0):
                         run_mvmt("idle")
                         STATE["last_idle_mvmt"] = time.time()
+                        HISTORY.append("Idle Movement")
+                        STATE["dirty"] = True
 
                     # Random Eye Movements (every 2-4 seconds while idle)
                     if time.time() - STATE["last_eye_move"] > random.uniform(2.0, 4.0):
