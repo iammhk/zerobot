@@ -35,7 +35,8 @@ STATE = {
     "blink_interval": 5.0,
     "remote_dev": None,
     "dirty": True,
-    "last_ui_update": 0
+    "last_ui_update": 0,
+    "last_input_time": time.time()
 }
 
 # Cache for movement modules
@@ -244,6 +245,7 @@ def main():
             key = term.inkey(timeout=0.01)
             
             if key:
+                STATE["last_input_time"] = time.time()
                 if not handle_input(str(key)): break
             
             if STATE["remote_dev"]:
@@ -252,6 +254,7 @@ def main():
                         if event.type == ecodes.EV_KEY:
                             key_event = evdev.categorize(event)
                             if key_event.keystate == key_event.key_down:
+                                STATE["last_input_time"] = time.time()
                                 key_name = key_event.keycode
                                 if isinstance(key_name, list): key_name = key_name[0]
                                 if key_name in BT_KEY_MAP:
@@ -263,6 +266,18 @@ def main():
                     STATE["dirty"] = True
             
             if not key:
+                idle_time = time.time() - STATE["last_input_time"]
+                
+                # Auto-Rest (15s)
+                if idle_time > 15.0 and STATE["last_cmd"] != "REST":
+                    HISTORY.append("Auto-Rest (Idle)")
+                    handle_input('2')
+                
+                # Auto-Stand (5s)
+                elif idle_time > 5.0 and STATE["last_cmd"] not in ["STAND", "REST"]:
+                    HISTORY.append("Auto-Stand (Idle)")
+                    handle_input('1')
+
                 if time.time() - STATE["last_blink"] > STATE["blink_interval"] and STATE["status"] == "ACTIVE":
                     expr.blink()
                     STATE["last_blink"] = time.time()
