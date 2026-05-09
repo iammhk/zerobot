@@ -57,7 +57,8 @@ def main():
                             if not is_app_running():
                                 print("🚀 Power key pressed! Launching sesame_remote in tmux session 'zerobot'...")
                                 # We use tmux so the TUI has a persistent session to live in
-                                cmd = ["tmux", "new-session", "-d", "-s", "zerobot", f"python3 {sesame_path} --bt"]
+                                # Use uv run to ensure the correct environment is used
+                                cmd = ["tmux", "new-session", "-d", "-s", "zerobot", f"/home/iammhk/.local/bin/uv run {sesame_path} --bt"]
                                 subprocess.Popen(cmd)
                             else:
                                 print("ℹ️ App already running. Ignoring Power key.")

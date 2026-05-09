@@ -7,7 +7,8 @@ Description=Zerobot Remote Launcher (KEY_POWER to launch TUI)
 After=network.target bluetooth.target
 
 [Service]
-ExecStart=/usr/bin/python3 /home/iammhk/zerobot/scripts/remote_launcher.py
+WorkingDirectory=/home/iammhk/zerobot
+ExecStart=/home/iammhk/.local/bin/uv run scripts/remote_launcher.py
 Restart=always
 RestartSec=5
 
