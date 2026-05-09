@@ -50,7 +50,7 @@ def leg_step(shoulder, knee, swing_offset=30, lift_offset=30):
 
 try:
     print("Standing up...")
-    for ch, angle in HOME.items():
+    for ch, angle in servo.HOME.items():
         servo.set_angle(ch, angle)
     time.sleep(2)
 

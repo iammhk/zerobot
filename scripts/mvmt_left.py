@@ -43,7 +43,7 @@ def turn_step(s_ch, k_ch, dir):
 
 try:
     print("Moving to Home...")
-    for ch, val in HOME.items(): servo.set_angle(ch, val)
+    servo.move_to_home()
     time.sleep(1.5)
 
     print("Turning Left (Counter-Clockwise)...")
@@ -61,7 +61,7 @@ try:
         time.sleep(servo.config.FRAME_DELAY * 4.0)
 
     print("Resting at Home.")
-    for ch, val in HOME.items(): servo.set_angle(ch, val)
+    servo.move_to_home()
     time.sleep(servo.config.FRAME_DELAY * 10.0)
     for ch in range(8): set_pwm(ch, 0, 0)
 

@@ -13,7 +13,7 @@ def run():
             time.sleep(servo.config.FRAME_DELAY * 3.0)
             servo.set_angle(servo.L3, 65); servo.set_angle(servo.L4, 65); servo.set_angle(servo.R3, 115); servo.set_angle(servo.R4, 115)
             time.sleep(servo.config.FRAME_DELAY * 3.0)
-        for ch, val in HOME.items(): servo.set_angle(ch, val)
+        servo.move_to_home()
         time.sleep(servo.config.FRAME_DELAY * 10.0)
     finally:
         print("Releasing servos...")

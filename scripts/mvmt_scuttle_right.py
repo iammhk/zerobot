@@ -21,7 +21,7 @@ try:
     set_freq(50)
     
     print("Moving to Home...")
-    for ch, val in HOME.items(): servo.set_angle(ch, val)
+    servo.move_to_home()
     time.sleep(1.5)
 
     print("Scuttling Right...")
@@ -47,7 +47,7 @@ try:
         time.sleep(servo.config.FRAME_DELAY * 3.0)
 
     print("Resting at Home.")
-    for ch, val in HOME.items(): servo.set_angle(ch, val)
+    servo.move_to_home()
     time.sleep(servo.config.FRAME_DELAY * 10.0)
     for ch in range(8): set_pwm(ch, 0, 0)
 except KeyboardInterrupt:
