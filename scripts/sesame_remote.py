@@ -220,7 +220,7 @@ def main():
     
     # 2. Hardware Initialization
     expr.wakeup()
-    for ch, val in servo.HOME.items(): set_angle(ch, val)
+    run_mvmt("wakeup")
     
     if use_bt:
         print(term.yellow("\nSearching for Bluetooth Remote..."))
