@@ -1,0 +1,14 @@
+[Unit]
+Description=Zerobot Remote Launcher Service
+After=multi-user.target bluetooth.target
+
+[Service]
+Type=simple
+User=iammhk
+WorkingDirectory=/home/iammhk/zerobot
+ExecStart=/usr/bin/python3 /home/iammhk/zerobot/scripts/remote_launcher.py
+Restart=always
+RestartSec=10
+
+[Install]
+WantedBy=multi-user.target
