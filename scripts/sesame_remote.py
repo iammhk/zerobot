@@ -268,6 +268,7 @@ def main():
                     STATE["last_blink"] = time.time()
                     STATE["blink_interval"] = 3.0 + (5.0 * (1.0 - (1.0 / (1.0 + time.time() % 10))))
 
+    run_mvmt("sleep")
     servo.release_all()
     print(term.clear + "Dashboard closed safely.")
 
