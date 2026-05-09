@@ -311,8 +311,8 @@ def main():
                     handle_input('1')
 
                 if idle_time > 5.0 and STATE["status"] == "ACTIVE":
-                    # Random Idle Movements (every 3-6 seconds while between 5s and 60s)
-                    if idle_time < 60.0 and time.time() - STATE.get("last_idle_mvmt", 0) > random.uniform(3.0, 6.0):
+                    # Random Idle Movements (every 8-10 seconds while between 5s and 60s)
+                    if idle_time < 60.0 and time.time() - STATE.get("last_idle_mvmt", 0) > random.uniform(8.0, 10.0):
                         run_mvmt("idle")
                         STATE["last_idle_mvmt"] = time.time()
                         HISTORY.append("Idle Movement")
