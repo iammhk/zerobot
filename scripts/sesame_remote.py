@@ -299,8 +299,8 @@ def main():
             if not key:
                 idle_time = time.time() - STATE["last_input_time"]
                 
-                # Auto-Rest (30s)
-                if idle_time > 30.0 and STATE["last_cmd"] != "REST":
+                # Auto-Rest (60s)
+                if idle_time > 60.0 and STATE["last_cmd"] != "REST":
                     HISTORY.append("Auto-Rest (Idle)")
                     handle_input('2')
                 
@@ -310,8 +310,8 @@ def main():
                     handle_input('1')
 
                 if idle_time > 5.0 and STATE["status"] == "ACTIVE":
-                    # Random Idle Movements (every 3-6 seconds while between 5s and 30s)
-                    if idle_time < 30.0 and time.time() - STATE.get("last_idle_mvmt", 0) > random.uniform(3.0, 6.0):
+                    # Random Idle Movements (every 3-6 seconds while between 5s and 60s)
+                    if idle_time < 60.0 and time.time() - STATE.get("last_idle_mvmt", 0) > random.uniform(3.0, 6.0):
                         run_mvmt("idle")
                         STATE["last_idle_mvmt"] = time.time()
                         HISTORY.append("Idle Movement")
