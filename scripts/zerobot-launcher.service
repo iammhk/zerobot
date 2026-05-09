@@ -1,0 +1,15 @@
+# scripts/zerobot-launcher.service - Systemd service for the remote launcher
+# Copy this to ~/.config/systemd/user/zerobot-launcher.service
+# Then run: systemctl --user enable zerobot-launcher && systemctl --user start zerobot-launcher
+
+[Unit]
+Description=Zerobot Remote Launcher (KEY_POWER to launch TUI)
+After=network.target bluetooth.target
+
+[Service]
+ExecStart=/usr/bin/python3 /home/iammhk/zerobot/scripts/remote_launcher.py
+Restart=always
+RestartSec=5
+
+[Install]
+WantedBy=default.target
