@@ -188,13 +188,13 @@ def handle_input(char):
     elif char == 'd': STATE["last_cmd"]="TURN_RIGHT"; expr.eyes.look("right"); run_mvmt("sesame_turn", {"direction": -1}); HISTORY.append("Turn Right")
     elif char == 'q': 
         STATE["last_cmd"]="LOOK_UP"
-        STATE["tilt_level"] = min(STATE["tilt_level"] + 15, 60)
+        STATE["tilt_level"] = min(STATE["tilt_level"] + 15, 90)
         expr.eyes.look("up")
         run_mvmt("lookup", {"offset": STATE["tilt_level"]})
         HISTORY.append(f"Look Up (+{STATE['tilt_level']})")
     elif char == 'e': 
         STATE["last_cmd"]="LOOK_DOWN"
-        STATE["tilt_level"] = max(STATE["tilt_level"] - 15, -60)
+        STATE["tilt_level"] = max(STATE["tilt_level"] - 15, -90)
         expr.eyes.look("down")
         run_mvmt("lookdown", {"offset": abs(STATE["tilt_level"])})
         HISTORY.append(f"Look Down (-{abs(STATE['tilt_level'])})")
