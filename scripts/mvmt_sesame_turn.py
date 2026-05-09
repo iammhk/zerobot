@@ -7,7 +7,7 @@ import argparse
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 from zerobot import servo
 
-def run(direction=1, cycles=2):
+def run(direction=1, cycles=1):
     try:
         servo.move_to_home()
         time.sleep(servo.config.FRAME_DELAY * 2.0)
