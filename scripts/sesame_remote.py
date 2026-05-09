@@ -40,7 +40,8 @@ STATE = {
     "dirty": True,
     "last_ui_update": 0,
     "last_input_time": time.time(),
-    "tilt_level": 0
+    "tilt_level": 0,
+    "last_idle_mvmt": 0
 }
 
 # Cache for movement modules
@@ -298,8 +299,8 @@ def main():
             if not key:
                 idle_time = time.time() - STATE["last_input_time"]
                 
-                # Auto-Rest (15s)
-                if idle_time > 15.0 and STATE["last_cmd"] != "REST":
+                # Auto-Rest (30s)
+                if idle_time > 30.0 and STATE["last_cmd"] != "REST":
                     HISTORY.append("Auto-Rest (Idle)")
                     handle_input('2')
                 
@@ -309,6 +310,11 @@ def main():
                     handle_input('1')
 
                 if idle_time > 5.0 and STATE["status"] == "ACTIVE":
+                    # Random Idle Movements (every 3-6 seconds while between 5s and 30s)
+                    if idle_time < 30.0 and time.time() - STATE.get("last_idle_mvmt", 0) > random.uniform(3.0, 6.0):
+                        run_mvmt("idle")
+                        STATE["last_idle_mvmt"] = time.time()
+
                     # Random Eye Movements (every 2-4 seconds while idle)
                     if time.time() - STATE["last_eye_move"] > random.uniform(2.0, 4.0):
                         expr.eyes.look(random.choice(["left", "right", "center", "up", "down", "center"]))
