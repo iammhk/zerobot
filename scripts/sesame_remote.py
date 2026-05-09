@@ -184,7 +184,7 @@ def handle_input(char):
         HISTORY.append("Stand")
     elif char == '2': 
         STATE["last_cmd"]="REST"; expr.sad()
-        for i in range(8): set_angle(i, 90)
+        run_mvmt("rest")
         HISTORY.append("Resting")
     elif char == '3': STATE["last_cmd"]="BOW"; expr.happy(looking="down"); run_mvmt("bow"); HISTORY.append("Bowing")
     elif char == '4': STATE["last_cmd"]="WAVE"; expr.wink(); run_mvmt("wave"); HISTORY.append("Waving")
