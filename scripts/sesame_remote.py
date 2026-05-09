@@ -4,6 +4,7 @@
 import time
 import sys, os
 import importlib
+import random
 from blessed import Terminal
 
 # Add root directory to path for zerobot imports
@@ -33,11 +34,11 @@ STATE = {
     "running_script": False,
     "last_blink": time.time(),
     "blink_interval": 5.0,
+    "last_eye_move": time.time(),
     "remote_dev": None,
     "dirty": True,
     "last_ui_update": 0,
-    "last_input_time": time.time(),
-    "last_idle_eye": 0
+    "last_input_time": time.time()
 }
 
 # Cache for movement modules
@@ -284,19 +285,17 @@ def main():
                     HISTORY.append("Auto-Stand (Idle)")
                     handle_input('1')
 
-                # Idle Display Sequence (Looking around)
-                if idle_time > 5.0 and STATE["status"] == "ACTIVE" and not STATE["running_script"]:
-                    if time.time() - STATE["last_idle_eye"] > 3.0:
-                        import random
-                        expr.eyes.look(random.choice(["left", "right", "center", "up", "down", "left", "right"]))
-                        if random.random() > 0.5: expr.blink()
-                        STATE["last_idle_eye"] = time.time()
-                        STATE["dirty"] = True
-
-                if time.time() - STATE["last_blink"] > STATE["blink_interval"] and STATE["status"] == "ACTIVE":
-                    expr.blink()
-                    STATE["last_blink"] = time.time()
-                    STATE["blink_interval"] = 3.0 + (5.0 * (1.0 - (1.0 / (1.0 + time.time() % 10))))
+                if idle_time > 5.0 and STATE["status"] == "ACTIVE":
+                    # Random Eye Movements (every 2-4 seconds while idle)
+                    if time.time() - STATE["last_eye_move"] > random.uniform(2.0, 4.0):
+                        expr.eyes.look(random.choice(["left", "right", "center", "up", "down", "center"]))
+                        STATE["last_eye_move"] = time.time()
+                    
+                    # Random Blinking
+                    if time.time() - STATE["last_blink"] > STATE["blink_interval"]:
+                        expr.blink()
+                        STATE["last_blink"] = time.time()
+                        STATE["blink_interval"] = random.uniform(3.0, 7.0)
 
     run_mvmt("sleep")
     servo.release_all()
