@@ -94,16 +94,17 @@ def set_low_power(enabled):
     try:
         if enabled:
             # Set governor to powersave (600MHz)
-            cmd = "echo powersave | sudo tee /sys/devices/system/cpu/cpu*/cpufreq/scaling_governor"
-            subprocess.run(cmd, shell=True, check=False, stdout=subprocess.DEVNULL)
-            # Disable HDMI output
+            # Use sudo -n (non-interactive) to avoid hanging on password prompt
+            cmd = "echo powersave | sudo -n tee /sys/devices/system/cpu/cpu*/cpufreq/scaling_governor"
+            subprocess.run(cmd, shell=True, check=False, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+            # Disable HDMI output (usually doesn't need sudo if in video group)
             subprocess.run(["vcgencmd", "display_power", "0"], check=False, stdout=subprocess.DEVNULL)
             STATE["powersaving"] = True
             HISTORY.append("🔋 Power Saving: ON (Display Off / CPU Low)")
         else:
             # Set governor back to ondemand
-            cmd = "echo ondemand | sudo tee /sys/devices/system/cpu/cpu*/cpufreq/scaling_governor"
-            subprocess.run(cmd, shell=True, check=False, stdout=subprocess.DEVNULL)
+            cmd = "echo ondemand | sudo -n tee /sys/devices/system/cpu/cpu*/cpufreq/scaling_governor"
+            subprocess.run(cmd, shell=True, check=False, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
             # Enable HDMI output
             subprocess.run(["vcgencmd", "display_power", "1"], check=False, stdout=subprocess.DEVNULL)
             STATE["powersaving"] = False
