@@ -6,6 +6,7 @@ import sys, os
 import importlib
 import random
 import threading
+import subprocess
 from blessed import Terminal
 
 # Add root directory to path for zerobot imports
@@ -41,7 +42,8 @@ STATE = {
     "last_ui_update": 0,
     "last_input_time": time.time(),
     "tilt_level": 0,
-    "last_idle_mvmt": 0
+    "last_idle_mvmt": 0,
+    "powersaving": False
 }
 
 # Cache for movement modules
@@ -86,6 +88,29 @@ def set_angle(channel, angle):
         if STATE["angles"][channel] != int(safe_angle):
             STATE["angles"][channel] = int(safe_angle)
             STATE["dirty"] = True
+
+def set_low_power(enabled):
+    """Toggles CPU governor and HDMI power."""
+    try:
+        if enabled:
+            # Set governor to powersave (600MHz)
+            cmd = "echo powersave | sudo tee /sys/devices/system/cpu/cpu*/cpufreq/scaling_governor"
+            subprocess.run(cmd, shell=True, check=False, stdout=subprocess.DEVNULL)
+            # Disable HDMI output
+            subprocess.run(["vcgencmd", "display_power", "0"], check=False, stdout=subprocess.DEVNULL)
+            STATE["powersaving"] = True
+            HISTORY.append("🔋 Power Saving: ON (Display Off / CPU Low)")
+        else:
+            # Set governor back to ondemand
+            cmd = "echo ondemand | sudo tee /sys/devices/system/cpu/cpu*/cpufreq/scaling_governor"
+            subprocess.run(cmd, shell=True, check=False, stdout=subprocess.DEVNULL)
+            # Enable HDMI output
+            subprocess.run(["vcgencmd", "display_power", "1"], check=False, stdout=subprocess.DEVNULL)
+            STATE["powersaving"] = False
+            HISTORY.append("⚡ Power Saving: OFF (Resuming)")
+            draw_static_ui() # Refresh screen after HDMI wake
+    except Exception as e:
+        HISTORY.append(f"Power Error: {e}")
 
 def run_mvmt(name, kwargs=None):
     """Executes a movement by importing its module for zero-latency startup."""
@@ -176,6 +201,9 @@ def handle_input(char):
         expr.happy()
         STATE["status"] = "ACTIVE"
         STATE["dirty"] = True
+
+    if STATE["powersaving"]:
+        set_low_power(False)
 
     if char == 'x': return False
     
@@ -299,6 +327,10 @@ def main():
             
             if not key:
                 idle_time = time.time() - STATE["last_input_time"]
+                
+                # Low Power Mode (5 mins / 300s)
+                if idle_time > 300.0 and not STATE["powersaving"]:
+                    set_low_power(True)
                 
                 # Auto-Rest (60s)
                 if idle_time > 60.0 and STATE["last_cmd"] != "REST":
