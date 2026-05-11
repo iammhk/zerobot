@@ -99,6 +99,9 @@ def set_low_power(enabled):
             subprocess.run(cmd, shell=True, check=False, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
             # Disable HDMI output (usually doesn't need sudo if in video group)
             subprocess.run(["vcgencmd", "display_power", "0"], check=False, stdout=subprocess.DEVNULL)
+            # Disable SPI Display Backlight
+            if hasattr(expr.eyes.disp, 'set_backlight'):
+                expr.eyes.disp.set_backlight(False)
             STATE["powersaving"] = True
             HISTORY.append("🔋 Power Saving: ON (Display Off / CPU Low)")
         else:
@@ -107,6 +110,9 @@ def set_low_power(enabled):
             subprocess.run(cmd, shell=True, check=False, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
             # Enable HDMI output
             subprocess.run(["vcgencmd", "display_power", "1"], check=False, stdout=subprocess.DEVNULL)
+            # Enable SPI Display Backlight
+            if hasattr(expr.eyes.disp, 'set_backlight'):
+                expr.eyes.disp.set_backlight(True)
             STATE["powersaving"] = False
             HISTORY.append("⚡ Power Saving: OFF (Resuming)")
             draw_static_ui() # Refresh screen after HDMI wake

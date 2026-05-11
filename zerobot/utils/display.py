@@ -41,6 +41,17 @@ class ZerobotDisplay:
             with canvas(self.device) as draw:
                 draw.rectangle((0, 0, self.width, self.height), outline="black", fill="black")
 
+    def set_backlight(self, on):
+        """Toggles the LCD backlight GPIO."""
+        if self.backlight_pin:
+            try:
+                GPIO.setmode(GPIO.BCM)
+                GPIO.setup(self.backlight_pin, GPIO.OUT)
+                GPIO.output(self.backlight_pin, GPIO.HIGH if on else GPIO.LOW)
+                print(f"Backlight {'on' if on else 'off'} (GPIO {self.backlight_pin})")
+            except Exception as e:
+                print(f"Backlight error: {e}")
+
     def show_text(self, text, title="STATUS"):
         if not self.device: return
         with canvas(self.device) as draw:
