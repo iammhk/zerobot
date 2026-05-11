@@ -56,7 +56,7 @@ BT_KEY_MAP = {
     "KEY_SELECT": '1', "KEY_HOMEPAGE": '2', "KEY_BACK": ' ', 
     "KEY_POWER": 'x', "KEY_SLEEP": 'x', "KEY_WAKEUP": 'x',
     "KEY_VOLUMEUP": '4', "KEY_VOLUMEDOWN": '3', "KEY_VIDEO": '6',
-    "KEY_GREEN": '5', "KEY_VOICECOMMAND": '9', "KEY_APPSELECT": '7',
+    "KEY_GREEN": '5', "KEY_VOICECOMMAND": '9', "KEY_APPSELECT": 'r',
 }
 
 def find_remote():
@@ -260,6 +260,13 @@ def handle_input(char):
     elif char == 'v': STATE["last_cmd"]="WORM"; expr.glitch(); run_mvmt("worm"); HISTORY.append("Worming")
     elif char == 'k': STATE["last_cmd"]="SHAKE"; expr.matrix(); run_mvmt("shake"); HISTORY.append("Shaking")
     elif char == 'z': STATE["last_cmd"]="FREAKY"; expr.angry(); run_mvmt("freaky"); HISTORY.append("Freaky Mode")
+    elif char == 'r':
+        mvmts = ["dance", "stomp", "scuttle_left", "scuttle_right", "freaky", "worm", "shrug", "shake", "moveup", "movedown"]
+        picked = random.choice(mvmts)
+        STATE["last_cmd"] = f"RANDOM_{picked.upper()}"
+        expr.happy()
+        run_mvmt(picked)
+        HISTORY.append(f"🎲 Random: {picked}")
     elif char == ' ': 
         STATE["status"]="RELEASED"; STATE["last_cmd"]="RELEASE"
         servo.release_all()
