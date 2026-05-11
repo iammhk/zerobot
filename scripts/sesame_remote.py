@@ -261,7 +261,7 @@ def handle_input(char):
     elif char == 'k': STATE["last_cmd"]="SHAKE"; expr.matrix(); run_mvmt("shake"); HISTORY.append("Shaking")
     elif char == 'z': STATE["last_cmd"]="FREAKY"; expr.angry(); run_mvmt("freaky"); HISTORY.append("Freaky Mode")
     elif char == 'r':
-        mvmts = ["dance", "stomp", "scuttle_left", "scuttle_right", "freaky", "worm", "shrug", "shake", "moveup", "movedown"]
+        mvmts = ["dance", "stomp", "scuttle_left", "scuttle_right", "freaky", "worm", "shrug", "shake", "moveup", "movedown", "point"]
         picked = random.choice(mvmts)
         STATE["last_cmd"] = f"RANDOM_{picked.upper()}"
         expr.happy()
