@@ -118,7 +118,7 @@ class EInkDashboard:
     def get_stats(self):
         current_time = time.strftime("%H:%M")
         
-        # Wi-Fi SSID
+        # SSID
         try:
             ssid = subprocess.check_output("nmcli -t -f active,ssid dev wifi | grep '^yes' | cut -d: -f2", shell=True).decode("utf-8").strip()
             if not ssid: ssid = "Offline"
@@ -134,10 +134,22 @@ class EInkDashboard:
         except:
             ip = "No IP"
             
-        # CPU & RAM
+        # CPU
         cpu_usage = psutil.cpu_percent()
+        try:
+            cpu_freq = psutil.cpu_freq().current
+        except:
+            cpu_freq = 0
+            
+        # RAM
         ram = psutil.virtual_memory()
-        ram_usage = f"RAM: {ram.percent}%"
+        
+        # Disk
+        disk = psutil.disk_usage('/')
+        
+        # Uptime
+        uptime_seconds = time.time() - psutil.boot_time()
+        uptime_str = f"{int(uptime_seconds // 3600)}h {int((uptime_seconds % 3600) // 60)}m"
         
         # Temp
         try:
@@ -152,29 +164,26 @@ class EInkDashboard:
             "time": current_time,
             "ssid": ssid,
             "ip": ip,
-            "cpu": f"CPU: {cpu_usage}%",
-            "ram": ram_usage,
-            "temp": f"T: {temp:.1f}C",
+            "cpu": f"CPU: {cpu_usage}% @ {int(cpu_freq)}MHz",
+            "ram": f"RAM: {ram.percent}%",
+            "disk": f"Disk: {disk.percent}%",
+            "uptime": f"Up: {uptime_str}",
+            "temp": f"Temp: {temp:.1f}C",
             "npu": npu_status
         }
 
     def update_display(self, black_img, red_img):
-        # Set Cursor
         self.send_command(0x4E) # X
         self.send_data(0x00)
         self.send_command(0x4F) # Y
         self.send_data(0x00)
         self.send_data(0x00)
         
-        # Send Black Data
         self.send_command(0x24)
         self.send_data_array(self.get_buffer(black_img))
-            
-        # Send Red Data
         self.send_command(0x26)
         self.send_data_array(self.get_buffer(red_img))
             
-        # Refresh
         self.send_command(0x22)
         self.send_data(0xF7)
         self.send_command(0x20)
@@ -193,27 +202,30 @@ class EInkDashboard:
         draw_black = ImageDraw.Draw(black_img)
         draw_red = ImageDraw.Draw(red_img)
         
-        # Dashboard Layout
-        # Red Header with Time
+        # Header (Red)
         draw_red.rectangle((0, 0, WIDTH, 35), fill=0)
         draw_red.text((15, 12), f"ZEROBOT | {stats['time']}", fill=255)
         
-        # Network Info
-        draw_black.text((10, 50), f"WiFi: {stats['ssid']}", fill=0)
-        draw_black.text((10, 65), f"IP: {stats['ip']}", fill=0)
+        # Network Info (Black)
+        draw_black.text((10, 45), f"WiFi: {stats['ssid']}", fill=0)
+        draw_black.text((10, 60), f"IP: {stats['ip']}", fill=0)
         
-        # System Stats
-        draw_black.line((10, 85, WIDTH-10, 85), fill=0)
-        draw_black.text((15, 100), stats['cpu'], fill=0)
-        draw_black.text((15, 115), stats['ram'], fill=0)
-        draw_black.text((15, 130), stats['temp'], fill=0)
-        draw_black.text((15, 145), stats['npu'], fill=0)
+        # System Stats (Black)
+        draw_black.line((10, 80, WIDTH-10, 80), fill=0)
+        y = 90
+        spacing = 15
+        draw_black.text((15, y), stats['cpu'], fill=0); y += spacing
+        draw_black.text((15, y), stats['ram'], fill=0); y += spacing
+        draw_black.text((15, y), stats['disk'], fill=0); y += spacing
+        draw_black.text((15, y), stats['temp'], fill=0); y += spacing
+        draw_black.text((15, y), stats['npu'], fill=0); y += spacing
+        draw_black.text((15, y), stats['uptime'], fill=0); y += spacing
         
         # Footer
         draw_black.line((10, 230, WIDTH-10, 230), fill=0)
         draw_black.text((15, 235), "iammhk/zerobot", fill=0)
 
-        print(f"Updating Display: {stats['time']} | {stats['ssid']} | {stats['ram']}")
+        print(f"Updating Display: {stats['time']}")
         self.update_display(black_img, red_img)
         
     def start(self):
@@ -221,7 +233,7 @@ class EInkDashboard:
         try:
             while True:
                 self.render()
-                time.sleep(60) # Refresh every minute
+                time.sleep(60) 
         except KeyboardInterrupt:
             print("Dashboard stopped.")
         finally:
