@@ -1,0 +1,14 @@
+[Unit]
+Description=Zerobot E-Ink Dashboard Service
+After=network.target
+
+[Service]
+Type=simple
+User=root
+WorkingDirectory=/home/iammhk/zerobot
+ExecStart=/home/iammhk/.local/bin/uv run --project /home/iammhk/zerobot python -u scripts/eink_launcher.py
+Restart=on-failure
+RestartSec=10
+
+[Install]
+WantedBy=multi-user.target
