@@ -22,8 +22,8 @@ except ImportError:
     sys.exit(1)
 
 # Display Constants
-WIDTH = 212
-HEIGHT = 104
+WIDTH = 104
+HEIGHT = 212
 
 # Pin Mapping for Radxa A7Z
 RST_PIN = 33   # PIN_11 on gpiochip0
@@ -77,19 +77,27 @@ class EInkDashboard:
             time.sleep(0.1)
 
     def init_display(self):
-        print("Initializing Display...")
+        print("Initializing Display (V3 BWR)...")
         self.reset()
         self.wait_until_idle()
-        self.send_command(0x12) # SWRESET
+        
+        self.send_command(0x04) # Power ON
         self.wait_until_idle()
-        # Add more init commands here if needed for specific model
-        # For simplicity, we just trigger reset which clears to white on many models
+        
+        self.send_command(0x00) # Panel Setting
+        self.send_data(0x0f)
+        self.send_data(0x89)
+        
+        self.send_command(0x61) # Resolution Setting
+        self.send_data(0x68) # 104
+        self.send_data(0x00)
+        self.send_data(0xD4) # 212
+        
+        self.send_command(0x50) # VCOM and Data Interval Setting
+        self.send_data(0x77)
 
     def get_stats(self):
-        # Time
-        current_time = time.strftime("%H:%M:%S")
-        
-        # IP
+        current_time = time.strftime("%H:%M")
         try:
             s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
             s.connect(("8.8.8.8", 80))
@@ -97,68 +105,83 @@ class EInkDashboard:
             s.close()
         except:
             ip = "No Network"
-            
-        # CPU
         cpu_usage = psutil.cpu_percent()
-        
-        # Temp
         try:
             with open("/sys/class/thermal/thermal_zone0/temp", "r") as f:
                 temp = float(f.read()) / 1000.0
         except:
             temp = 0.0
-            
-        # NPU Status
-        npu_status = "Active" if os.path.exists("/dev/vipcore") else "Offline"
-        
+        npu_status = "NPU: OK" if os.path.exists("/dev/vipcore") else "NPU: OFF"
         return {
             "time": current_time,
             "ip": ip,
-            "cpu": f"{cpu_usage}%",
-            "temp": f"{temp:.1f}C",
+            "cpu": f"CPU: {cpu_usage}%",
+            "temp": f"T: {temp:.1f}C",
             "npu": npu_status
         }
 
+    def update_display(self, black_img, red_img):
+        # Send Black Data
+        self.send_command(0x10)
+        buf = self.get_buffer(black_img)
+        self.spi.writebytes(buf)
+            
+        # Send Red Data
+        self.send_command(0x13)
+        buf = self.get_buffer(red_img)
+        self.spi.writebytes(buf)
+            
+        self.send_command(0x12) # Refresh
+        self.wait_until_idle()
+
+    def get_buffer(self, image):
+        buf = [0xFF] * (int(WIDTH / 8) * HEIGHT)
+        image_monochrome = image.convert('1')
+        width, height = image_monochrome.size
+        pixels = image_monochrome.load()
+        for y in range(height):
+            for x in range(width):
+                if pixels[x, y] == 0:
+                    buf[int(x / 8) + y * int(WIDTH / 8)] &= ~(0x80 >> (x % 8))
+        return buf
+
     def render(self):
         stats = self.get_stats()
-        
-        # Create Black and Red images
-        black_img = Image.new('1', (WIDTH, HEIGHT), 255) # 255 = White
+        # Create portrait images (104x212)
+        black_img = Image.new('1', (WIDTH, HEIGHT), 255)
         red_img = Image.new('1', (WIDTH, HEIGHT), 255)
-        
         draw_black = ImageDraw.Draw(black_img)
         draw_red = ImageDraw.Draw(red_img)
         
-        # Header (Red)
-        draw_red.rectangle((0, 0, WIDTH, 20), fill=0)
-        draw_red.text((10, 2), "ZEROBOT RADXA DASHBOARD", fill=255)
+        # Dashboard Layout
+        draw_red.rectangle((0, 0, WIDTH, 30), fill=0)
+        draw_red.text((10, 8), "ZEROBOT", fill=255)
         
-        # Stats (Black)
-        draw_black.text((10, 30), f"TIME: {stats['time']}", fill=0)
-        draw_black.text((10, 45), f"IP  : {stats['ip']}", fill=0)
-        draw_black.text((10, 60), f"CPU : {stats['cpu']} @ {stats['temp']}", fill=0)
-        draw_black.text((10, 75), f"NPU : {stats['npu']}", fill=0)
+        draw_black.text((10, 40), stats['time'], fill=0)
+        draw_black.text((10, 60), stats['ip'], fill=0)
+        draw_black.text((10, 80), stats['cpu'], fill=0)
+        draw_black.text((10, 100), stats['temp'], fill=0)
+        draw_black.text((10, 120), stats['npu'], fill=0)
         
-        # Small icon or footer
-        draw_black.line((0, 95, WIDTH, 95), fill=0)
-        draw_black.text((WIDTH - 60, 96), "iammhk/zerobot", fill=0)
+        draw_black.line((0, 200, WIDTH, 200), fill=0)
+        draw_black.text((10, 202), "iammhk/zerobot", fill=0)
 
-        # In a real driver, we would send black_img and red_img buffers to the EPD
-        # Since we are using a simplified test, we just print the status
-        print(f"Rendered Frame: {stats['time']} | {stats['cpu']} | {stats['temp']}")
-        
-        # For actual display update, one would need the full Waveshare init/refresh sequence
-        # We'll stick to printing for this demonstration to ensure stability
+        print(f"Updating Display: {stats['time']}")
+        self.update_display(black_img, red_img)
         
     def start(self):
         self.init_display()
         try:
             while True:
                 self.render()
-                time.sleep(60) # E-Ink shouldn't update too fast
+                time.sleep(300) 
         except KeyboardInterrupt:
             print("Dashboard stopped.")
         finally:
+            self.send_command(0x02) # Power OFF
+            self.wait_until_idle()
+            self.send_command(0x07) # Deep Sleep
+            self.send_data(0xA5)
             self.req0.release()
             self.req1.release()
             self.spi.close()
