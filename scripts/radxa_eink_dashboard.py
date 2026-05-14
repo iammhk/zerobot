@@ -1,6 +1,5 @@
 # scripts/radxa_eink_dashboard.py - System status dashboard for Zerobot on Radxa E-Ink Display
-# Displays Time, IP, CPU/NPU Status, and Temperature.
-# Optimized for Waveshare 2.13" E-Ink (Three-color: Black/Red/White)
+# Optimized for Waveshare 2.13" E-Ink BWR V3/V4
 
 import os
 import sys
@@ -18,7 +17,7 @@ try:
     import gpiod
     from gpiod.line import Direction, Value
 except ImportError:
-    print("Error: Missing spidev or gpiod. Ensure you are running in the correct environment.")
+    print("Error: Missing spidev or gpiod.")
     sys.exit(1)
 
 # Display Constants
@@ -32,13 +31,11 @@ DC_PIN = 5     # PIN_22 on gpiochip1
 
 class EInkDashboard:
     def __init__(self):
-        # Initialize SPI
         self.spi = spidev.SpiDev()
-        self.spi.open(1, 0) # /dev/spidev1.0
+        self.spi.open(1, 0)
         self.spi.max_speed_hz = 4000000
         self.spi.mode = 0
 
-        # Initialize GPIO
         self.chip0 = gpiod.Chip('/dev/gpiochip0')
         self.chip1 = gpiod.Chip('/dev/gpiochip1')
         
@@ -60,7 +57,7 @@ class EInkDashboard:
         self.req0.set_value(RST_PIN, Value.ACTIVE)
         time.sleep(0.2)
         self.req0.set_value(RST_PIN, Value.INACTIVE)
-        time.sleep(0.01)
+        time.sleep(0.1) # Increased wait
         self.req0.set_value(RST_PIN, Value.ACTIVE)
         time.sleep(0.2)
 
@@ -73,28 +70,35 @@ class EInkDashboard:
         self.spi.writebytes([data])
 
     def wait_until_idle(self):
+        # Most Waveshare BWR are High when Busy
+        print("Waiting for display idle...", end="", flush=True)
         while self.req0.get_value(BUSY_PIN) == Value.ACTIVE:
+            print(".", end="", flush=True)
             time.sleep(0.1)
+        print(" Done.")
 
     def init_display(self):
-        print("Initializing Display (V3 BWR)...")
+        print("Initializing Display (BWR V3/V4)...")
         self.reset()
+        
+        self.send_command(0x06) # BOOSTER_SOFT_START
+        self.send_data(0x17)
+        self.send_data(0x17)
+        self.send_data(0x17)
+        
+        self.send_command(0x04) # POWER_ON
         self.wait_until_idle()
         
-        self.send_command(0x04) # Power ON
-        self.wait_until_idle()
+        self.send_command(0x00) # PANEL_SETTING
+        self.send_data(0x8F)
         
-        self.send_command(0x00) # Panel Setting
-        self.send_data(0x0f)
-        self.send_data(0x89)
+        self.send_command(0x50) # VCOM_AND_DATA_INTERVAL_SETTING
+        self.send_data(0xF0)
         
-        self.send_command(0x61) # Resolution Setting
-        self.send_data(0x68) # 104
-        self.send_data(0x00)
-        self.send_data(0xD4) # 212
-        
-        self.send_command(0x50) # VCOM and Data Interval Setting
-        self.send_data(0x77)
+        self.send_command(0x61) # RESOLUTION_SETTING
+        self.send_data(WIDTH & 0xff)
+        self.send_data(HEIGHT >> 8)
+        self.send_data(HEIGHT & 0xff)
 
     def get_stats(self):
         current_time = time.strftime("%H:%M")
@@ -121,45 +125,45 @@ class EInkDashboard:
         }
 
     def update_display(self, black_img, red_img):
-        # Send Black Data
+        # Data Transmission 1 (Black)
         self.send_command(0x10)
         buf = self.get_buffer(black_img)
         self.spi.writebytes(buf)
             
-        # Send Red Data
+        # Data Transmission 2 (Red)
         self.send_command(0x13)
         buf = self.get_buffer(red_img)
         self.spi.writebytes(buf)
             
-        self.send_command(0x12) # Refresh
+        self.send_command(0x12) # DISPLAY_REFRESH
         self.wait_until_idle()
 
     def get_buffer(self, image):
+        # BWR displays usually expect 1 bit per pixel, MSB first
         buf = [0xFF] * (int(WIDTH / 8) * HEIGHT)
         image_monochrome = image.convert('1')
-        width, height = image_monochrome.size
         pixels = image_monochrome.load()
-        for y in range(height):
-            for x in range(width):
-                if pixels[x, y] == 0:
+        for y in range(HEIGHT):
+            for x in range(WIDTH):
+                if pixels[x, y] == 0: # Black/Red pixel (active)
                     buf[int(x / 8) + y * int(WIDTH / 8)] &= ~(0x80 >> (x % 8))
         return buf
 
     def render(self):
         stats = self.get_stats()
-        # Create portrait images (104x212)
         black_img = Image.new('1', (WIDTH, HEIGHT), 255)
         red_img = Image.new('1', (WIDTH, HEIGHT), 255)
         draw_black = ImageDraw.Draw(black_img)
         draw_red = ImageDraw.Draw(red_img)
         
-        # Dashboard Layout
+        # Red Header
         draw_red.rectangle((0, 0, WIDTH, 30), fill=0)
         draw_red.text((10, 8), "ZEROBOT", fill=255)
         
-        draw_black.text((10, 40), stats['time'], fill=0)
-        draw_black.text((10, 60), stats['ip'], fill=0)
-        draw_black.text((10, 80), stats['cpu'], fill=0)
+        # Black Stats
+        draw_black.text((10, 40), f"TIME: {stats['time']}", fill=0)
+        draw_black.text((10, 60), f"IP  : {stats['ip']}", fill=0)
+        draw_black.text((10, 80), f"CPU : {stats['cpu']}", fill=0)
         draw_black.text((10, 100), stats['temp'], fill=0)
         draw_black.text((10, 120), stats['npu'], fill=0)
         
