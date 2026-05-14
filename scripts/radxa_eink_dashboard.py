@@ -221,7 +221,7 @@ class EInkDashboard:
         try:
             while True:
                 self.render()
-                time.sleep(300) 
+                time.sleep(60) # Refresh every minute
         except KeyboardInterrupt:
             print("Dashboard stopped.")
         finally:
