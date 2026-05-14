@@ -117,24 +117,43 @@ class EInkDashboard:
 
     def get_stats(self):
         current_time = time.strftime("%H:%M")
+        
+        # Wi-Fi SSID
+        try:
+            ssid = subprocess.check_output("nmcli -t -f active,ssid dev wifi | grep '^yes' | cut -d: -f2", shell=True).decode("utf-8").strip()
+            if not ssid: ssid = "Offline"
+        except:
+            ssid = "Unknown"
+            
+        # IP
         try:
             s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
             s.connect(("8.8.8.8", 80))
             ip = s.getsockname()[0]
             s.close()
         except:
-            ip = "No Network"
+            ip = "No IP"
+            
+        # CPU & RAM
         cpu_usage = psutil.cpu_percent()
+        ram = psutil.virtual_memory()
+        ram_usage = f"RAM: {ram.percent}%"
+        
+        # Temp
         try:
             with open("/sys/class/thermal/thermal_zone0/temp", "r") as f:
                 temp = float(f.read()) / 1000.0
         except:
             temp = 0.0
+            
         npu_status = "NPU: OK" if os.path.exists("/dev/vipcore") else "NPU: OFF"
+        
         return {
             "time": current_time,
+            "ssid": ssid,
             "ip": ip,
             "cpu": f"CPU: {cpu_usage}%",
+            "ram": ram_usage,
             "temp": f"T: {temp:.1f}C",
             "npu": npu_status
         }
@@ -162,35 +181,39 @@ class EInkDashboard:
         self.wait_until_idle()
 
     def get_buffer(self, image):
-        # Rotate image if it's landscape to match portrait RAM
         if image.width > image.height:
             image = image.rotate(90, expand=True)
-            
         buf = bytearray(image.convert('1').tobytes('raw'))
         return list(buf)
 
     def render(self):
         stats = self.get_stats()
-        # Create portrait images (122x250)
         black_img = Image.new('1', (WIDTH, HEIGHT), 255)
         red_img = Image.new('1', (WIDTH, HEIGHT), 255)
         draw_black = ImageDraw.Draw(black_img)
         draw_red = ImageDraw.Draw(red_img)
         
         # Dashboard Layout
-        draw_red.rectangle((0, 0, WIDTH, 40), fill=0)
-        draw_red.text((20, 15), "ZEROBOT", fill=255)
+        # Red Header with Time
+        draw_red.rectangle((0, 0, WIDTH, 35), fill=0)
+        draw_red.text((15, 12), f"ZEROBOT | {stats['time']}", fill=255)
         
-        draw_black.text((20, 60), f"TIME: {stats['time']}", fill=0)
-        draw_black.text((20, 85), f"IP: {stats['ip']}", fill=0)
-        draw_black.text((20, 110), stats['cpu'], fill=0)
-        draw_black.text((20, 135), stats['temp'], fill=0)
-        draw_black.text((20, 160), stats['npu'], fill=0)
+        # Network Info
+        draw_black.text((10, 50), f"WiFi: {stats['ssid']}", fill=0)
+        draw_black.text((10, 65), f"IP: {stats['ip']}", fill=0)
         
+        # System Stats
+        draw_black.line((10, 85, WIDTH-10, 85), fill=0)
+        draw_black.text((15, 100), stats['cpu'], fill=0)
+        draw_black.text((15, 115), stats['ram'], fill=0)
+        draw_black.text((15, 130), stats['temp'], fill=0)
+        draw_black.text((15, 145), stats['npu'], fill=0)
+        
+        # Footer
         draw_black.line((10, 230, WIDTH-10, 230), fill=0)
-        draw_black.text((20, 235), "iammhk/zerobot", fill=0)
+        draw_black.text((15, 235), "iammhk/zerobot", fill=0)
 
-        print(f"Updating Display: {stats['time']}")
+        print(f"Updating Display: {stats['time']} | {stats['ssid']} | {stats['ram']}")
         self.update_display(black_img, red_img)
         
     def start(self):
