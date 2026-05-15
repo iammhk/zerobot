@@ -54,14 +54,18 @@ def main():
                         
                         # Some remotes use KEY_SLEEP or KEY_WAKEUP for the power button
                         if keycode in ["KEY_POWER", "KEY_SLEEP", "KEY_WAKEUP"]:
-                            if not is_app_running():
-                                print("🚀 Power key pressed! Launching sesame_remote in tmux session 'zerobot'...")
-                                # We use tmux so the TUI has a persistent session to live in
-                                # Use uv run to ensure the correct environment is used
-                                cmd = ["tmux", "new-session", "-d", "-s", "zerobot", f"/home/iammhk/.local/bin/uv run {sesame_path} --bt"]
-                                subprocess.Popen(cmd)
-                            else:
-                                print("ℹ️ App already running. Ignoring Power key.")
+                            print(f"🚀 Power key pressed! Restarting sesame_remote in tmux session 'zerobot'...")
+                            # Kill any existing sessions/processes first
+                            subprocess.run(["pkill", "-f", "sesame_remote.py"], check=False)
+                            subprocess.run(["tmux", "kill-session", "-t", "zerobot"], check=False)
+                            time.sleep(0.5)
+                            
+                            # We use tmux so the TUI has a persistent session to live in
+                            # Use uv run to ensure the correct environment is used
+                            # cd to the project root first
+                            project_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+                            cmd = ["tmux", "new-session", "-d", "-s", "zerobot", f"cd {project_root} && /home/iammhk/.local/bin/uv run scripts/sesame_remote.py --bt"]
+                            subprocess.Popen(cmd, shell=True)
         except (IOError, EOFError):
             print("⚠️ Remote disconnected. Searching again...")
             time.sleep(2)

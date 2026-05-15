@@ -7,6 +7,7 @@ import importlib
 import random
 import threading
 import subprocess
+import atexit
 from blessed import Terminal
 
 # Add root directory to path for zerobot imports
@@ -43,7 +44,8 @@ STATE = {
     "last_input_time": time.time(),
     "tilt_level": 0,
     "last_idle_mvmt": 0,
-    "powersaving": False
+    "powersaving": False,
+    "last_remote_search": 0
 }
 
 # Cache for movement modules
@@ -67,9 +69,6 @@ def find_remote():
             HISTORY.append("No input devices found")
             return None
         
-        # Log all devices found for debugging
-        dev_names = [d.name for d in devices]
-        HISTORY.append(f"Found {len(devices)} devs: {', '.join(dev_names[:3])}")
         
         for keyword in REMOTE_NAME_KEYWORDS:
             for device in devices:
@@ -78,6 +77,27 @@ def find_remote():
     except Exception as e:
         HISTORY.append(f"Remote Search Error: {e}")
     return None
+
+LOCK_FILE = "/tmp/sesame.lock"
+
+def kill_other_instances():
+    """Kills any other running instances of sesame_remote.py using a lock file."""
+    try:
+        if os.path.exists(LOCK_FILE):
+            with open(LOCK_FILE, 'r') as f:
+                old_pid = int(f.read().strip())
+            if old_pid != os.getpid():
+                try:
+                    os.kill(old_pid, 15)
+                    time.sleep(0.2)
+                    os.kill(old_pid, 9)
+                except OSError: pass
+        
+        # Write new PID
+        with open(LOCK_FILE, 'w') as f:
+            f.write(str(os.getpid()))
+    except Exception:
+        pass
 
 def set_angle(channel, angle):
     """Wrapper for servo.set_angle that updates UI state."""
@@ -118,6 +138,18 @@ def set_low_power(enabled):
             draw_static_ui() # Refresh screen after HDMI wake
     except Exception as e:
         HISTORY.append(f"Power Error: {e}")
+
+def cleanup():
+    """Ensures motors are released and display is off on exit."""
+    try:
+        servo.release_all()
+        if hasattr(expr.eyes.disp, 'set_backlight'):
+            expr.eyes.disp.set_backlight(False)
+    except:
+        pass
+
+# Register cleanup
+atexit.register(cleanup)
 
 def run_mvmt(name, kwargs=None):
     """Executes a movement by importing its module for zero-latency startup."""
@@ -280,6 +312,9 @@ def main():
     parser.add_argument("--bt", action="store_true", help="Auto-enable Bluetooth Remote")
     args = parser.parse_args()
 
+    # 0. Ensure single instance
+    kill_other_instances()
+
     # 1. Pre-initialization Prompt
     if not args.bt:
         print(term.clear + term.home)
@@ -317,6 +352,14 @@ def main():
                 STATE["last_input_time"] = time.time()
                 if not handle_input(str(key)): break
             
+            # Reconnect Remote if lost (every 5.0 seconds)
+            if not STATE["remote_dev"] and time.time() - STATE["last_remote_search"] > 5.0:
+                STATE["last_remote_search"] = time.time()
+                STATE["remote_dev"] = find_remote()
+                if STATE["remote_dev"]:
+                    HISTORY.append(f"Remote Linked: {STATE['remote_dev'].name}")
+                    STATE["dirty"] = True
+
             if STATE["remote_dev"]:
                 try:
                     for event in STATE["remote_dev"].read():
@@ -334,9 +377,9 @@ def main():
                                     if not handle_input(BT_KEY_MAP[key_name]):
                                         return # Exit main()
                 except (BlockingIOError, OSError): pass
-                except (IOError, EOFError):
+                except (IOError, EOFError, Exception) as e:
                     STATE["remote_dev"] = None
-                    HISTORY.append("BT Remote Disconnected")
+                    HISTORY.append(f"Remote Lost: {type(e).__name__}")
                     STATE["dirty"] = True
             
             if not key:
